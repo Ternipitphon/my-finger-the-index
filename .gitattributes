@@ -1,0 +1,2 @@
+downloads/**/*.part* -text -diff
+downloads/**/*.zip -text -diff
