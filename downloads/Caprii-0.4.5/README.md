@@ -15,3 +15,17 @@
 ตัวติดตั้งไม่มีลายเซ็นผู้พัฒนา และยังไม่ได้ทดสอบติดตั้ง/ควบคุม input บน Windows จริง ดู [ผลทดสอบและข้อจำกัด](VALIDATION.md) ก่อนใช้งาน
 
 `Caprii-Agent-0.4.5-source.zip` คือ source พร้อมชุดทดสอบ ไม่จำเป็นต้องแตก source หากใช้ตัวติดตั้ง
+
+## ถ้าขึ้น Cannot find path Caprii-Setup.part01
+
+ไฟล์รวมตัวติดตั้งต้องอยู่กับทั้ง 3 ส่วนในโฟลเดอร์เดียวกัน:
+
+```text
+Caprii-0.4.5/
+  INSTALL-CAPRII.cmd
+  Caprii-Setup.part01   (60 MB)
+  Caprii-Setup.part02   (60 MB)
+  Caprii-Setup.part03   (ประมาณ 37 MB)
+```
+
+หากไม่ครบ ให้ดาวน์โหลด ZIP ทั้ง repository จากลิงก์ด้านบน คลิกขวา ZIP → Extract All / แตกไฟล์ทั้งหมด แล้วเปิด CMD จากโฟลเดอร์ที่แตกแล้ว ไม่ใช่จากหน้าต่าง ZIP และไม่ใช่จาก ZIP source code ที่อยู่ข้างในอีกที
