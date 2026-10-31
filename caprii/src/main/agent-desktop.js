@@ -8,6 +8,12 @@ const { number, text } = require('./agent-registry');
 const KEYS = ['enter', 'escape', 'tab', 'backspace', 'ctrl+a', 'ctrl+s', 'ctrl+c', 'ctrl+v', 'alt+tab', 'ctrl+z', 'ctrl+l', 'ctrl+f', 'ctrl+w', 'ctrl+tab', 'ctrl+shift+tab', 'alt+f4', 'up', 'down', 'left', 'right', 'home', 'end', 'pageup', 'pagedown', 'delete', 'space'];
 function validateDesktop(action, displays) {
   if (!['state', 'focus', 'release'].includes(action.kind) && !/^\d{1,18}$/.test(String(action.targetHandle))) throw new Error('Select an observed target window handle before input');
+  if(action.replace!==undefined && typeof action.replace!=='boolean')throw Error('replace must be boolean');
+  if (action.kind==='type' && (action.x!==undefined || action.y!==undefined)) {
+    number(action.x,'input field x',-100000,100000);number(action.y,'input field y',-100000,100000);
+    if(!displays.some(d=>action.x>=d.bounds.x && action.y>=d.bounds.y && action.x<d.bounds.x+d.bounds.width && action.y<d.bounds.y+d.bounds.height))throw Error('Input field is outside the desktop');
+    if(action.allowOutsideWindow)throw Error('Typing must remain inside the selected window');
+  }
   if (action.allowOutsideWindow !== undefined && typeof action.allowOutsideWindow !== 'boolean') throw new Error('allowOutsideWindow must be boolean');
   if (['move', 'click', 'doubleclick', 'rightclick', 'drag'].includes(action.kind)) {
     number(action.x, 'x', -100000, 100000); number(action.y, 'y', -100000, 100000);
@@ -31,7 +37,7 @@ function createDesktop({ desktopCapturer, screen, platform = process.platform, r
     // This avoids relying on the user's policy for running unsigned .ps1 files.
     const helper = await fs.readFile(path.join(__dirname, 'agent-desktop.ps1'), 'utf8');
     const result = await run('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', helper], {
-      input: JSON.stringify(['move','click','doubleclick','rightclick','drag'].includes(action.kind) && screen.dipToScreenPoint ? {
+      input: JSON.stringify((['move','click','doubleclick','rightclick','drag'].includes(action.kind)||(action.kind==='type'&&action.x!==undefined)) && screen.dipToScreenPoint ? {
         ...action, ...screen.dipToScreenPoint({ x: action.x, y: action.y }),
         ...(action.kind === 'drag' ? (() => { const p=screen.dipToScreenPoint({x:action.toX,y:action.toY});return {toX:p.x,toY:p.y}; })() : {}),
       } : action), signal, timeoutMs: 10000,
@@ -73,7 +79,7 @@ function createDesktop({ desktopCapturer, screen, platform = process.platform, r
     const handle = action.kind === 'focus' ? action.handle : action.targetHandle;
     const window = lastState?.windows.find(w => w.handle === String(handle));
     if (!window) throw new Error('Inspect desktop.windows and choose a current window first');
-    if (['move','click','doubleclick','rightclick','drag'].includes(action.kind) && !action.allowOutsideWindow && !(action.x >= window.x && action.y >= window.y && action.x < window.x + window.width && action.y < window.y + window.height)) throw new Error('Click is outside the selected window');
+    if ((['move','click','doubleclick','rightclick','drag'].includes(action.kind)||(action.kind==='type'&&action.x!==undefined)) && !action.allowOutsideWindow && !(action.x >= window.x && action.y >= window.y && action.x < window.x + window.width && action.y < window.y + window.height)) throw new Error('Click is outside the selected window');
     if (action.kind === 'drag' && !action.allowOutsideWindow && !(action.toX >= window.x && action.toY >= window.y && action.toX < window.x+window.width && action.toY < window.y+window.height)) throw new Error('Drag destination is outside the selected window; explicit confirmation is required');
     return window;
   }

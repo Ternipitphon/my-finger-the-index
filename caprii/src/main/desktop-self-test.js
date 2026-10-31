@@ -33,6 +33,10 @@ async function desktopSelfTest({ BrowserWindow, screen, desktopCapturer, dialog,
     if(await win.webContents.executeJavaScript('document.getElementById("field").value')!=='12345')throw Error('Ctrl+A/replacement did not reach the fixture');
     record('เลือกข้อความแล้วแทนที่',true);
     const point=async id=>{const r=await win.webContents.executeJavaScript(`(()=>{const r=document.getElementById(${JSON.stringify(id)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);const b=win.getContentBounds();return{x:Math.round(b.x+r.x),y:Math.round(b.y+r.y)};};
+    const field=await point('field');
+    await desktop.act({kind:'type',targetHandle:handle,...field,replace:true,text:'2*7+9/9'},combined);
+    if(await win.webContents.executeJavaScript('document.getElementById("field").value')!=='2*7+9/9')throw Error('Click-and-type did not reach the math field');
+    record('คลิกช่องและพิมพ์นิพจน์เลข',true);
     const click=await point('click');
     for(const [kind,key] of [['click','click'],['doubleclick','double'],['rightclick','right']]){
       await desktop.act({kind,targetHandle:handle,...click},combined);

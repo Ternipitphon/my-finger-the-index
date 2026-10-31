@@ -33,8 +33,12 @@ public class CapriiDesktop {
   [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr handle, IntPtr processId);
   [DllImport("user32.dll")] public static extern bool AttachThreadInput(uint from, uint to, bool attach);
   [DllImport("user32.dll")] public static extern bool BringWindowToTop(IntPtr handle);
+  [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr handle);
+  [DllImport("user32.dll")] public static extern IntPtr GetKeyboardLayout(uint thread);
+  [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern short VkKeyScanEx(char character, IntPtr layout);
+  [DllImport("user32.dll")] public static extern uint MapVirtualKeyEx(uint code, uint kind, IntPtr layout);
   public static bool Focus(IntPtr handle) {
-    ShowWindow(handle, 9);
+    if (IsIconic(handle)) ShowWindow(handle, 9);
     uint current = GetCurrentThreadId();
     uint foreground = GetWindowThreadProcessId(GetForegroundWindow(), IntPtr.Zero);
     bool attached = current != foreground && AttachThreadInput(current, foreground, true);
@@ -44,9 +48,23 @@ public class CapriiDesktop {
   }
   public static void TypeText(string text) {
     foreach (char c in text) {
-      INPUT down = new INPUT(); down.type = 1; down.U.ki.wScan = c; down.U.ki.dwFlags = 4;
-      INPUT up = down; up.U.ki.dwFlags = 6;
-      if (SendInput(2, new INPUT[] { down, up }, Marshal.SizeOf(typeof(INPUT))) != 2) throw new Exception("Windows blocked text input");
+      // Real key events for printable ASCII: custom web keypads often ignore VK_PACKET.
+      var layout=GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(),IntPtr.Zero));
+      short mapped = (c >= 32 && c <= 126) ? VkKeyScanEx(c,layout) : (short)-1;
+      int modifiers=(mapped >> 8) & 255;
+      uint scan=mapped==-1 ? 0u : MapVirtualKeyEx((uint)(mapped & 255),0,layout);
+      bool physical=mapped!=-1 && scan!=0 && (modifiers & 6)==0;
+      INPUT down = new INPUT(); down.type = 1;
+      down.U.ki.wVk=0;
+      down.U.ki.wScan=physical ? (ushort)(scan & 255) : (ushort)c;
+      down.U.ki.dwFlags=physical ? (8u | ((scan & 0xff00)!=0 ? 1u : 0u)) : 4u;
+      INPUT up = down; up.U.ki.dwFlags |= 2;
+      bool shift=physical && (modifiers & 1)!=0;
+      try {
+        if(shift)keybd_event(16,0,0,UIntPtr.Zero);
+        if (SendInput(2, new INPUT[] { down, up }, Marshal.SizeOf(typeof(INPUT))) != 2) throw new Exception("Windows blocked typing. Check the target window and app privilege level.");
+      } finally { if(shift)keybd_event(16,0,2,UIntPtr.Zero); }
+
     }
   }
   [DllImport("user32.dll", EntryPoint="GetWindowThreadProcessId")] public static extern uint WindowProcessId(IntPtr handle, out uint processId);
@@ -82,7 +100,6 @@ if ($request.expectedProcessId) {
 if ($request.targetHandle -and $request.kind -ne 'focus') {
   $target = [IntPtr]([long]$request.targetHandle)
   if (-not [CapriiDesktop]::IsWindow($target)) { throw 'Target window no longer exists' }
-  [void][CapriiDesktop]::ShowWindow($target, 9)
   if (-not [CapriiDesktop]::Focus($target)) { throw 'Windows refused to focus the target; no input was sent' }
   Start-Sleep -Milliseconds 150
   if ([CapriiDesktop]::GetForegroundWindow() -ne $target) { throw 'Target window lost focus; no input was sent' }
@@ -92,7 +109,6 @@ switch ($request.kind) {
   'focus' {
     $handle = [IntPtr]([long]$request.handle)
     if (-not [CapriiDesktop]::IsWindow($handle)) { throw 'Window no longer exists' }
-    [void][CapriiDesktop]::ShowWindow($handle, 9)
     if (-not [CapriiDesktop]::Focus($handle)) { throw 'Windows refused to focus this window' }
   }
   { $_ -in @('move','click','doubleclick','rightclick','drag') } {
@@ -130,7 +146,26 @@ switch ($request.kind) {
     [CapriiDesktop]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
     [CapriiDesktop]::mouse_event(16, 0, 0, 0, [UIntPtr]::Zero)
   }
-  'type' { [CapriiDesktop]::TypeText([string]$request.text) }
+  'type' {
+    if ($null -ne $request.x -and $null -ne $request.y) {
+      $rect = New-Object CapriiDesktop+RECT
+      if (-not [CapriiDesktop]::GetWindowRect([IntPtr]([long]$request.targetHandle),[ref]$rect)) { throw 'Cannot inspect input window' }
+      if ($request.x -lt $rect.Left -or $request.x -ge $rect.Right -or $request.y -lt $rect.Top -or $request.y -ge $rect.Bottom) { throw 'Input field moved outside the approved window; inspect again' }
+      if (-not [CapriiDesktop]::SetCursorPos([int]$request.x,[int]$request.y)) { throw 'Cannot focus the input field' }
+      [CapriiDesktop]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
+      [CapriiDesktop]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+      Start-Sleep -Milliseconds 120
+    }
+    if ([CapriiDesktop]::GetForegroundWindow() -ne $target) { throw 'Input window lost focus; no text was sent' }
+    if ($request.replace) {
+      try {
+        [CapriiDesktop]::keybd_event(17,0,0,[UIntPtr]::Zero)
+        [CapriiDesktop]::keybd_event(65,0,0,[UIntPtr]::Zero)
+        [CapriiDesktop]::keybd_event(65,0,2,[UIntPtr]::Zero)
+      } finally { [CapriiDesktop]::keybd_event(17,0,2,[UIntPtr]::Zero) }
+    }
+    [CapriiDesktop]::TypeText([string]$request.text)
+  }
   'key' {
     $keys = @{
       'enter' = @(13); 'escape' = @(27); 'tab' = @(9); 'backspace' = @(8);

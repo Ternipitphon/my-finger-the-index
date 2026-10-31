@@ -1,0 +1,22 @@
+{
+  "installer": "Caprii-Agent-Setup-0.4.11.exe",
+  "bytes": 164315667,
+  "sha256": "8DD9C2908ADB9FE55387CBDECFB381C1942FE30AB5AC2D8A831789DC65234192",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "5EF1F620921D8E337679A64056AF9794C3E06A8C1EF419E25F32F4B52E3A198E"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "8BF1911AB0725BD64EE6B14155BBFB574EEB443F5314D5410BC7A3765CA7101D"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 38486547,
+      "sha256": "B9E2D22B4FC784FF919275C119CAAECB2B12509A31A5E139AB2F1699D80D5AC6"
+    }
+  ]
+}

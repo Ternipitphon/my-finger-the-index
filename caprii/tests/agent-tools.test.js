@@ -57,3 +57,14 @@ test('math answer fields reject guessed text until a calculator tool verifies it
  await tools.execute({tool:'math.evaluate',expression:'14+27'},c);
  await tools.execute({tool:'browser.type',id:0,generation:'1',value:'41'},c);assert.equal(typed,1);
 });
+test('atomic typing validates both field coordinates and keeps typing inside the selected window',()=>{
+ const displays=screen.getAllDisplays();
+ validateDesktop({kind:'type',targetHandle:'10',x:0,y:10,replace:true,text:'2*7+9/9'},displays);
+ for(const a of [{x:0},{y:10},{x:1000,y:10},{x:0,y:10,allowOutsideWindow:true},{replace:'yes'}])assert.throws(()=>validateDesktop({kind:'type',targetHandle:'10',text:'15',...a},displays));
+});
+test('atomic typing passes DPI-adjusted field coordinates and literal math text as JSON',async()=>{
+ const {createDesktop}=require('../src/main/agent-desktop');let input;
+ const desktop=createDesktop({platform:'win32',screen:{...screen,dipToScreenPoint:p=>({x:p.x*2,y:p.y*2})},desktopCapturer:{},run:async(file,args,options)=>{input=JSON.parse(options.input);return{passed:true,stdout:JSON.stringify({foreground:'10',cursor:{x:0,y:0},windows:[]})};}});
+ await desktop.state({kind:'type',targetHandle:'10',x:0,y:10,replace:true,text:'2*7+9/9'},AbortSignal.timeout(1000));
+ assert.deepEqual(input,{kind:'type',targetHandle:'10',x:0,y:20,replace:true,text:'2*7+9/9'});
+});

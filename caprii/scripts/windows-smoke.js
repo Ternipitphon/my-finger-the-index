@@ -9,12 +9,15 @@ app.whenReady().then(async()=>{
  if(process.platform!=='win32')throw Error('Windows native tests require an interactive Windows session');
  fixture=new BrowserWindow({width:600,height:400,title:'Caprii Native Input Fixture',webPreferences:{sandbox:true,nodeIntegration:false,contextIsolation:true}});
  await fixture.loadURL('data:text/html;charset=utf-8,'+encodeURIComponent('<!doctype html><title>Caprii Native Input Fixture</title><input id="field" autofocus><button id="button" onclick="document.getElementById(\'result\').textContent=\'clicked\'">Test</button><output id="result"></output>'));
- fixture.show();fixture.focus();
+ fixture.maximize();fixture.show();fixture.focus();
+ await new Promise(r=>setTimeout(r,300));
+ const originalBounds=fixture.getBounds();
  const controller=new AbortController();
  const desktop=createDesktop({screen,desktopCapturer});
  const windows=await desktop.state({kind:'state'},controller.signal);
  const target=windows.windows.find(w=>w.title==='Caprii Native Input Fixture');assert.ok(target,'fixture window must be present in the real Windows enumeration');
  await desktop.act({kind:'focus',handle:target.handle},controller.signal);
+ assert.equal(fixture.isMaximized(),true,'focusing must not restore a maximized window');assert.deepEqual(fixture.getBounds(),originalBounds);
  await fixture.webContents.executeJavaScript('document.getElementById("field").focus()');
  const typed=await desktop.act({kind:'type',targetHandle:target.handle,text:'สวัสดี Caprii 42'},controller.signal);
  assert.match(typed.image,/^data:image\/png;base64,/);
@@ -26,5 +29,11 @@ app.whenReady().then(async()=>{
  const content=fixture.getContentBounds();
  await desktop.act({kind:'click',targetHandle:target.handle,x:Math.round(content.x+button.x),y:Math.round(content.y+button.y)},controller.signal);
  assert.equal(await fixture.webContents.executeJavaScript('document.getElementById("result").textContent'),'clicked');
+ await fixture.webContents.executeJavaScript('window.keys=[];document.addEventListener("keydown",e=>window.keys.push({key:e.key,code:e.code}));document.getElementById("button").focus()');
+ const field=await fixture.webContents.executeJavaScript('(()=>{const r=document.getElementById("field").getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()');
+ const b=fixture.getContentBounds();
+ await desktop.act({kind:'type',targetHandle:target.handle,x:Math.round(b.x+field.x),y:Math.round(b.y+field.y),replace:true,text:'2*7+9/9'},controller.signal);
+ assert.equal(await fixture.webContents.executeJavaScript('document.getElementById("field").value'),'2*7+9/9');
+ assert.ok(await fixture.webContents.executeJavaScript('window.keys.some(k=>k.key==="2"&&k.code!=="")'),'math text must generate real key events for custom game keypads');
  console.log('PASS: real Windows window enumeration/focus, Thai Unicode typing, Ctrl+A, pointer click, and screenshots');
 }).then(()=>{clearTimeout(timer);fixture?.destroy();app.quit();}).catch(err=>{console.error(err);clearTimeout(timer);fixture?.destroy();app.exit(1);});
