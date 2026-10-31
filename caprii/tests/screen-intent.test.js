@@ -13,3 +13,8 @@ test('ordinary chat and screen-sharing refusal never start a screen action',asyn
 test('math question about the screen invokes agent calculation, not image-only narration',async()=>{
  const route=await intent();assert.equal(route('ดูจอแล้วตอบมาว่าข้อนี้ตอบไร'),'agent');
 });
+
+test('page-context math requests need no explicit look verb and refusals remain blocked',async()=>{
+ const route=await intent();for(const text of ['ทำโจทที่อยู่บนหน้าให้หน่อย','ทำโจทย์บนหน้าจอให้หน่อย','ช่วยทำข้อบนหน้าเว็บ'])assert.equal(route(text),'agent',text);
+ for(const text of ['ไม่อนุญาตให้ดูจอแล้วกรอกคำตอบ','ไม่ต้องทำโจทย์บนหน้าจอ','อย่ากรอกคำตอบบนหน้าเว็บ','ห้ามคลิกบนหน้าจอ','do not solve the puzzle on screen','หน้าเว็บนี้สวยดี'])assert.equal(route(text),null,text);
+});

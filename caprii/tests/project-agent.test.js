@@ -89,3 +89,12 @@ test('number puzzle failure is reported from actual solver evidence and cannot c
  const r=await runProjectAgent({root,goal:'แก้โจทย์นี้',allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions.shift())});
  assert.equal(r.verified,false);assert.match(r.summary,/ไม่พบคำตอบ/);assert.equal(r.checks[0].passed,false);
 });
+
+test('informal screen puzzle request retains the verified-math guard',async t=>{
+ const root=await fixture(t);const {ToolRegistry}=require('../src/main/agent-registry');const {allowMathText}=require('../src/main/agent-math');
+ for(const goal of ['ทำโจทที่อยู่บนหน้าให้หน่อย','ช่วยทำข้อที่อยู่บนหน้านี้ให้หน่อย']){
+  let checked=false;const tools=new ToolRegistry().add('probe',{description:{},validate(){},run:async(a,c)=>{assert.equal(c.mathTask,true);assert.throws(()=>allowMathText(c,'15'));checked=true;return{};}});
+  const actions=[{tool:'probe'},{tool:'finish',summary:'ไม่ได้กรอกคำตอบ'}];
+  await runProjectAgent({root,goal,tools,allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions.shift())});assert.equal(checked,true);
+ }
+});

@@ -23,3 +23,12 @@ test('plain Thai mouse instruction starts the agent without slash prefix',async(
  const chat=new Chat({capri:{pulse(){}},panel:{setChatBusy(){},setActions(){},chatTurn(){},stream(){}},voice:{},brain:{},host:{onChatDelta(){},agentRun:async()=>{called=true;return{ok:true,text:'started'};}}});
  chat.open=true;await chat.send('คลิกปุ่มส่งบนหน้าจอ');assert.equal(called,true);
 });
+
+test('math request from the screenshot and informal spelling start the actual agent IPC',async()=>{
+ const {Chat}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/chat.js')));
+ for(const text of ['ทำโจทที่อยู่บนหน้าให้หน่อย','ทำโจทย์ที่อยู่บนหน้าให้หน่อย','ช่วยทำโจทยที่อยู่บนหน้าเว็บให้ที','ช่วยทำข้อที่อยู่บนหน้านี้ให้หน่อย']){
+  let goal;
+  const chat=new Chat({capri:{pulse(){}},panel:{setChatBusy(){},setActions(){},chatTurn(){},stream(){}},voice:{},brain:{},host:{onChatDelta(){},agentRun:async r=>{goal=r.goal;return{ok:true,text:'started'};},chatSend(){throw Error('Screen request must not become text-only chat');}}});
+  chat.open=true;await chat.send(text);assert.equal(goal,text);
+ }
+});

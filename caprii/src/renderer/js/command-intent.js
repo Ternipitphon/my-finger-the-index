@@ -15,9 +15,9 @@ export function siteCommand(text) {
   try { const url=new URL(target); if(url.protocol==='https:'&&!url.username&&!url.password)return{name:url.hostname,url:url.href}; } catch {}
   return null;
 }
-export function refusedCommand(text) { return typeof text === 'string' && /^(?:(?:ช่วย|กรุณา)\s*)?(?:(?:อย่า|ห้าม|ไม่ต้อง|ไม่)\s*(?:เปิด|เข้า|คลิก|กด|ลาก|พิมพ์|กรอก|ดู|มอง)|(?:do not|don't)\s+(?:open|click|drag|type|fill|look))/i.test(normalized(text)); }
+export function refusedCommand(text) { return typeof text === 'string' && /^(?:(?:ช่วย|กรุณา)\s*)?(?:(?:อย่า|ห้าม|ไม่ต้อง|ไม่)\s*(?:เปิด|เข้า|คลิก|กด|ลาก|พิมพ์|กรอก|ดู|มอง|ทำ|แก้|คำนวณ|ตอบ)|(?:do not|don't)\s+(?:open|click|drag|type|fill|look|solve|calculate))/i.test(normalized(text)); }
 export function actionCommand(text) {
  if(typeof text!=='string'||refusedCommand(text))return false;
  if (/^(?:ข้อนี้|โจทย์นี้).*(?:ตอบ|ทำ|คำนวณ)/i.test(normalized(text))) return true;
- return /^(?:(?:ช่วย|กรุณา)\s*)?(?:ใช้เมาส์|เอาเมาส์|use the mouse|คลิก|ดับเบิลคลิก|คลิกขวา|ลาก|เลื่อน|ขยับเมาส์|ย้ายเมาส์|พิมพ์|กรอก|กด|เปิด|เข้าเว็บ|ค้นหาในเว็บ|คำนวณ|คิดเลข|แก้โจทย์|ทำโจทย์|calculate|solve|click|double.click|right.click|drag|scroll|type|fill|open)\s*/i.test(normalized(text));
+ return /^(?:(?:ช่วย|กรุณา)\s*)?(?:ใช้เมาส์|เอาเมาส์|use the mouse|คลิก|ดับเบิลคลิก|คลิกขวา|ลาก|เลื่อน|ขยับเมาส์|ย้ายเมาส์|พิมพ์|กรอก|กด|เปิด|เข้าเว็บ|ค้นหาในเว็บ|คำนวณ|คิดเลข|แก้โจท(?:ย์|ย)?|ทำโจท(?:ย์|ย)?|calculate|solve|click|double.click|right.click|drag|scroll|type|fill|open)\s*/i.test(normalized(text));
 }
