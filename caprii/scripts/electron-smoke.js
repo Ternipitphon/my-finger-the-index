@@ -29,13 +29,13 @@ app.whenReady().then(async()=>{
  browser=createBrowser({BrowserWindow,session});
  const tools=createAgentTools({browser});
  let turn=0;
- const result=await runProjectAgent({root,goal:'กรอกชื่อและตรวจผล',tools,signal:AbortSignal.timeout(30000),approve:async()=>true,
+ const result=await runProjectAgent({root,goal:'คำนวณ กรอกคำตอบและกดส่ง',tools,signal:AbortSignal.timeout(30000),approve:async()=>true,
   ask:async messages=>{
-   const last=messages.at(-1);const data=turn?JSON.parse(last.content).toolResult:null;
-   const actions=[()=>({tool:'browser.open',url:`http://127.0.0.1:${server.address().port}/`}),
-    ()=>({tool:'browser.type',id:data.elements.find(e=>e.tag==='input').id,generation:data.generation,value:'Caprii'}),
-    ()=>({tool:'browser.click',id:data.observed.elements.find(e=>e.tag==='button').id,generation:data.observed.generation}),
-    ()=>({tool:'browser.expect',contains:'สวัสดี Caprii'}),()=>({tool:'finish',summary:'ตรวจผลจริงสำเร็จ'})];
+   const last=messages.at(-1);let data=null;try{data=JSON.parse(last.content).toolResult;}catch{}
+   const actions=[()=>({tool:'math.evaluate',expression:'2*7+9/9'}),()=>({tool:'finish',summary:'15'}),()=>({tool:'browser.open',url:`http://127.0.0.1:${server.address().port}/`}),
+    ()=>({tool:'browser.type',id:data.elements.find(e=>e.tag==='input').id,generation:data.generation,value:'15'}),
+    ()=>({tool:'browser.click',intent:'submit',id:data.observed.elements.find(e=>e.tag==='button').id,generation:data.observed.generation}),
+    ()=>({tool:'browser.expect',contains:'สวัสดี 15'}),()=>({tool:'finish',summary:'ตรวจผลจริงสำเร็จ'})];
    return JSON.stringify(actions[turn++]());
   }});
  assert.equal(result.verified,true);assert.equal(result.checks[0].passed,true);

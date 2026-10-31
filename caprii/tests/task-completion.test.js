@@ -1,0 +1,20 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const {createCompletion}=require('../src/main/task-completion');
+test('answer delivery requires real successful input followed by submit on the same window',()=>{
+ const c=createCompletion('กรอกคำตอบบนหน้าจอแล้วกดส่ง');assert.equal(c.missing().length,2);
+ c.record({tool:'desktop.input',kind:'type',targetHandle:'1'},{});assert.equal(c.missing().length,2);
+ c.record({tool:'desktop.input',kind:'click',intent:'submit',targetHandle:'1'},{text:{inputDelivered:true}});assert.equal(c.missing().length,2);
+ c.record({tool:'desktop.input',kind:'type',targetHandle:'1'},{text:{inputDelivered:true}});assert.equal(c.missing().length,1);
+ c.record({tool:'desktop.input',kind:'key',key:'enter',targetHandle:'2'},{text:{inputDelivered:true}});assert.equal(c.missing().length,1);
+ c.record({tool:'desktop.input',kind:'key',key:'enter',targetHandle:'1'},{text:{inputDelivered:true}});assert.deepEqual(c.missing(),[]);
+});
+test('focusing a field is not filling; a new answer invalidates the previous submit',()=>{
+ const c=createCompletion('กรอกคำตอบและกดส่ง');c.record({tool:'browser.click'},{});assert.equal(c.missing().length,2);
+ c.record({tool:'browser.click',intent:'answer_key'},{});c.record({tool:'browser.click',intent:'submit'},{});assert.deepEqual(c.missing(),[]);
+ c.record({tool:'browser.type'},{});assert.equal(c.missing().length,1);
+});
+
+test('asking for an explanation without typing or submission does not create action requirements',()=>{
+ const c=createCompletion('คำนวณโจทย์บนหน้าเว็บให้ดู ไม่ต้องกรอกและไม่ต้องกดส่ง');assert.deepEqual(c.missing(),[]);
+});

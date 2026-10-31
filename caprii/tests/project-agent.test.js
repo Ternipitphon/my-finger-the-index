@@ -98,3 +98,16 @@ test('informal screen puzzle request retains the verified-math guard',async t=>{
   await runProjectAgent({root,goal,tools,allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions.shift())});assert.equal(checked,true);
  }
 });
+test('calculator-only finish is rejected and cannot claim requested typing/submission',async t=>{
+ const root=await fixture(t);const {ToolRegistry}=require('../src/main/agent-registry');let calls=0;
+ const tools=new ToolRegistry().add('desktop.input',{description:{},validate(){},run:async()=>{throw Error('must not be called by test fixture');}});
+ const r=await runProjectAgent({root,goal:'คำนวณแล้วกรอกคำตอบบนหน้าจอและกดส่ง',tools,allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(++calls===1?{tool:'math.evaluate',expression:'2*7+9/9'}:{tool:'finish',summary:'กรอกและส่งสำเร็จ'})});
+ assert.equal(calls,4);assert.equal(r.verified,false);assert.match(r.summary,/ยังไม่ได้ทำตามคำสั่ง/);assert.match(r.summary,/ยังไม่ได้ส่งคำสั่ง/);
+});
+test('early finish continues into requested native actions; title checks do not prove form submission',async t=>{
+ const root=await fixture(t);const {ToolRegistry}=require('../src/main/agent-registry');let delivered=0;
+ const tools=new ToolRegistry().add('desktop.input',{description:{},validate(){},run:async()=>{delivered++;return{text:{inputDelivered:true}};}}).add('desktop.expect',{description:{},validate(){},run:async()=>({passed:true})});
+ const actions=[{tool:'math.evaluate',expression:'2*7+9/9'},{tool:'finish',summary:'15'},{tool:'desktop.input',kind:'type',text:'15',targetHandle:'1'},{tool:'desktop.input',kind:'key',key:'enter',targetHandle:'1'},{tool:'desktop.expect'},{tool:'finish',summary:'ส่งคำสั่งแล้ว'}];
+ const r=await runProjectAgent({root,goal:'กรอกคำตอบบนหน้าจอแล้วกดส่ง',tools,allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions.shift())});
+ assert.equal(delivered,2);assert.equal(r.verified,false);assert.doesNotMatch(r.summary,/ยังไม่ได้ทำตามคำสั่ง/);assert.match(r.summary,/กดส่ง ส่งคำสั่งแล้ว/);
+});
