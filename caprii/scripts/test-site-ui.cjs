@@ -12,7 +12,7 @@ require('../src/main/main');
 electron.app.whenReady().then(async()=>{
  let overlay;
  for(let i=0;i<100;i++){overlay=electron.BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith('capri://app/'));if(overlay&&await overlay.webContents.executeJavaScript('!!window.dev').catch(()=>false))break;await new Promise(r=>setTimeout(r,100));}
- assert.ok(overlay);
+ assert.ok(overlay);assert.equal(await overlay.webContents.executeJavaScript('document.documentElement.lang'),'th');
  await new Promise(r=>setTimeout(r,2500));
  const pet=await overlay.webContents.executeJavaScript(`(()=>{const c=window.dev.capri;return {x:c.pos.x,y:c.pos.y,w:innerWidth,h:innerHeight,scale:c.scale};})()`);
  assert.ok(Math.abs(pet.x-pet.w/2)<3,JSON.stringify(pet));assert.ok(Math.abs(pet.y-(pet.h/2+210*pet.scale))<6,JSON.stringify(pet));

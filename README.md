@@ -1,11 +1,14 @@
-# my-finger-the-index
+# Caprii Desktop AI
 
-## ดาวน์โหลด Caprii Agent 0.4.12
+## ดาวน์โหลด Caprii 0.5.0
 
-[ดาวน์โหลด ZIP ทั้งหมด](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/main.zip) แล้วแตกไฟล์ เปิด `downloads/Caprii-0.4.12/INSTALL-CAPRII.cmd`
+[ดาวน์โหลด ZIP ทั้งหมด](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/main.zip) แล้วแตกไฟล์ เปิด `downloads/Caprii-0.5.0/INSTALL-CAPRII.cmd` ปิด Caprii ตัวเดิมก่อนติดตั้ง
 
-อ่าน [วิธีติดตั้งภาษาไทย](downloads/Caprii-0.4.12/README.md) ก่อนใช้งาน ตัวติดตั้งแบ่ง 3 ส่วนเพื่อให้ส่งผ่าน GitHub ได้
+รุ่นนี้เพิ่มบทพูดไทย 477 รายการ ตัวเลือกเสียงไทย การเชื่อมแท็บ Chrome ที่เลือก และการตรวจค่าช่องหลังพิมพ์ ไม่เพิ่ม Memory ข้ามงาน
 
+อ่าน [วิธีติดตั้ง](downloads/Caprii-0.5.0/README.md), [คู่มือไทย](downloads/Caprii-0.5.0/GUIDE-TH.md) และ [วิธีเชื่อม Chrome](downloads/Caprii-0.5.0/CHROME-TH.md)
+
+ซอร์สปัจจุบันอยู่ใน [caprii/](caprii/) ผ่าน 93 การทดสอบและการตรวจฟอร์มจริงบน Electron/Linux การติดตั้งและใช้ส่วนขยายใน Chrome/Windows ยังต้องตรวจบนเครื่องจริง
 
 ## เว็บทดสอบคณิตคิดเร็ว 10 ข้อ
 

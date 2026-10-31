@@ -1,6 +1,6 @@
 'use strict';
 function requirements(goal) {
- const page=/(?:หน้าจอ|ดูจอ|บนจอ|บนหน้า|หน้าเว็บ|screen|page)/i.test(goal);
+ const page=/(?:หน้าจอ|ดูจอ|บนจอ|บนหน้า|หน้าเว็บ|แท็บ|screen|page|\btab\b)/i.test(goal);
  const solvePage=page&&/(?:ทำ|แก้)โจท(?:ย์|ย)?|ทำข้อ/i.test(goal);
  const noInput=/(?:ไม่ต้อง|อย่า|ห้าม|do not|don't)\s*(?:ให้\s*)?(?:กรอก|พิมพ์|ใส่คำตอบ|เติมคำตอบ|fill|type)/i.test(goal);
  const noSubmit=/(?:ไม่ต้อง|อย่า|ห้าม|do not|don't)\s*(?:ให้\s*)?(?:กดส่ง|ส่งคำตอบ|submit)/i.test(goal);

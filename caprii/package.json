@@ -1,6 +1,6 @@
 {
   "name": "capri-desktop",
-  "version": "0.4.12",
+  "version": "0.5.0",
   "description": "Caprii: Thai desktop and project AI agent with confirmed tools, bounded chat, browser automation and Windows controls.",
   "author": "mochiiwuff",
   "repository": "github:mochiiwuff/capri-desktop",
@@ -24,7 +24,8 @@
     "test:windows": "electron scripts/windows-smoke.js",
     "check:gemini": "node scripts/check-gemini.js",
     "dist:cloud": "electron-builder --win --x64 -c.win.signAndEditExecutable=false",
-    "test:site-ui": "electron scripts/test-site-ui.cjs --dev"
+    "test:site-ui": "electron scripts/test-site-ui.cjs --dev",
+    "test:chrome-ui": "electron scripts/chrome-bridge-smoke.js"
   },
   "keywords": [
     "claude-code",
@@ -78,6 +79,12 @@
       "installerLanguages": [
         "en_US"
       ]
-    }
+    },
+    "extraResources": [
+      {
+        "from": "browser-extension",
+        "to": "browser-extension"
+      }
+    ]
   }
 }

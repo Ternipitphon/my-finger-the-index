@@ -1,3 +1,4 @@
+import { THAI_LINES } from './lines-th.js';
 // What Capri says. She's a personality construct — dozens of minds in one — so she
 // sometimes talks as "we". Slang is Night City's: choom, preem, nova, flatline.
 
@@ -1767,6 +1768,7 @@ export const LINES = {
 // The coding assistants she can watch besides Claude Code: the same lines with their name, their
 // hooks file, and what to do once her hooks are in.
 export const ASSISTANT_NAMES = { claude: 'Claude Code', codex: 'Codex', agy: 'Antigravity' };
+LINES.th=THAI_LINES;
 const OTHERS = {
   codex: {
     name: 'Codex', file: 'hooks.json', dir: '.codex',
@@ -1804,9 +1806,10 @@ const OTHERS = {
     },
   },
 };
+for(const other of Object.values(OTHERS)){other.ask.th=`ต้องการเชื่อมต่อกับ ${other.name} ไหม เมื่อเชื่อมแล้วให้เริ่มบทสนทนาใหม่`;other.after.th=`เริ่มบทสนทนาใหม่ใน ${other.name} เมื่อทำงานฉันจะแจ้งความคืบหน้า`;}
 const converted = new Map();
 export function linesFor(lang, assistant = 'claude') {
-  const base = LINES[lang] || LINES.fr;
+  const base = LINES[lang] || LINES.th;
   const other = OTHERS[assistant];
   if (!other) return base;
   const key = `${assistant}:${lang}`;

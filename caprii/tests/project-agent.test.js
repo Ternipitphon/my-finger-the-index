@@ -111,3 +111,9 @@ test('early finish continues into requested native actions; title checks do not 
  const r=await runProjectAgent({root,goal:'กรอกคำตอบบนหน้าจอแล้วกดส่ง',tools,allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions.shift())});
  assert.equal(delivered,2);assert.equal(r.verified,false);assert.doesNotMatch(r.summary,/ยังไม่ได้ทำตามคำสั่ง/);assert.match(r.summary,/กดส่ง ส่งคำสั่งแล้ว/);
 });
+test('matching a field value cannot prove a requested submission was accepted',async t=>{
+ const root=await fixture(t);const {ToolRegistry}=require('../src/main/agent-registry');
+ const tools=new ToolRegistry().add('browser.type',{description:{},validate(){},run:async()=>({performed:true})}).add('browser.click',{description:{},validate(){},run:async()=>({performed:true})}).add('browser.expect_value',{description:{},validate(){},run:async()=>({passed:true})});
+ const actions=[{tool:'browser.type',value:'15'},{tool:'browser.click',intent:'submit'},{tool:'browser.expect_value'},{tool:'finish',summary:'กรอกแล้ว'}];
+ const r=await runProjectAgent({root,goal:'กรอกคำตอบแล้วกดส่ง',tools,allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions.shift())});assert.equal(r.verified,false);
+});

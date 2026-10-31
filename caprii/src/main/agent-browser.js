@@ -1,5 +1,6 @@
 'use strict';
 const { randomUUID } = require('node:crypto');
+const createDOMBridge=require('../shared/browser-dom');
 
 function browserUrl(value) {
   const url = new URL(value);
@@ -37,19 +38,8 @@ function createBrowser({ BrowserWindow, session }) {
   async function snapshot(signal) {
     check(signal);
     const wc = current();
-    const token = String(++generation);
-    const data = await wc.executeJavaScriptInIsolatedWorld(1004, [{ code: `(() => {
-      const elements = Array.from(document.querySelectorAll('a,button,input,textarea,select,[role="button"]'))
-        .filter(el => el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0).slice(0, 80);
-      globalThis.__capriiElements = elements;
-      globalThis.__capriiGeneration = ${JSON.stringify(token)};
-      return { title: document.title, url: location.href, text: (document.body?.innerText || '').slice(0, 14000),
-        elements: elements.map((el, id) => ({ id, tag: el.tagName.toLowerCase(), type: el.type || '',
-          label: (el.getAttribute('aria-label') || el.innerText || el.placeholder || el.name || '').slice(0, 150),
-          href: el.tagName === 'A' ? el.href : undefined, disabled: !!el.disabled })) };
-    })()` }]);
-    check(signal);
-    lastSnapshot = { ...data, generation: token };
+    const data=await wc.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.__capriiDOM ??= (${createDOMBridge.toString()})();globalThis.__capriiDOM.execute('read')`}]);
+    check(signal);lastSnapshot=data;
     return lastSnapshot;
   }
   async function navigate(url, signal) {
@@ -85,24 +75,14 @@ function createBrowser({ BrowserWindow, session }) {
   async function interact(action, signal) {
     check(signal);
     const wc = current();
-    // IDs are meaningful only for the latest inspection. A navigated page invalidates them.
-    const payload = JSON.stringify({ id: action.id, generation: action.generation, kind: action.kind, value: action.value });
-    const outcome = await wc.executeJavaScriptInIsolatedWorld(1004, [{ code: `(() => {
-      const a = ${payload};
-      if (globalThis.__capriiGeneration !== a.generation) throw new Error('Inspect the page again');
-      const el = globalThis.__capriiElements?.[a.id];
-      if (!el?.isConnected || el.disabled) throw new Error('Element is no longer available');
-      if (a.kind === 'click') el.click();
-      else {
-        if (!['INPUT','TEXTAREA'].includes(el.tagName) || ['password','file','hidden'].includes(el.type)) throw new Error('This field cannot be filled by the agent');
-        const descriptor = Object.getOwnPropertyDescriptor(el.tagName === 'INPUT' ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype, 'value');
-        descriptor.set.call(el, a.value); el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-      return { performed: true };
-    })()` }]);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    check(signal);
-    return { ...outcome, observed: await snapshot(signal) };
+    const payload=JSON.stringify({id:action.id,generation:action.generation,value:action.value});
+    const outcome=await wc.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.__capriiDOM.execute(${JSON.stringify(action.kind)},${payload})`}]);
+    check(signal);lastSnapshot=outcome.observed;return outcome;
+  }
+  async function verifyField(action,signal){
+    check(signal);const wc=current(),payload=JSON.stringify({id:action.id,generation:action.generation,value:action.value});
+    const outcome=await wc.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.__capriiDOM.execute('verify',${payload})`}]);
+    check(signal);lastSnapshot=outcome.observed;return outcome;
   }
   async function capture(signal) {
     check(signal); const image = await current().capturePage(); check(signal);
@@ -113,6 +93,6 @@ function createBrowser({ BrowserWindow, session }) {
     win = null;
     await isolated.clearStorageData();
   }
-  return { navigate, snapshot, target, interact, capture, close };
+  return { navigate, snapshot, target, interact, verifyField, capture, close };
 }
 module.exports = { createBrowser, browserUrl };

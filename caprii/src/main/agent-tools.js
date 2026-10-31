@@ -22,6 +22,7 @@ function createAgentTools({ browser, desktop, screen, openExternal }) {
       run: async (a, c) => {
         const target = browser.target(a);
         if (kind === 'type') allowMathText(c, a.value);
+        if(kind==='click'&&c.mathTask&&(a.intent==='answer_key'||/^[0-9()+\-×÷*/.]$/.test(target.label))&&!c.mathEvidence?.allowed?.length)throw Error('คำนวณและตรวจคำตอบก่อนกดแป้นคำตอบ');
         if (kind === 'click' && c.mathTask && /ส่ง|submit|confirm|ยืนยัน/i.test(target.label) && !c.mathEvidence?.allowed?.length) throw new Error('Verify the math answer before submitting');
         await c.permission({ tool: a.tool, target, intent:a.intent, ...(c.mathTask ? { mathProof: c.mathEvidence } : {}), ...(kind === 'type' ? { value: a.value } : {}), note: 'Clicking can submit, purchase, delete, or send data. Check the target and approve only the action you intend.' });
         return browser.interact({ ...a, kind }, c.signal);
@@ -36,7 +37,12 @@ function createAgentTools({ browser, desktop, screen, openExternal }) {
         return { passed: observed.text.includes(a.contains), expected: a.contains, observed };
       },
     });
-    tools.add('browser.look', {
+    if(browser.verifyField)tools.add('browser.expect_value',{
+      description:{id:'field ID from latest snapshot',generation:'latest snapshot generation',value:'exact expected field value',purpose:'Read the actual field value after typing; this does NOT prove form submission'},
+      validate:a=>{number(a.id,'field ID',0,79);text(a.generation,'snapshot generation',20);text(a.value,'expected field value',4000);},
+      run:async(a,c)=>{await c.permission({tool:a.tool,target:browser.target(a),note:'Read this selected field to verify the typed answer'});return browser.verifyField(a,c.signal);},
+    });
+    if(browser.capture)tools.add('browser.look', {
       description: { purpose: 'Send a screenshot of the isolated browser to the vision model' }, validate: () => {},
       run: async (a, c) => { await c.permission({ tool: a.tool, note: 'Send the browser screenshot to the AI provider' }); return browser.capture(c.signal); },
     });

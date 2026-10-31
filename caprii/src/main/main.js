@@ -49,6 +49,7 @@ let chatErrorCode = null; // 'nokey' or 'nourl': what her setup should ask for
 // Ollama's cloud, as last seen: your account ({ name } or { signin }) and the models free with it
 let cloud = { at: 0, account: null, free: [] };
 let emergencyStopReady = false;
+const chromeBroker=require('./chrome-broker').createChromeBroker();
 let automaticActions = false; // Explicit tray opt-in; reset every app launch, never persisted.
 const chats = new Map(); // id -> AbortController of an answer being streamed
 
@@ -272,15 +273,7 @@ function demoWindow(open) {
 }
 
 // 'auto' -> the first system language Capri speaks, English otherwise.
-function resolveLang(setting) {
-  if (LANGS.includes(setting)) return setting;
-  const preferred = [...app.getPreferredSystemLanguages(), app.getSystemLocale(), app.getLocale()];
-  for (const tag of preferred) {
-    const base = String(tag || '').toLowerCase().split(/[-_]/)[0];
-    if (LANGS.includes(base)) return base;
-  }
-  return 'en';
-}
+function resolveLang(setting) { return 'th'; }
 
 // What the overlay gets: `lang` is the resolved one, `langSetting` what the user picked.
 function rendererConfig() {
@@ -325,6 +318,11 @@ function rebuildTray() {
   const menu = Menu.buildFromTemplate([
     { label: t.online(PORT), enabled: false },
     { label: 'Caprii ' + app.getVersion(), enabled: false },
+    {label:'เปิดโฟลเดอร์ส่วนขยาย Chrome',click:()=>shell.openPath(app.isPackaged?path.join(process.resourcesPath,'browser-extension'):path.join(__dirname,'../../browser-extension'))},
+    {label:'เชื่อมแท็บ Chrome…',click:async()=>{
+      try{const info=await chromeBroker.start();const selected=chromeBroker.status();const answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?'เชื่อมอยู่: '+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nรหัสใช้เฉพาะรอบที่เปิดโปรแกรม ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
+    }},
+    {label:'อ่านบทพูดด้วยเสียงไทย',type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
     { id:'caprii-auto-actions', label:'โหมดไม่ถาม: ดูจอ/คลิก/พิมพ์/เปิดเว็บ (จนปิด Caprii)', type:'checkbox', checked:automaticActions, click:item=>{
       for(const controller of chats.values())controller.abort();
       automaticActions=item.checked===true;
@@ -485,9 +483,7 @@ function rebuildTray() {
     },
     {
       label: t.lang,
-      submenu: [[t.auto, 'auto'], ...LANGS.map((lang) => [TRAY[lang].name, lang])].map(([label, lang]) => ({
-        label, type: 'radio', checked: cfg.lang === lang, click: () => updateConfig({ lang }),
-      })),
+      submenu: [{label:'ไทย — บทพูดและคำตอบ',type:'radio',checked:true,enabled:false}],
     },
     {
       label: t.startup,
@@ -594,9 +590,13 @@ async function signInToOllama() {
 // kept for next time.
 async function chatWithFallback(cfg, messages, send, signal) {
   const selected = pickModel(cfg);
+  let requests=0;
   const { text, model } = await require('./chat-runner').runChat({
     models: [selected, ...(chatModels || [])], signal, onDelta: send,
-    request: (model, onDelta, signal) => llm.chat(cfg.provider, llmConfig(cfg), { model, messages }, onDelta, signal),
+    request: async (model, onDelta, signal) => {
+      const text=await require('./thai-language').thaiResponse({messages,request:async fixed=>{if(++requests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}});
+      onDelta(text);return text;
+    },
   });
   if (model !== selected && config.load().provider === cfg.provider && config.load().chatModel === cfg.chatModel) updateConfig({ chatModel: model });
   return text;
@@ -753,7 +753,7 @@ function registerIpc() {
       const cfg = config.load();
       if (cfg.provider === 'claude') throw new Error('Project Agent requires Gemini or another chat/vision provider. Claude Code has its own agent mode.');
       task = require('./agent-window').createAgentWindow({ BrowserWindow, goal, stop: () => abort.abort() });
-      browser = require('./agent-browser').createBrowser({ BrowserWindow, session: require('electron').session });
+      browser = (chromeBroker.status().paired||chromeBroker.status().connected) ? chromeBroker.browser() : require('./agent-browser').createBrowser({ BrowserWindow, session: require('electron').session });
       const desktop = require('./agent-desktop').createDesktop({ desktopCapturer, screen, platform: emergencyStopReady ? process.platform : 'unavailable',
         beforeCapture: async () => { if (emergencyStopReady) task.hide(); await new Promise(resolve => setTimeout(resolve, 200)); },
       });
@@ -772,16 +772,16 @@ function registerIpc() {
       }});
       if (!chatModels?.length) await refreshModels();
       const result = await require('./project-agent').runProjectAgent({
-        root: projectRoot, goal, signal, tools, allowProjectFiles,
+        root: projectRoot, goal, signal, tools, allowProjectFiles, browserContext:browser.connected?browser.description():null,
         ask: async (messages, signal) => chatWithFallback(cfg, messages, () => {}, signal),
         approve: action => taskPermissions.approve(action),
         onProgress: event => {
           task.update(event);
-          if (event.status === 'running' || event.tool === 'plan') overlay?.webContents.send('chat:delta', { id, text: `ขั้นตอน ${event.step}: ${event.tool}\n` });
+          if (event.status === 'running' || event.tool === 'plan') overlay?.webContents.send('chat:delta', { id, text: `ขั้นตอน ${event.step}: ${({'desktop.look':'ดูหน้าจอ','desktop.windows':'อ่านหน้าต่าง','desktop.input':'ควบคุมหน้าจอ','browser.read':'อ่านแท็บเว็บ','browser.type':'กรอกช่องคำตอบ','browser.click':'คลิกปุ่ม','browser.expect_value':'ตรวจค่าที่กรอกจริง','browser.expect':'ตรวจผลหน้าเว็บ','math.solve':'ค้นหาคำตอบ','math.evaluate':'คำนวณ','math.verify':'ตรวจคำตอบ','plan':'วางแผน'})[event.tool]||'กำลังดำเนินการ'}\n` });
         },
       });
       task.finish({ ...result, state: result.verified ? 'done' : 'partial' });
-      return { ok: true, text: result.summary + '\nผลตรวจจริง: ' + JSON.stringify(result.checks), verified: result.verified };
+      return { ok: true, text: result.summary + '\nผลตรวจ: ผ่าน ' + result.checks.filter(c=>c.passed).length + ' จาก ' + result.checks.length + ' รายการ', verified: result.verified };
     } catch (err) {
       const error = abort.signal.aborted ? 'หยุดงานแล้ว' : signal.aborted ? 'หมดเวลางาน 5 นาที' : err.message;
       task?.finish({ state: signal.aborted ? 'stopped' : 'failed', summary: error });
@@ -1166,6 +1166,7 @@ function main() {
 
   app.on('will-quit', () => {
     for (const controller of chats.values()) controller.abort();
+    void chromeBroker.close();
     globalShortcut.unregisterAll();
     windowWatch?.stop();
   });

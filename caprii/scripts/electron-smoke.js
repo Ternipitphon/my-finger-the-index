@@ -23,7 +23,7 @@ app.whenReady().then(async()=>{
  server=http.createServer((req,res)=>{
   if(req.url==='/redirect'){res.writeHead(302,{Location:'https://example.com'});res.end();return;}
   res.setHeader('content-type','text/html; charset=utf-8');
-  res.end(`<!doctype html><html lang="th"><title>Caprii Browser Fixture</title><body><h1>แบบทดสอบ</h1><label>ชื่อ <input aria-label="ชื่อ"></label><button onclick="document.querySelector('output').textContent='สวัสดี '+document.querySelector('input').value">ยืนยัน</button><output></output><script>window.__capriiGeneration='tampered';window.__capriiElements=[];</script></body></html>`);
+  res.end(`<!doctype html><html lang="th"><title>Caprii Browser Fixture</title><body><h1>แบบทดสอบ</h1><label>ชื่อ <input aria-label="ชื่อ"></label><button onclick="document.querySelector('output').textContent='สวัสดี '+document.querySelector('input').value">ยืนยัน</button><output></output><label>แป้นคำตอบ<input id="readonly" readonly></label><button onclick="document.getElementById('readonly').value+='2'">2</button><input id="rejected" aria-label="ช่องไม่รับข้อความ" oninput="this.value=''"><input type="password" value="fixture-private-password"><script>window.__capriiGeneration='tampered';window.__capriiElements=[];</script></body></html>`);
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  browser=createBrowser({BrowserWindow,session});
@@ -40,6 +40,19 @@ app.whenReady().then(async()=>{
   }});
  assert.equal(result.verified,true);assert.equal(result.checks[0].passed,true);
  const picture=await browser.capture(AbortSignal.timeout(2000));assert.match(picture.image,/^data:image\/png;base64,/);
+ let observed=await browser.snapshot(AbortSignal.timeout(2000));
+ const field=()=>observed.elements.find(e=>e.tag==='input'&&e.label.includes('ชื่อ'));
+ let checked=await browser.verifyField({id:field().id,generation:observed.generation,value:'15'},AbortSignal.timeout(2000));assert.equal(checked.passed,true);observed=checked.observed;
+ checked=await browser.verifyField({id:field().id,generation:observed.generation,value:'16'},AbortSignal.timeout(2000));assert.equal(checked.passed,false);observed=checked.observed;
+ const readonly=observed.elements.find(e=>e.readOnly);assert.equal(readonly.editable,false);
+ await assert.rejects(browser.interact({kind:'type',id:readonly.id,generation:observed.generation,value:'2'},AbortSignal.timeout(2000)),/read-only/);
+ const key=observed.elements.find(e=>e.tag==='button'&&e.label==='2');
+ const clicked=await browser.interact({kind:'click',id:key.id,generation:observed.generation},AbortSignal.timeout(2000));observed=clicked.observed;
+ checked=await browser.verifyField({id:observed.elements.find(e=>e.readOnly).id,generation:observed.generation,value:'2'},AbortSignal.timeout(2000));assert.equal(checked.passed,true);observed=checked.observed;
+ const rejected=observed.elements.find(e=>e.label==='ช่องไม่รับข้อความ');
+ await assert.rejects(browser.interact({kind:'type',id:rejected.id,generation:observed.generation,value:'15'},AbortSignal.timeout(2000)),/ไม่เก็บข้อความ/);
+ assert.equal(observed.elements.find(e=>e.type==='password').value,undefined);
+ console.log('PASS: actual DOM field readback, wrong-value detection, readonly keypad fallback, rejected edits, and password-value redaction');
  await assert.rejects(browser.navigate(`http://127.0.0.1:${server.address().port}/redirect`,AbortSignal.timeout(5000)));
  await browser.close();
  registerAgentWindowIpc(ipcMain);

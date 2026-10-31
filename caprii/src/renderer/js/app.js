@@ -1,3 +1,4 @@
+import { ThaiSpeech } from './thai-speech.js';
 import { Capri } from './capri.js';
 import { FxLayer, GRAB_FRAMES } from './fx.js';
 import { Chip, Mask } from './chip.js';
@@ -73,6 +74,7 @@ async function boot() {
 
   const voice = new Voice();
   voice.configure(config);
+  const thaiSpeech=new ThaiSpeech();thaiSpeech.configure(config);
   host.listSounds().then((list) => list.length && voice.loadCustom(list));
 
   const panel = new Panel({
@@ -81,6 +83,7 @@ async function boot() {
     labels: linesFor(config.lang, config.assistant),
   });
 
+  panel.onSpeak=text=>thaiSpeech.speak(text);
   const capri = new Capri({
     root: document.getElementById('capri'),
     canvas: document.getElementById('sprite'),
@@ -213,7 +216,7 @@ async function boot() {
     const lines = when === 'end' ? brain.t.uplink : brain.t.gaze;
     if (!panel.visible && Math.random() < (when === 'end' ? 0.6 : 0.4)) panel.say({ kind: 'info', line: pick(lines), hold: 3800 });
   };
-  panel.onChar = (kind) => voice.play('blip', { mood: kind });
+  panel.onChar = (kind) => {if(!thaiSpeech.enabled)voice.play('blip', { mood: kind });};
   panel.onTalk = (talking) => talking && capri.perform('talk');
   capri.onMenu = () => host.openMenu();
 
@@ -593,6 +596,7 @@ async function boot() {
 
   host.onConfig((cfg) => {
     voice.configure(cfg);
+    thaiSpeech.configure(cfg);
     jealousy.enabled = cfg.jealous !== false;
     followOn = cfg.follow !== false;
     look.configure(cfg);

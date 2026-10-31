@@ -51,6 +51,7 @@ export class Panel {
     this.anchor = { x: 0, y: 0, side: 1 };
     this.view = { w: innerWidth, h: innerHeight };
     this.onChar = null;    // (mood) => void, for the voice blips
+    this.onSpeak = null;
     this.onTalk = null;    // (talking: boolean) => void
     this.suspended = false;
     this.tickerAction = null;
@@ -125,6 +126,7 @@ export class Panel {
     if (cur && this.visible) this.onDismiss?.(cur);
     cur?.onLeave?.();
     this.current = { ...msg, at: performance.now() };
+    if(msg.line)this.onSpeak?.(msg.line);
     clearTimeout(this.hideTimer);
 
     this.el.dataset.kind = msg.kind;
@@ -316,6 +318,7 @@ export class Panel {
     if (!this.current?.chat) return;
     this.streamTo = [...text];
     this.streamDone = done;
+    if(done)this.onSpeak?.(text);
     // an answer rewritten rather than added to (a reasoning block cut out, an error): from where they part
     let same = 0;
     const max = Math.min(this.streamShown, this.streamTo.length);

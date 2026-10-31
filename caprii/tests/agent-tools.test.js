@@ -68,3 +68,8 @@ test('atomic typing passes DPI-adjusted field coordinates and literal math text 
  await desktop.state({kind:'type',targetHandle:'10',x:0,y:10,replace:true,text:'2*7+9/9'},AbortSignal.timeout(1000));
  assert.deepEqual(input,{kind:'type',targetHandle:'10',x:0,y:20,replace:true,text:'2*7+9/9'});
 });
+test('math keypad clicks cannot bypass exact answer verification',async()=>{
+ let clicks=0;const browser={target:()=>({label:'2'}),interact:async()=>{clicks++;return{performed:true};}};const tools=createAgentTools({browser});const c={mathTask:true,signal:AbortSignal.timeout(1000),permission:async()=>true};
+ await assert.rejects(tools.execute({tool:'browser.click',id:0,generation:'1',intent:'answer_key'},c),/ตรวจคำตอบ/);assert.equal(clicks,0);
+ await tools.execute({tool:'math.evaluate',expression:'2*7+9/9'},c);await tools.execute({tool:'browser.click',id:0,generation:'1',intent:'answer_key'},c);assert.equal(clicks,1);
+});
