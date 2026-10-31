@@ -372,7 +372,7 @@ export class Chat {
       this.panel.setFace(face);
       this.panel.setChatBusy(false);
     };
-    if (!this.look.asked) {
+    if (!this.look.manualAutomatic && !this.look.asked) {
       const where = await this.host.lookWhere().catch(() => ({}));
       this.history.pop(); // your message comes back once you've said yes
       say(`${tl.ask} ${fmt(where.local ? tl.local : tl.online, { model: where.model || '…', service: where.provider || '' })}`, 'look');

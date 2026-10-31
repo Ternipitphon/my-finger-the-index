@@ -11,11 +11,12 @@ function scopeFor(a) {
     return 'window:'+JSON.stringify([w.handle,w.processId,w.processStart,w.title,a.displayId]);
   return null;
 }
-function createTaskPermissions({signal,prompt,now=Date.now,expiresAt=now()+300000}) {
+function createTaskPermissions({signal,prompt,now=Date.now,expiresAt=now()+300000,automatic=()=>false}) {
  const grants=new Set();let cleared=false;
  const active=()=>!cleared&&!signal.aborted&&now()<expiresAt;
  return {clear(){cleared=true;grants.clear();},async approve(action){
    if(!active())return false;
+   if(automatic() && /^(?:desktop|browser)\./.test(action.tool))return true;
    const scope=scopeFor(action);
    if(scope&&grants.has(scope))return true;
    const decision=await prompt(action,!!scope);

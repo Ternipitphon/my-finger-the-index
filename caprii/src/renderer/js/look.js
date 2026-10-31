@@ -39,10 +39,11 @@ export class Look {
     return this.brain.t.look;
   }
 
-  configure({ watchScreen, lookAsked }) {
+  configure({ watchScreen, lookAsked, automaticActions }) {
     const on = Boolean(watchScreen);
     if (on && !this.auto) this.nextAt = Date.now() + FIRST_AFTER;
     this.auto = on;
+    this.manualAutomatic=automaticActions===true;
     this.asked = Boolean(lookAsked);
   }
 
@@ -82,7 +83,7 @@ export class Look {
 
   // From her menu: one look, now.
   async once() {
-    if (!this.asked && !(await this.ask())) return;
+    if (!this.manualAutomatic && !this.asked && !(await this.ask())) return;
     this.now({ manual: true });
   }
 

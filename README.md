@@ -1,10 +1,10 @@
 # my-finger-the-index
 
-## ดาวน์โหลด Caprii Agent 0.4.11
+## ดาวน์โหลด Caprii Agent 0.4.12
 
-[ดาวน์โหลด ZIP ทั้งหมด](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/main.zip) แล้วแตกไฟล์ เปิด `downloads/Caprii-0.4.11/INSTALL-CAPRII.cmd`
+[ดาวน์โหลด ZIP ทั้งหมด](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/main.zip) แล้วแตกไฟล์ เปิด `downloads/Caprii-0.4.12/INSTALL-CAPRII.cmd`
 
-อ่าน [วิธีติดตั้งภาษาไทย](downloads/Caprii-0.4.11/README.md) ก่อนใช้งาน ตัวติดตั้งแบ่ง 3 ส่วนเพื่อให้ส่งผ่าน GitHub ได้
+อ่าน [วิธีติดตั้งภาษาไทย](downloads/Caprii-0.4.12/README.md) ก่อนใช้งาน ตัวติดตั้งแบ่ง 3 ส่วนเพื่อให้ส่งผ่าน GitHub ได้
 
 
 ## เว็บทดสอบคณิตคิดเร็ว 10 ข้อ

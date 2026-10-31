@@ -4,6 +4,7 @@ const profile=fs.mkdtempSync(path.join(os.tmpdir(),'caprii-site-ui-'));electron.
 electron.app.commandLine.appendSwitch('use-angle','swiftshader');electron.app.commandLine.appendSwitch('enable-unsafe-swiftshader');
 let opened=[],confirmations=[];electron.dialog.showMessageBox=async(_parent,options)=>{confirmations.push(options.message);if(options.message!=='เปิดเว็บไซต์ในเบราว์เซอร์?')throw Error('Unexpected dialog');return{response:1};};
 electron.shell.openExternal=async url=>{opened.push(url);};
+let latestMenu;const originalMenu=electron.Menu.buildFromTemplate;electron.Menu.buildFromTemplate=(template)=>{const menu=originalMenu.call(electron.Menu,template);if(menu.getMenuItemById('caprii-auto-actions'))latestMenu=menu;return menu;};
 const config=require('../src/main/config');config.save({provider:'gemini',chatModel:'fixture',welcomed:true,linked:true,render:'software'});
 const llm=require('../src/main/llm');llm.models=async()=>['fixture'];llm.chat=async()=>{throw Error('YouTube opening must not call the LLM');};process.env.CAPRI_PORT='49177';
 const timer=setTimeout(()=>{console.error('UI site smoke timed out');electron.app.exit(1);},30000);
@@ -20,5 +21,17 @@ electron.app.whenReady().then(async()=>{
  console.log('PASS: actual renderer starts centered; random movement exists and stops while a task is active');
  await overlay.webContents.executeJavaScript(`(async()=>{await window.dev.chat.start();await window.dev.chat.send('เปิดyoutube');})()`);
  assert.deepEqual(opened,['https://www.youtube.com/']);assert.deepEqual(confirmations,['เปิดเว็บไซต์ในเบราว์เซอร์?']);
- console.log('PASS: real renderer Thai YouTube command -> main IPC -> explicit confirmation -> OS browser launch API; no LLM call');clearTimeout(timer);electron.app.exit(0);
+ console.log('PASS: real renderer Thai YouTube command -> main IPC -> explicit confirmation -> OS browser launch API; no LLM call');assert.equal(latestMenu.getMenuItemById('caprii-auto-actions').checked,false);
+ const toggle=latestMenu.getMenuItemById('caprii-auto-actions');toggle.click(toggle);assert.equal(latestMenu.getMenuItemById('caprii-auto-actions').checked,true);
+ await overlay.webContents.executeJavaScript(`window.dev.chat.send('เปิดyoutube')`);
+ assert.equal(opened.length,2);assert.equal(confirmations.length,1);
+ let step=0;llm.chat=async()=>JSON.stringify([{tool:'desktop.look'},{tool:'math.evaluate',expression:'1+1'},{tool:'finish',summary:'2'}][step++]);
+ await overlay.webContents.executeJavaScript(`window.dev.chat.send('ดูจอแล้วคำนวณ1+1')`);
+ assert.equal(step,3);assert.equal(confirmations.length,1);
+ const off=latestMenu.getMenuItemById('caprii-auto-actions');off.click(off);assert.equal(latestMenu.getMenuItemById('caprii-auto-actions').checked,false);
+ await overlay.webContents.executeJavaScript(`window.dev.chat.send('เปิดyoutube')`);
+ assert.equal(opened.length,3);assert.equal(confirmations.length,2);
+ assert.equal(Object.hasOwn(config.load(),'automaticActions'),false,'session permission must not be persisted');
+ console.log('PASS: explicit session toggle skips screen/web prompts, actual capture task runs, turning off restores prompts, and no permission is saved');
+ clearTimeout(timer);electron.app.exit(0);
 }).catch(e=>{console.error(e);clearTimeout(timer);electron.app.exit(1);});

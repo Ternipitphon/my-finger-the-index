@@ -49,6 +49,7 @@ let chatErrorCode = null; // 'nokey' or 'nourl': what her setup should ask for
 // Ollama's cloud, as last seen: your account ({ name } or { signin }) and the models free with it
 let cloud = { at: 0, account: null, free: [] };
 let emergencyStopReady = false;
+let automaticActions = false; // Explicit tray opt-in; reset every app launch, never persisted.
 const chats = new Map(); // id -> AbortController of an answer being streamed
 
 const userSoundsDir = () => path.join(app.getPath('userData'), 'sounds');
@@ -284,7 +285,7 @@ function resolveLang(setting) {
 // What the overlay gets: `lang` is the resolved one, `langSetting` what the user picked.
 function rendererConfig() {
   const { apiKeys, ...cfg } = config.load(); // the keys stay here: the overlay only learns which ones are set
-  return { ...cfg, keys: Object.keys(apiKeys || {}), assistant: activeAssistant().id, lang: resolveLang(cfg.lang), langSetting: cfg.lang, floorGap: overlayArea().gap };
+  return { ...cfg, automaticActions, keys: Object.keys(apiKeys || {}), assistant: activeAssistant().id, lang: resolveLang(cfg.lang), langSetting: cfg.lang, floorGap: overlayArea().gap };
 }
 
 function updateConfig(patch) {
@@ -324,6 +325,11 @@ function rebuildTray() {
   const menu = Menu.buildFromTemplate([
     { label: t.online(PORT), enabled: false },
     { label: 'Caprii ' + app.getVersion(), enabled: false },
+    { id:'caprii-auto-actions', label:'โหมดไม่ถาม: ดูจอ/คลิก/พิมพ์/เปิดเว็บ (จนปิด Caprii)', type:'checkbox', checked:automaticActions, click:item=>{
+      for(const controller of chats.values())controller.abort();
+      automaticActions=item.checked===true;
+      updateConfig({});
+    } },
     { label: 'ทดสอบเมาส์และการพิมพ์', enabled: process.platform === 'win32', click: async () => {
       if (chats.size) { await dialog.showMessageBox({ message: 'หยุดงานปัจจุบันก่อนเริ่มทดสอบ' }); return; }
       const controller = new AbortController(); chats.set('selftest', controller);
@@ -729,7 +735,7 @@ function registerIpc() {
     const signal = AbortSignal.any([abort.signal, AbortSignal.timeout(300000)]);
     let task = null, browser = null, taskPermissions = null;
     try {
-      const consent = await dialog.showMessageBox(overlay, {
+      const consent = automaticActions ? {response:1} : await dialog.showMessageBox(overlay, {
         type: 'question', buttons: ['ยกเลิก', 'ทำงานบนจอ/เว็บ', 'เลือกโฟลเดอร์โปรเจกต์'], defaultId: 0, cancelId: 0, signal,
         message: 'เริ่มงาน Agent แบบไหน?',
         detail: 'คำสั่งและข้อมูลที่คุณอนุมัติจะส่งให้ผู้ให้บริการ AI ขออนุญาตแยกก่อนอ่าน/แก้ไฟล์ เปิดเว็บ ควบคุมหน้าจอ หรือรันสคริปต์ ไม่เก็บความจำข้ามงาน\nหยุดฉุกเฉิน Ctrl+Alt+Esc\n' + goal,
@@ -752,7 +758,7 @@ function registerIpc() {
         beforeCapture: async () => { if (emergencyStopReady) task.hide(); await new Promise(resolve => setTimeout(resolve, 200)); },
       });
       const tools = require('./agent-tools').createAgentTools({ browser, desktop, screen, openExternal: url => launch.site(url) });
-      taskPermissions = require('./task-permissions').createTaskPermissions({signal, prompt: async (action, reusable) => {
+      taskPermissions = require('./task-permissions').createTaskPermissions({signal, automatic:()=>automaticActions, prompt: async (action, reusable) => {
         signal.throwIfAborted();
         if(task.window.isDestroyed())return 'deny';
         task.window.restore(); task.window.show();
@@ -938,6 +944,7 @@ function registerIpc() {
     if (_e.sender !== overlay?.webContents) return false;
     try {
       const url = require('./agent-browser').browserUrl(String(address));
+      if(automaticActions)return await launch.site(url);
       const answer = await dialog.showMessageBox(overlay, { type: 'question', message: 'เปิดเว็บไซต์ในเบราว์เซอร์?', detail: url,
         buttons: ['ยกเลิก', 'เปิดเว็บไซต์'], defaultId: 0, cancelId: 0 });
       return answer.response === 1 ? await launch.site(url) : false;

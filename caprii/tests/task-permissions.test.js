@@ -8,3 +8,17 @@ test('once and deny never cache and completion revokes',async()=>{let calls=0;co
 test('abort while dialog pending cannot grant and new task asks again',async()=>{const a=new AbortController();const p=createTaskPermissions({signal:a.signal,prompt:async()=>{a.abort();return'task';}});assert.equal(await p.approve(windowAction),false);});
 test('expiry revokes cached scope',async()=>{let time=0;const p=createTaskPermissions({signal:new AbortController().signal,now:()=>time,expiresAt:10,prompt:async()=> 'task'});assert.equal(await p.approve(windowAction),true);time=11;assert.equal(await p.approve(windowAction),false);});
 test('files, shell, sensitive keys and outside-window actions remain single-use',()=>{for(const a of [{tool:'write'}, {...windowAction,kind:'key',key:'alt+f4'},{...windowAction,risk:'sensitive'},{...windowAction,allowOutsideWindow:true},{...windowAction,target:{handle:'8',title:'Quiz'}}])assert.equal(scopeFor(a),null);});
+test('explicit session mode skips screen/web prompts but abort still revokes',async()=>{
+ const a=new AbortController();let calls=0;const p=createTaskPermissions({signal:a.signal,automatic:()=>true,prompt:async()=>{calls++;return'deny';}});
+ for(const action of [{tool:'desktop.look',displayId:'1'},windowAction,{tool:'desktop.open_url'},{tool:'browser.click'}])assert.equal(await p.approve(action),true);
+ assert.equal(calls,0);a.abort();assert.equal(await p.approve(windowAction),false);
+});
+test('session screen mode does not approve project scripts or changed puzzle rules',async()=>{
+ let calls=0;const p=createTaskPermissions({signal:new AbortController().signal,automatic:()=>true,prompt:async()=>{calls++;return'deny';}});
+ for(const action of [{tool:'check'},{tool:'write'},{tool:'math.solve',proposed:{}}])assert.equal(await p.approve(action),false);
+ assert.equal(calls,3);
+});
+test('turning session mode off restores confirmation',async()=>{
+ let automatic=true,calls=0;const p=createTaskPermissions({signal:new AbortController().signal,automatic:()=>automatic,prompt:async()=>{calls++;return'deny';}});
+ assert.equal(await p.approve(windowAction),true);automatic=false;assert.equal(await p.approve(windowAction),false);assert.equal(calls,1);
+});
