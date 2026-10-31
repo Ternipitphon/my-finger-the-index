@@ -1,0 +1,59 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { ToolRegistry } = require('../src/main/agent-registry');
+const { createAgentTools } = require('../src/main/agent-tools');
+const { browserUrl } = require('../src/main/agent-browser');
+const { validateDesktop } = require('../src/main/agent-desktop');
+const screen = { getAllDisplays: () => [{ bounds: { x: -100, y: 0, width: 200, height: 100 } }] };
+test('browser URL policy rejects executable, credentialed, and private-network destinations', () => {
+  for (const u of ['file:///etc/passwd','javascript:alert(1)','https://user:pass@example.com','http://example.com','https://10.1.2.3','https://169.254.169.254','https://[::ffff:127.0.0.1]']) assert.throws(() => browserUrl(u));
+  assert.equal(browserUrl('http://127.0.0.1:3000/'),'http://127.0.0.1:3000/');
+  assert.equal(browserUrl('https://example.com'),'https://example.com/');
+});
+test('desktop validates multi-monitor coordinates, target handles and supported keys', () => {
+  validateDesktop({kind:'click',targetHandle:'100',x:-50,y:10},screen.getAllDisplays());
+  for (const a of [{kind:'click',x:0,y:0},{kind:'click',targetHandle:'100',x:101,y:0},{kind:'key',targetHandle:'100',key:'powershell'},{kind:'focus',handle:'1;whoami'},{kind:'scroll',targetHandle:'100',amount:11}]) assert.throws(()=>validateDesktop(a,screen.getAllDisplays()));
+});
+test('registry rejects unknown tool calls and invalid actions before any side effect', async () => {
+  let calls=0;
+  const tools=new ToolRegistry().add('sample',{description:{purpose:'test'},validate:a=>{if(a.value!==1)throw Error('bad');},run:async()=>++calls});
+  const context={signal:AbortSignal.timeout(1000)};
+  await assert.rejects(tools.execute({tool:'sample',value:2},context));
+  await assert.rejects(tools.execute({tool:'shell'},context));
+  assert.equal(calls,0);
+});
+test('browser click shows target before approval and never executes a denied action', async () => {
+  let calls=0, approved;
+  const browser={target:()=>({label:'Delete account'}),interact:async()=>++calls};
+  const tools=createAgentTools({browser});
+  await assert.rejects(tools.execute({tool:'browser.click',id:0,generation:'1'}, {signal:AbortSignal.timeout(1000),permission:async a=>{approved=a;throw Error('denied');}}));
+  assert.equal(approved.target.label,'Delete account');assert.equal(calls,0);
+});
+test('desktop helper converts DPI coordinates and receives input only as JSON stdin',async()=>{
+ const {createDesktop}=require('../src/main/agent-desktop');let last;
+ const desktop=createDesktop({platform:'win32',screen:{...screen,dipToScreenPoint:p=>({x:p.x*2,y:p.y*2}),screenToDipRect:(_,r)=>({x:r.x/2,y:r.y/2,width:r.width/2,height:r.height/2}),screenToDipPoint:p=>({x:p.x/2,y:p.y/2})},desktopCapturer:{},run:async(file,args,options)=>{last={file,args,options};return{passed:true,stdout:JSON.stringify({foreground:'10',cursor:{x:20,y:20},windows:[{handle:'10',title:'fixture',x:-200,y:0,width:400,height:200}]})};}});
+ const result=await desktop.state({kind:'click',targetHandle:'10',x:20,y:10},AbortSignal.timeout(1000));
+ assert.deepEqual(JSON.parse(last.options.input),{kind:'click',targetHandle:'10',x:40,y:20});
+ assert.equal(last.args.includes('-Command'),true);assert.ok(!last.args.includes('10'));
+ assert.equal(result.windows[0].width,200);assert.equal(result.cursor.x,10);
+});
+test('mouse drag and context-click validate destinations and explicit outside-window flag',()=>{
+ const displays=screen.getAllDisplays();
+ for(const kind of ['move','doubleclick','rightclick','drag'])validateDesktop({kind,targetHandle:'10',x:0,y:10,toX:10,toY:20},displays);
+ assert.throws(()=>validateDesktop({kind:'drag',targetHandle:'10',x:0,y:10,toX:1000,toY:20},displays));
+ assert.throws(()=>validateDesktop({kind:'click',targetHandle:'10',x:0,y:10,allowOutsideWindow:'true'},displays));
+});
+test('opening a desktop URL requests consent before the OS browser launch',async()=>{
+ let launched=false;const tools=createAgentTools({openExternal:async()=>{launched=true;return true;}});
+ await assert.rejects(tools.execute({tool:'desktop.open_url',url:'https://www.youtube.com/'},{signal:AbortSignal.timeout(1000),permission:async()=>{throw Error('denied');}}));assert.equal(launched,false);
+ const r=await tools.execute({tool:'desktop.open_url',url:'https://www.youtube.com/'},{signal:AbortSignal.timeout(1000),permission:async()=>true});assert.equal(launched,true);assert.equal(r.result.verified,false);
+});
+test('math answer fields reject guessed text until a calculator tool verifies it',async()=>{
+ let typed=0;
+ const browser={target:()=>({label:'คำตอบ'}),interact:async()=>{typed++;return{performed:true};}};
+ const tools=createAgentTools({browser});const c={mathTask:true,signal:AbortSignal.timeout(1000),permission:async()=>true};
+ await assert.rejects(tools.execute({tool:'browser.type',id:0,generation:'1',value:'แปดสิบสอง'},c));assert.equal(typed,0);
+ await tools.execute({tool:'math.evaluate',expression:'14+27'},c);
+ await tools.execute({tool:'browser.type',id:0,generation:'1',value:'41'},c);assert.equal(typed,1);
+});

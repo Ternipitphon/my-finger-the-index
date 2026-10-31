@@ -1,0 +1,83 @@
+{
+  "name": "capri-desktop",
+  "version": "0.4.8",
+  "description": "Caprii: Thai desktop and project AI agent with confirmed tools, bounded chat, browser automation and Windows controls.",
+  "author": "mochiiwuff",
+  "repository": "github:mochiiwuff/capri-desktop",
+  "main": "src/main/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "demo": "node scripts/demo.js",
+    "hooks:install": "node scripts/install-hooks.js",
+    "hooks:uninstall": "node scripts/install-hooks.js --uninstall",
+    "hooks:codex:install": "node scripts/install-codex-hooks.js",
+    "hooks:codex:uninstall": "node scripts/install-codex-hooks.js --uninstall",
+    "hooks:agy:install": "node scripts/install-hooks-agy.js",
+    "hooks:agy:uninstall": "node scripts/install-hooks-agy.js --uninstall",
+    "check:llm": "node scripts/check-llm.js",
+    "test:hooks": "node --test tests/hooks.test.js",
+    "dist": "electron-builder --win",
+    "test": "node --test tests/*.test.js",
+    "test:electron": "electron scripts/electron-smoke.js",
+    "test:windows": "electron scripts/windows-smoke.js",
+    "check:gemini": "node scripts/check-gemini.js",
+    "dist:cloud": "electron-builder --win --x64 -c.win.signAndEditExecutable=false",
+    "test:site-ui": "electron scripts/test-site-ui.cjs --dev"
+  },
+  "keywords": [
+    "claude-code",
+    "desktop-pet",
+    "electron",
+    "cyberpunk",
+    "edgerunners"
+  ],
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "electron": "^44.9.3",
+    "electron-builder": "^26.18.0"
+  },
+  "dependencies": {
+    "@fontsource/chakra-petch": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0"
+  },
+  "build": {
+    "appId": "caprii.desktop.agent",
+    "productName": "Caprii",
+    "files": [
+      "src/**",
+      "assets/**",
+      "hooks/**",
+      "scripts/**",
+      "package.json",
+      "LICENSE",
+      "CAPRII-TH.md",
+      "VALIDATION.md"
+    ],
+    "asarUnpack": [
+      "hooks/**",
+      "src/main/windows.ps1",
+      "src/main/agent-desktop.ps1"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icons/capri.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Caprii Agent",
+      "artifactName": "Caprii-Agent-Setup-${version}.exe",
+      "script": "scripts/caprii-installer.nsi",
+      "installerLanguages": [
+        "en_US"
+      ]
+    }
+  }
+}

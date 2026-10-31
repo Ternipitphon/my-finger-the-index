@@ -1,0 +1,63 @@
+'use strict';
+const {app,BrowserWindow,session,protocol,net,ipcMain,screen,desktopCapturer}=require('electron');
+const http=require('node:http'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+const {pathToFileURL}=require('node:url');
+const assert=require('node:assert/strict');
+const {createBrowser}=require('../src/main/agent-browser');
+const {createAgentTools}=require('../src/main/agent-tools');
+const {runProjectAgent}=require('../src/main/project-agent');
+const {registerAgentWindowIpc,createAgentWindow}=require('../src/main/agent-window');
+protocol.registerSchemesAsPrivileged([{scheme:'capri',privileges:{standard:true,secure:true,supportFetchAPI:true}}]);
+app.on('window-all-closed', event => event.preventDefault());
+app.commandLine.appendSwitch('use-angle','swiftshader');
+app.commandLine.appendSwitch('enable-unsafe-swiftshader');
+let server,browser,root,task;
+const timeout=setTimeout(()=>{console.error('Electron smoke timed out');app.exit(1);},45000);
+app.whenReady().then(async()=>{
+ protocol.handle('capri',request=>{
+  const u=new URL(request.url); const file=path.resolve(__dirname,'..','.'+u.pathname);
+  if(!file.startsWith(path.resolve(__dirname,'..')+path.sep))return new Response('Forbidden',{status:403});
+  return net.fetch(pathToFileURL(file).href);
+ });
+ root=await fs.mkdtemp(path.join(os.tmpdir(),'caprii-electron-'));
+ server=http.createServer((req,res)=>{
+  if(req.url==='/redirect'){res.writeHead(302,{Location:'https://example.com'});res.end();return;}
+  res.setHeader('content-type','text/html; charset=utf-8');
+  res.end(`<!doctype html><html lang="th"><title>Caprii Browser Fixture</title><body><h1>แบบทดสอบ</h1><label>ชื่อ <input aria-label="ชื่อ"></label><button onclick="document.querySelector('output').textContent='สวัสดี '+document.querySelector('input').value">ยืนยัน</button><output></output><script>window.__capriiGeneration='tampered';window.__capriiElements=[];</script></body></html>`);
+ });
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ browser=createBrowser({BrowserWindow,session});
+ const tools=createAgentTools({browser});
+ let turn=0;
+ const result=await runProjectAgent({root,goal:'กรอกชื่อและตรวจผล',tools,signal:AbortSignal.timeout(30000),approve:async()=>true,
+  ask:async messages=>{
+   const last=messages.at(-1);const data=turn?JSON.parse(last.content).toolResult:null;
+   const actions=[()=>({tool:'browser.open',url:`http://127.0.0.1:${server.address().port}/`}),
+    ()=>({tool:'browser.type',id:data.elements.find(e=>e.tag==='input').id,generation:data.generation,value:'Caprii'}),
+    ()=>({tool:'browser.click',id:data.observed.elements.find(e=>e.tag==='button').id,generation:data.observed.generation}),
+    ()=>({tool:'browser.expect',contains:'สวัสดี Caprii'}),()=>({tool:'finish',summary:'ตรวจผลจริงสำเร็จ'})];
+   return JSON.stringify(actions[turn++]());
+  }});
+ assert.equal(result.verified,true);assert.equal(result.checks[0].passed,true);
+ const picture=await browser.capture(AbortSignal.timeout(2000));assert.match(picture.image,/^data:image\/png;base64,/);
+ await assert.rejects(browser.navigate(`http://127.0.0.1:${server.address().port}/redirect`,AbortSignal.timeout(5000)));
+ await browser.close();
+ registerAgentWindowIpc(ipcMain);
+ let stopped=0;
+ task=createAgentWindow({BrowserWindow,goal:'<img src=x onerror=alert(1)>',stop:()=>stopped++});
+ await new Promise(resolve=>task.window.webContents.once('did-finish-load',resolve));
+ const state=await task.window.webContents.executeJavaScript('window.agentTask.state()');
+ assert.equal(state.goal,'<img src=x onerror=alert(1)>');
+ const text=await task.window.webContents.executeJavaScript('document.getElementById("goal").textContent');assert.equal(text,state.goal);
+ assert.equal(await task.window.webContents.executeJavaScript('document.querySelector("#goal img")'),null);
+ await task.window.webContents.executeJavaScript('document.getElementById("stop").click()');
+ await new Promise(resolve=>setTimeout(resolve,50));assert.equal(stopped,1);
+ task.finish({state:'done',summary:'fixture finished',checks:result.checks});
+ await task.window.webContents.executeJavaScript('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+ assert.equal(await task.window.webContents.executeJavaScript('document.getElementById("summary").textContent'),'fixture finished');
+ const desktop=require('../src/main/agent-desktop').createDesktop({screen,desktopCapturer});
+ const screenImage=await desktop.capture(undefined,AbortSignal.timeout(5000));assert.match(screenImage.image,/^data:image\/png;base64,/);
+ await fs.writeFile(path.join(root,'task.png'),(await task.window.webContents.capturePage()).toPNG());
+ if(process.env.CAPRII_SMOKE_ARTIFACTS){await fs.mkdir(process.env.CAPRII_SMOKE_ARTIFACTS,{recursive:true});await fs.copyFile(path.join(root,'task.png'),path.join(process.env.CAPRII_SMOKE_ARTIFACTS,'agent-task.png'));}
+ console.log('PASS: real Electron browser navigate/type/click/DOM verification; screenshot; blocked cross-origin redirect; isolated page state; task UI, completion state, Stop IPC, and actual virtual screen capture');
+}).then(async()=>{clearTimeout(timeout);task?.window.destroy();await browser?.close();if(server)await new Promise(resolve=>server.close(resolve));await fs.rm(root,{recursive:true,force:true});app.quit();}).catch(async err=>{console.error(err);clearTimeout(timeout);await browser?.close().catch(()=>{});server?.close();app.exit(1);});

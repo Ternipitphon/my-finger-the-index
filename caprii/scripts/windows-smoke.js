@@ -1,0 +1,30 @@
+'use strict';
+// Run in an unlocked, interactive Windows session. Only our fixture window receives input.
+const {app,BrowserWindow,screen,desktopCapturer}=require('electron');
+const assert=require('node:assert/strict');
+const {createDesktop}=require('../src/main/agent-desktop');
+let fixture;
+const timer=setTimeout(()=>{console.error('Windows smoke timed out');app.exit(1);},60000);
+app.whenReady().then(async()=>{
+ if(process.platform!=='win32')throw Error('Windows native tests require an interactive Windows session');
+ fixture=new BrowserWindow({width:600,height:400,title:'Caprii Native Input Fixture',webPreferences:{sandbox:true,nodeIntegration:false,contextIsolation:true}});
+ await fixture.loadURL('data:text/html;charset=utf-8,'+encodeURIComponent('<!doctype html><title>Caprii Native Input Fixture</title><input id="field" autofocus><button id="button" onclick="document.getElementById(\'result\').textContent=\'clicked\'">Test</button><output id="result"></output>'));
+ fixture.show();fixture.focus();
+ const controller=new AbortController();
+ const desktop=createDesktop({screen,desktopCapturer});
+ const windows=await desktop.state({kind:'state'},controller.signal);
+ const target=windows.windows.find(w=>w.title==='Caprii Native Input Fixture');assert.ok(target,'fixture window must be present in the real Windows enumeration');
+ await desktop.act({kind:'focus',handle:target.handle},controller.signal);
+ await fixture.webContents.executeJavaScript('document.getElementById("field").focus()');
+ const typed=await desktop.act({kind:'type',targetHandle:target.handle,text:'สวัสดี Caprii 42'},controller.signal);
+ assert.match(typed.image,/^data:image\/png;base64,/);
+ assert.equal(await fixture.webContents.executeJavaScript('document.getElementById("field").value'),'สวัสดี Caprii 42');
+ await desktop.act({kind:'key',targetHandle:target.handle,key:'ctrl+a'},controller.signal);
+ await desktop.act({kind:'type',targetHandle:target.handle,text:'replacement'},controller.signal);
+ assert.equal(await fixture.webContents.executeJavaScript('document.getElementById("field").value'),'replacement');
+ const button=await fixture.webContents.executeJavaScript('(()=>{const r=document.getElementById("button").getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()');
+ const content=fixture.getContentBounds();
+ await desktop.act({kind:'click',targetHandle:target.handle,x:Math.round(content.x+button.x),y:Math.round(content.y+button.y)},controller.signal);
+ assert.equal(await fixture.webContents.executeJavaScript('document.getElementById("result").textContent'),'clicked');
+ console.log('PASS: real Windows window enumeration/focus, Thai Unicode typing, Ctrl+A, pointer click, and screenshots');
+}).then(()=>{clearTimeout(timer);fixture?.destroy();app.quit();}).catch(err=>{console.error(err);clearTimeout(timer);fixture?.destroy();app.exit(1);});
