@@ -1,0 +1,32 @@
+{
+  "version": "0.5.6",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.5.6.exe",
+  "bytes": 183708513,
+  "sha256": "8CD77C25C68F2195C41F6D30CFC5C7AE5C3001066C313630093D3CAF01CB32C7",
+  "source_commit": "fe97cbcc3623a66b5e3041c7d7d93b95cf7aff9f",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "9E776796C7EDBADB4835EB7F0931F0BA180F3C21F37932897419012D8498751F"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "59952C3BDFFE606108C230DB15EE529EF8DFA0FAFC915BB2583AD3E86AD1D004"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57879393,
+      "sha256": "ABCB4CD4D2B58B5ACA3D6A66391CFDCFEB0A35E31EBD0C3E820A6C64B77E04FC"
+    }
+  ],
+  "validation": {
+    "application_tests": 132,
+    "lab_unit_tests": 3,
+    "lab_browser_cases": 7,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested"
+  }
+}
