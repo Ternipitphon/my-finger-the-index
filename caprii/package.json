@@ -1,6 +1,6 @@
 {
   "name": "capri-desktop",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "Caprii: Thai desktop and project AI agent with confirmed tools, bounded chat, browser automation and Windows controls.",
   "author": "mochiiwuff",
   "repository": "github:mochiiwuff/capri-desktop",
@@ -25,7 +25,8 @@
     "check:gemini": "node scripts/check-gemini.js",
     "dist:cloud": "electron-builder --win --x64 -c.win.signAndEditExecutable=false",
     "test:site-ui": "electron scripts/test-site-ui.cjs --dev",
-    "test:chrome-ui": "electron scripts/chrome-bridge-smoke.js"
+    "test:chrome-ui": "electron scripts/chrome-bridge-smoke.js",
+    "reach:prepare": "python3 scripts/prepare-agent-reach.py"
   },
   "keywords": [
     "claude-code",
@@ -84,6 +85,19 @@
       {
         "from": "browser-extension",
         "to": "browser-extension"
+      },
+      {
+        "from": "integrations/agent-reach",
+        "to": "agent-reach",
+        "filter": [
+          "**/*",
+          "!**/__pycache__/**",
+          "!**/*.pyc"
+        ]
+      },
+      {
+        "from": "vendor-runtime/agent-reach/python",
+        "to": "agent-reach/python"
       }
     ]
   }

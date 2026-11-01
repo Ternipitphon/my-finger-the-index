@@ -391,6 +391,7 @@ function rebuildTray() {
       ],
     },
     {label:'แสดงหน้าต่างติดตามงาน',type:'checkbox',checked:cfg.showTaskWindow===true,click:item=>updateConfig({showTaskWindow:item.checked})},
+    {label:'Agent Reach: ตรวจความพร้อม',click:async()=>{try{const r=await require('./agent-reach').createReach({packaged:app.isPackaged,resourcesPath:process.resourcesPath}).status(AbortSignal.timeout(10000));await dialog.showMessageBox({message:'Agent Reach พร้อมใช้งาน',detail:'รุ่น '+r.version+' — อ่านเว็บ ค้นข้อมูล และคำบรรยาย YouTube แบบสาธารณะ ไม่คัดลอกบัญชีและไม่ถอดเสียงแบบมีค่าใช้จ่าย'});}catch(err){await dialog.showMessageBox({type:'error',message:'Agent Reach ยังไม่พร้อม',detail:err.message});}}},
     {id:'caprii-model-profile',label:'โหมดคุณภาพโมเดล',submenu:[
       {label:'เลือกโมเดลเอง',type:'radio',checked:!cfg.modelProfile||cfg.modelProfile==='manual',click:()=>updateConfig({modelProfile:'manual'})},
       ...[['speed','รวดเร็ว — Flash Lite'],['balanced','สมดุล — Flash ที่ไม่ใช่ Lite'],['quality','คุณภาพสูง — Pro ถ้ามีใน API']].map(([profile,label])=>({id:'caprii-profile-'+profile,label,type:'radio',checked:cfg.modelProfile===profile,enabled:cfg.provider==='gemini'&&!!chatModels?.length,click:()=>chooseModelProfile(profile)})),
@@ -775,8 +776,8 @@ function registerIpc() {
   // her answer, streamed to the overlay piece by piece as `chat:delta`
   require('./agent-window').registerAgentWindowIpc(ipcMain);
   ipcMain.handle('agent:run', async (_e, request = {}) => {
-    const { id, goal } = request;
-    if (_e.sender !== overlay?.webContents || !Number.isSafeInteger(id) || typeof goal !== 'string' || !goal.trim() || goal.length > 8000) return { ok: false, error: 'Invalid agent request' };
+    const { id, goal, scope } = request;
+    if (_e.sender !== overlay?.webContents || !Number.isSafeInteger(id) || typeof goal !== 'string' || !goal.trim() || goal.length > 8000 || (scope!==undefined&&scope!=='public-web')) return { ok: false, error: 'Invalid agent request' };
     if (chats.size) return { ok: false, error: 'Another task is running' };
     const abort = new AbortController();
     chats.set(id, abort);
@@ -784,7 +785,7 @@ function registerIpc() {
     let task = null, browser = null, taskPermissions = null;
     try {
       const consent = automaticActions ? {response:1} : await dialog.showMessageBox(overlay, {
-        type: 'question', buttons: ['ยกเลิก', 'ทำงานบนจอ/เว็บ', 'เลือกโฟลเดอร์โปรเจกต์'], defaultId: 0, cancelId: 0, signal,
+        type: 'question', buttons: scope==='public-web'?['ยกเลิก','อ่านเว็บสาธารณะ']:['ยกเลิก', 'ทำงานบนจอ/เว็บ', 'เลือกโฟลเดอร์โปรเจกต์'], defaultId: 0, cancelId: 0, signal,
         message: 'เริ่มงาน Agent แบบไหน?',
         detail: 'คำสั่งและข้อมูลที่คุณอนุมัติจะส่งให้ผู้ให้บริการ AI ขออนุญาตแยกก่อนอ่าน/แก้ไฟล์ เปิดเว็บ ควบคุมหน้าจอ หรือรันสคริปต์ ไม่เก็บความจำข้ามงาน\nหยุดฉุกเฉิน Ctrl+Alt+Esc\n' + goal,
       });
@@ -805,7 +806,7 @@ function registerIpc() {
       const desktop = require('./agent-desktop').createDesktop({ desktopCapturer, screen, platform: emergencyStopReady ? process.platform : 'unavailable', withCapture:withoutCapriiOverlay,
         beforeCapture: async () => { if (emergencyStopReady) task.hide(); await new Promise(resolve => setTimeout(resolve, 200)); },
       });
-      const tools = require('./agent-tools').createAgentTools({ browser, desktop, screen, openExternal: url => launch.site(url), launcher:require('./agent-launcher').createLauncher({shell,roots:require('./agent-launcher').defaultRoots(app)}), uia:desktop.supportedInput?require('./agent-uia').createUIAutomation({desktop}):null });
+      const tools = require('./agent-tools').createAgentTools({ ...(scope==='public-web'?{}:{browser,desktop,screen}), reach:require('./agent-reach').createReach({packaged:app.isPackaged,resourcesPath:process.resourcesPath}), openExternal:scope==='public-web'?null:url=>launch.site(url), launcher:scope==='public-web'?null:require('./agent-launcher').createLauncher({shell,roots:require('./agent-launcher').defaultRoots(app)}), uia:scope!=='public-web'&&desktop.supportedInput?require('./agent-uia').createUIAutomation({desktop}):null });
       taskPermissions = require('./task-permissions').createTaskPermissions({signal, automatic:()=>automaticActions, prompt: async (action, reusable) => {
         signal.throwIfAborted();
         if(task.window.isDestroyed())return 'deny';
@@ -820,7 +821,7 @@ function registerIpc() {
       }});
       if (!chatModels?.length) await refreshModels();
       const result = await require('./project-agent').runProjectAgent({
-        root: projectRoot, goal, signal, tools, allowProjectFiles, browserContext:browser.connected?browser.description():null,
+        root: projectRoot, goal, signal, tools, allowProjectFiles, browserContext:scope!=='public-web'&&browser.connected?browser.description():null,
         ask: async (messages, signal) => chatWithFallback(cfg, messages, () => {}, signal),
         approve: action => taskPermissions.approve(action),
         onProgress: event => {

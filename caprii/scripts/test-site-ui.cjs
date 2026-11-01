@@ -57,5 +57,12 @@ electron.app.whenReady().then(async()=>{
  profileChoice=1;latestMenu.getMenuItemById('caprii-profile-quality').click();for(let i=0;i<100&&config.load().modelProfile!=='quality';i++)await new Promise(r=>setTimeout(r,10));assert.deepEqual(profileRequests,['gemini-2.5-pro']);assert.equal(config.load().modelProfile,'quality');assert.equal(config.load().chatModel,'gemini-2.5-pro');
  llm.chat=async()=>{throw Error('synthetic unavailable model');};latestMenu.getMenuItemById('caprii-profile-balanced').click();await new Promise(r=>setTimeout(r,100));assert.equal(config.load().chatModel,'gemini-2.5-pro');assert.equal(config.load().modelProfile,'quality');
  console.log('PASS: quality selection cancels without API requests, saves only after Thai test response, and preserves prior model on failed test');
+ const reachModule=require('../src/main/agent-reach'),originalReach=reachModule.createReach;let reachPayloads=[];
+ reachModule.createReach=options=>originalReach({...options,run:async(_file,_args,opts)=>{reachPayloads.push(JSON.parse(opts.input));return{passed:true,stdout:JSON.stringify({ok:true,result:{items:[{title:'Fixture',url:'https://example.com/',text:'public source evidence'}]}})};}});
+ const publicToggle=latestMenu.getMenuItemById('caprii-auto-actions');publicToggle.click(publicToggle);
+ let publicStep=0;llm.chat=async(_p,_c,request)=>{assert.doesNotMatch(request.messages[0].content,/"tool":"desktop.look"/);return JSON.stringify(publicStep++===0?{tool:'reach.read',url:'https://example.com/'}:{tool:'finish',summary:'อ่านข้อมูลสาธารณะจากแหล่งจริงแล้ว'});};
+ await overlay.webContents.executeJavaScript(`window.dev.chat.send('https://example.com/')`);
+ assert.equal(reachPayloads.length,1);assert.equal(reachPayloads[0].operation,'read');assert.equal(publicStep,2);assert.ok(electron.BrowserWindow.getAllWindows().filter(w=>w.webContents.getURL().endsWith('/agent.html')).every(w=>!w.isVisible()));
+ console.log('PASS: pasted URL routes through actual chat IPC to public-only Reach tool scope, without desktop tools or a visible tracking window');
  clearTimeout(timer);electron.app.exit(0);
 }).catch(e=>{console.error(e);clearTimeout(timer);electron.app.exit(1);});

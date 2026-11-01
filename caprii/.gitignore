@@ -7,3 +7,8 @@ Thumbs.db
 
 # local debug captures
 captures/
+
+# Reproducible, checksum-verified Windows runtime
+vendor-runtime/
+__pycache__/
+*.pyc

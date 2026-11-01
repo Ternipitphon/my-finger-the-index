@@ -4,7 +4,7 @@ const { browserUrl } = require('./agent-browser');
 const { registerMath, allowMathText } = require('./agent-math');
 const { validateDesktop, KEYS } = require('./agent-desktop');
 
-function createAgentTools({ browser, desktop, screen, openExternal, launcher, uia }) {
+function createAgentTools({ browser, desktop, screen, openExternal, launcher, uia, reach }) {
   const tools = registerMath(new ToolRegistry());
   if (browser) {
     tools.add('browser.open', {
@@ -88,6 +88,7 @@ function createAgentTools({ browser, desktop, screen, openExternal, launcher, ui
   }
   if(launcher)require('./agent-launcher').registerLauncher(tools,launcher);
   if(uia)require('./agent-uia').registerUIAutomation(tools,uia);
+  if(reach)require('./agent-reach').registerReach(tools,reach);
   return tools;
 }
 module.exports = { createAgentTools };

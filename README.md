@@ -1,14 +1,14 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.5.4
+## ดาวน์โหลด Caprii 0.5.5 + Agent Reach
 
-[ดาวน์โหลด ZIP ทั้งหมด](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/main.zip) แล้วแตกไฟล์ เปิด `downloads/Caprii-0.5.4/INSTALL-CAPRII.cmd` ปิด Caprii ตัวเดิมก่อนติดตั้ง
+[ดาวน์โหลด ZIP ทั้งหมด](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/main.zip) แล้วแตกไฟล์ เปิด `downloads/Caprii-0.5.5/INSTALL-CAPRII.cmd` ปิด Caprii เดิมก่อนติดตั้ง
 
-รุ่นนี้เพิ่ม Windows UI Automation, ค้นหาและเปิดไฟล์/ทางลัดโปรแกรม, เติมรหัสเชื่อม Chrome รอบเดิม และซ่อนหน้าติดตามงานเป็นค่าเริ่มต้น ทดสอบส่วนขยายบน Google Chrome จริง/Linux แล้ว ส่วน Windows และ Limbus ยังต้องตรวจบนเครื่องจริง ไม่เพิ่ม Memory ข้ามงาน
+รวม Agent Reach 1.6.0 แบบ public-only พร้อม Python/dependencies ใน Windows installer: วางลิงก์เพื่ออ่านเว็บ/ข้อมูลและคำบรรยาย YouTube หรือค้นข้อมูลจริงผ่าน Jina/Exa/yt-dlp ไม่คัดลอกบัญชี ไม่ถอดเสียงแบบมีค่าใช้จ่าย ไม่อ้างว่าได้ดูคลิปจาก metadata และไม่ข้ามการปิดกั้นเครือข่าย
 
-อ่าน [วิธีติดตั้ง](downloads/Caprii-0.5.4/README.md), [คู่มือไทย](downloads/Caprii-0.5.4/GUIDE-TH.md) และ [วิธีเชื่อม Chrome](downloads/Caprii-0.5.4/CHROME-TH.md)
+อ่าน [วิธีติดตั้ง](downloads/Caprii-0.5.5/README.md), [คู่มือไทย](downloads/Caprii-0.5.5/GUIDE-TH.md) และ [ผลทดสอบ](downloads/Caprii-0.5.5/VALIDATION.md)
 
-ซอร์สปัจจุบันอยู่ใน [caprii/](caprii/) ผ่าน 119 การทดสอบและการตรวจฟอร์มจริงบน Electron/Linux การติดตั้งและใช้ส่วนขยายใน Chrome/Windows ยังต้องตรวจบนเครื่องจริง
+ซอร์สอยู่ใน [caprii/](caprii/) ผ่าน 124 tests + 4 parser/bridge tests และตรวจเส้นทาง URL ผ่าน real Electron UI แล้ว Windows runtime และ live web access ยังต้องตรวจบน Windows จริง คง UIA/DOM/เปิดไฟล์/ซ่อนหน้าติดตามงาน ไม่เพิ่ม Memory ข้ามงาน
 
 ## เว็บทดสอบคณิตคิดเร็ว 10 ข้อ
 
