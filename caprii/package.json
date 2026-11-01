@@ -1,6 +1,6 @@
 {
   "name": "capri-desktop",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Caprii: Thai desktop and project AI agent with confirmed tools, bounded chat, browser automation and Windows controls.",
   "author": "mochiiwuff",
   "repository": "github:mochiiwuff/capri-desktop",
@@ -62,7 +62,9 @@
       "package.json",
       "LICENSE",
       "CAPRII-TH.md",
-      "VALIDATION.md"
+      "VALIDATION.md",
+      "test-lab/dist/**",
+      "test-lab/server.mjs"
     ],
     "asarUnpack": [
       "hooks/**",

@@ -1,3 +1,7 @@
+# Caprii 0.5.6
+
+รุ่นติดตั้ง Windows x64 พร้อม DOM forms และ Test Lab ในแอป คลิกขวาตัวละคร → เปิดเว็บทดสอบ Caprii ไม่ต้องติดตั้ง Node.js เพิ่ม
+
 # Caprii 0.5.2
 
 ผู้ช่วยบนเดสก์ท็อปที่คุยภาษาไทย อ่านจอ ทำโจทย์ และใช้เครื่องมือโดยตรวจผลจริง
@@ -24,10 +28,10 @@
 
 Chrome broker ฟังเฉพาะ loopback หลังผู้ใช้เลือกเชื่อม รหัสเกิดใหม่ทุกครั้งที่เปิดโปรแกรม ไม่บันทึกคีย์ลงไฟล์หรือ log คำสั่งรองรับเฉพาะอ่าน/กรอก/คลิก/ตรวจค่า ไม่มีเครื่องมือ eval หรือ shell ผ่านส่วนขยาย
 
-## DOM forms (0.5.5 development)
+## DOM forms (0.5.6)
 
-Read [DOM-FORMS-TH.md](DOM-FORMS-TH.md) for selected-tab reading, text/dropdown/checkbox/radio input, exact field readback, scoped result checks, and local browser validation. This source update is not published.
+Read [DOM-FORMS-TH.md](DOM-FORMS-TH.md) for selected-tab reading, text/dropdown/checkbox/radio input, exact field readback, scoped result checks, and local browser validation. Included in the 0.5.6 Windows installer.
 
 ## Caprii Test Lab
 
-Run `npm run lab`, open `http://127.0.0.1:5173` in Chrome, connect that tab to Caprii, and copy a test prompt. See [test-lab/README-TH.md](test-lab/README-TH.md) for seven versioned regression cases and JSON evidence reports. The lab is local source only and is updated alongside capability changes.
+Run `npm run lab`, open `http://127.0.0.1:5173` in Chrome, connect that tab to Caprii, and copy a test prompt. See [test-lab/README-TH.md](test-lab/README-TH.md) for seven versioned regression cases and JSON evidence reports. Installed users can choose เปิดเว็บทดสอบ Caprii from the tray menu without installing Node.js. The lab runs locally and is updated alongside capability changes.

@@ -12,3 +12,6 @@ captures/
 vendor-runtime/
 __pycache__/
 *.pyc
+
+# Also exclude a linked dependency directory used by isolated cloud builds.
+node_modules

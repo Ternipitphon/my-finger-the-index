@@ -1,5 +1,11 @@
 # Test Lab changelog
 
+## 1.0.1 — Caprii 0.5.6
+
+- Target the 0.5.6 installer and bundle the lab inside the installed app.
+- Open the local lab from the tray menu without a separate Node.js installation; use an available loopback port and stop with Caprii.
+- Preserve all seven regression cases and source-only website policy.
+
 ## 1.0.0 — Caprii 0.5.5
 
 - Seven stable regression cases covering page reading, mixed form controls, arithmetic, readonly keypad input, delayed acknowledgments, replaced DOM elements, and do-not-submit instructions.

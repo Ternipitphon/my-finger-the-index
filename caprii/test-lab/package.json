@@ -1,6 +1,14 @@
 {
- "name":"caprii-test-lab","version":"1.0.0","private":true,
- "description":"Versioned browser-local regression playground for Caprii",
- "engines":{"node":">=20"},
- "scripts":{"start":"node server.mjs","test":"node --test tests/*.test.cjs","test:browser":"electron tests/browser-smoke.cjs"}
+  "name": "caprii-test-lab",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Versioned browser-local regression playground for Caprii",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/*.test.cjs",
+    "test:browser": "electron tests/browser-smoke.cjs"
+  }
 }

@@ -1,3 +1,10 @@
+# Caprii 0.5.6 validation
+
+- 132 application tests passed, including local Test Lab lifecycle and release-version alignment.
+- 3 Test Lab unit/server checks passed. All 7 browser cases, negative scenarios, report export, filters and mobile viewport checks passed using real Electron and the current DOM bridge.
+- Windows x64 installer is cross-built with the existing NSIS recipe and checksum-verified pinned Python/Agent Reach dependencies. Packaged ASAR/runtime checks are included in scripts/verify-release.cjs.
+- The installer is unsigned. A Linux build and packaged-resource check do not establish successful installation, native controls or UI Automation on a real Windows machine. Website hosting has not been deployed.
+
 # Caprii 0.5.5 — validation
 
 ## Executed in this Linux environment

@@ -50,6 +50,7 @@ let chatErrorCode = null; // 'nokey' or 'nourl': what her setup should ask for
 let cloud = { at: 0, account: null, free: [] };
 let emergencyStopReady = false;
 const chromeBroker=require('./chrome-broker').createChromeBroker();
+const testLab=require('./test-lab').createTestLab({openExternal:url=>shell.openExternal(url)});
 let automaticActions = false; // Explicit tray opt-in; reset every app launch, never persisted.
 const chats = new Map(); // id -> AbortController of an answer being streamed
 
@@ -318,6 +319,7 @@ function rebuildTray() {
   const menu = Menu.buildFromTemplate([
     { label: t.online(PORT), enabled: false },
     { label: 'Caprii ' + app.getVersion(), enabled: false },
+    {label:'เปิดเว็บทดสอบ Caprii',click:async()=>{try{await testLab.open();}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดเว็บทดสอบไม่สำเร็จ',detail:err.message});}}},
     {label:'เปิดโฟลเดอร์ส่วนขยาย Chrome',click:()=>shell.openPath(app.isPackaged?path.join(process.resourcesPath,'browser-extension'):path.join(__dirname,'../../browser-extension'))},
     {id:'caprii-pair',label:'เชื่อมแท็บ Chrome…',click:async()=>{
       try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?'เชื่อมอยู่: '+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nรหัสใช้เฉพาะรอบที่เปิดโปรแกรม ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
@@ -1217,6 +1219,7 @@ function main() {
   app.on('will-quit', () => {
     for (const controller of chats.values()) controller.abort();
     void chromeBroker.close();
+    void testLab.close();
     globalShortcut.unregisterAll();
     windowWatch?.stop();
   });
