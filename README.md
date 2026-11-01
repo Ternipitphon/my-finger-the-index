@@ -1,3 +1,17 @@
+# Caprii 0.5.6 — Windows installer
+
+[ดาวน์โหลด ZIP ตัวติดตั้ง 0.5.6](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.5.6-download.zip)
+
+แตก ZIP ทั้งหมด → ปิด Caprii เก่า → เปิด **INSTALL-CAPRII.cmd** → ติดตั้ง → เปิด **Caprii Agent** จาก Desktop/Start Menu
+
+คลิกขวาตัวละคร → **เปิดเว็บทดสอบ Caprii** เพื่อเปิด Test Lab ในเครื่องโดยไม่ต้องติดตั้ง Node.js เพิ่ม ชุดนี้เป็นตัวติดตั้งจริง ไม่ใช่แพตช์หรือซอร์สอย่างเดียว
+
+รายละเอียดและ checksum: [downloads/Caprii-0.5.6](downloads/Caprii-0.5.6/README-TH.md) · ขั้นตอนออกเวอร์ชัน: [RELEASE-WORKFLOW-TH.md](RELEASE-WORKFLOW-TH.md)
+
+ผ่าน 132 app tests, 3 lab checks, 7 เคส browser และ packaged-resource checks ตัวติดตั้งยังไม่มีลายเซ็น และยังไม่ได้ทดสอบติดตั้งบน Windows จริง ไม่มีการ deploy เว็บไซต์
+
+---
+
 # Caprii Desktop AI
 
 ## ดาวน์โหลด Caprii 0.5.5 + Agent Reach
