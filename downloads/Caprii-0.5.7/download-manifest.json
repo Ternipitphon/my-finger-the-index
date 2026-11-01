@@ -1,0 +1,34 @@
+{
+  "version": "0.5.7",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.5.7.exe",
+  "bytes": 183720334,
+  "sha256": "BB114F894BEE2563F81091BAC8BC795E47D5ACCCBAE541ABF545BCB8430A5E73",
+  "source_commit": "0cdfba353f1dc0311643e8a633a592e35a3f647a",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "3093FE637C0FA89664E3D097C2DB5ED64599A0EF0100457FCA9EF483BE2641BC"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "AA9B64C422A8055674FBB62C1FA64BFD0D9E1549E7206F1B6D34802AF68B8372"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57891214,
+      "sha256": "7691E9874481A69283949F57F05AABCB39EF8097C50B7BD9E2D41D6063A13542"
+    }
+  ],
+  "validation": {
+    "application_tests": 139,
+    "lab_unit_tests": 3,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "image_chat_ui": "passed with local multimodal HTTP fixture",
+    "live_vision": "passed Gemini 3.5 Flash Lite, synthetic PNG containing 3 red boxes"
+  }
+}
