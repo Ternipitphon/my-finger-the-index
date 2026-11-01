@@ -1,8 +1,8 @@
-# Caprii 0.5.2 — validation
+# Caprii 0.5.3 — validation
 
 ## Executed in this Linux environment
 
-- `npm test`: **111 passed, 0 failed**. Includes bounded/cancellable provider calls, file/path/process safeguards, exact math, requested-action completion, session permissions, selected-tab authentication/session isolation/abort/timeout, Thai dialogue shape and placeholder preservation, bounded English-to-Thai repair, bounded recovery/no replay after uncertain writes, current-chat short commands, explicit no-fill/no-submit guards, voice-typing process/sender/UI guards, and local Thai voice selection with no English/online-voice fallback.
+- `npm test`: **114 passed, 0 failed**. Includes bounded/cancellable provider calls, file/path/process safeguards, exact math, requested-action completion, session permissions, selected-tab authentication/session isolation/abort/timeout, Thai dialogue shape and placeholder preservation, bounded English-to-Thai repair, bounded recovery/no replay after uncertain writes, current-chat short commands, explicit no-fill/no-submit guards, voice-typing process/sender/UI guards, and local Thai voice selection with no English/online-voice fallback.
 - `npm run test:electron`: real sandboxed Electron browser form input, actual value readback, wrong-value detection, read-only keypad clicks, rejection when a page clears typed input, password-value redaction, post-submit DOM assertion, blocked cross-origin redirects, task UI/Stop IPC, and virtual screen capture.
 - `npm run test:chrome-ui`: readonly typing failure -> fresh inspection -> actual visible keypad clicks -> exact matching field-value proof -> original edit marked recovered -> new submission acknowledgment. Also  authenticated loopback selected-tab protocol connected to a real isolated Electron DOM using the exact shared DOM bridge shipped in the extension. Exact math -> premature finish rejected -> actual field fill -> independent field readback -> submit click -> page acknowledgment assertion.
 - `npm run test:site-ui`: actual app renderer/main IPC, Thai UI, centered character, idle motion paused during tasks, explicit website confirmation, user-selected session-only no-prompt mode, actual capture/math task without repeated prompts, mode revocation and no persisted permission.
@@ -35,3 +35,10 @@ The exact request “ดูจอแล้วหาคำตอบ” routes to 
 The real vision IPC uses the same bounded Thai/respectful-output check as ordinary chat. Synthetic inappropriate Thai output is rewritten before returning; persistent known inappropriate language is withheld. Previous unrelated chat history is excluded from each current-image question. Internal Caprii windows are temporarily hidden during capture and restored afterward, including capture failure; a following capture is verified to work. The marker check does not claim to detect every possible inappropriate expression or model hallucination. No live provider/image request was made for these synthetic output tests.
 
 - Pairing-code dialog capture guard: real app menu/dialog fixture opens the code dialog, capture returns a blocked result without calling desktop capture, and capture resumes after the dialog closes. Codes are not logged or transmitted in this test.
+
+## 0.5.3 quality profiles
+
+- Unit tests cover stable listed-model selection for Lite/Flash/Pro, absence of suitable models, quality fallback to non-Lite Flash when Pro is absent, and same-tier retry boundaries.
+- Actual Electron menu test uses mocked provider responses: cancel sends no generation request, successful Thai test saves the proposed Pro, and failed Flash test preserves the prior model. This does not prove real Pro quota or output quality.
+- Read-only Gemini model discovery succeeded in this environment. No paid Pro generation or intelligence comparison against Gemini web was performed. The user's app key and model access may differ.
+- Focused assistant prompt removes the three-sentence roleplay cap, asks for factual Thai answers, and distinguishes missing evidence from performed actions. It is prompt guidance, not a factual-accuracy guarantee. Existing model choice is preserved until user selection.

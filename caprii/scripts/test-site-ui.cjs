@@ -6,8 +6,8 @@ const captureVisibility=[];const originalSources=electron.desktopCapturer.getSou
 let opened=[],confirmations=[];electron.dialog.showMessageBox=async(_parent,options)=>{confirmations.push(options.message);if(options.message!=='เปิดเว็บไซต์ในเบราว์เซอร์?')throw Error('Unexpected dialog');return{response:1};};
 electron.shell.openExternal=async url=>{opened.push(url);};
 let latestMenu;const originalMenu=electron.Menu.buildFromTemplate;electron.Menu.buildFromTemplate=(template)=>{const menu=originalMenu.call(electron.Menu,template);if(menu.getMenuItemById('caprii-auto-actions'))latestMenu=menu;return menu;};
-const config=require('../src/main/config');config.save({provider:'gemini',chatModel:'fixture',welcomed:true,linked:true,render:'software'});
-const llm=require('../src/main/llm');llm.models=async()=>['fixture'];llm.chat=async()=>{throw Error('YouTube opening must not call the LLM');};process.env.CAPRI_PORT='49177';
+const config=require('../src/main/config');config.save({provider:'gemini',chatModel:'gemini-3.5-flash-lite',welcomed:true,linked:true,render:'software'});
+const llm=require('../src/main/llm');llm.models=async()=>['gemini-3.5-flash-lite','gemini-3.8-flash','gemini-2.5-pro'];llm.chat=async()=>{throw Error('YouTube opening must not call the LLM');};process.env.CAPRI_PORT='49177';
 const timer=setTimeout(()=>{console.error('UI site smoke timed out');electron.app.exit(1);},30000);
 require('../src/main/main');
 electron.app.whenReady().then(async()=>{
@@ -50,5 +50,11 @@ electron.app.whenReady().then(async()=>{
  const capturesBefore=captureVisibility.length;const privateSnap=await overlay.webContents.executeJavaScript('window.host.lookSnap()');assert.equal(privateSnap.ok,false);assert.match(privateSnap.error,/รหัสเชื่อมต่อ/);assert.equal(captureVisibility.length,capturesBefore);closePair({response:0});await new Promise(r=>setTimeout(r,20));
  const restoredSnap=await overlay.webContents.executeJavaScript('window.host.lookSnap()');assert.equal(restoredSnap.ok,true);
  console.log('PASS: pairing-code dialog prevents screen capture until closed, without capturing its secret');
+ let profileChoice=0,profileRequests=[];electron.dialog.showMessageBox=async(parent,options)=>{const opts=options||parent;if(opts.message==='ทดสอบและใช้โมเดลนี้?')return{response:profileChoice};if(opts.message==='ยังไม่ได้เปลี่ยนโมเดล ทดสอบไม่สำเร็จ')return{response:0};throw Error('Unexpected profile dialog: '+opts.message);};
+ llm.chat=async(_provider,_cfg,request)=>{profileRequests.push(request.model);return 'พร้อมใช้งาน';};
+ latestMenu.getMenuItemById('caprii-profile-quality').click();await new Promise(r=>setTimeout(r,40));assert.equal(profileRequests.length,0);assert.equal(config.load().chatModel,'gemini-3.5-flash-lite');
+ profileChoice=1;latestMenu.getMenuItemById('caprii-profile-quality').click();for(let i=0;i<100&&config.load().modelProfile!=='quality';i++)await new Promise(r=>setTimeout(r,10));assert.deepEqual(profileRequests,['gemini-2.5-pro']);assert.equal(config.load().modelProfile,'quality');assert.equal(config.load().chatModel,'gemini-2.5-pro');
+ llm.chat=async()=>{throw Error('synthetic unavailable model');};latestMenu.getMenuItemById('caprii-profile-balanced').click();await new Promise(r=>setTimeout(r,100));assert.equal(config.load().chatModel,'gemini-2.5-pro');assert.equal(config.load().modelProfile,'quality');
+ console.log('PASS: quality selection cancels without API requests, saves only after Thai test response, and preserves prior model on failed test');
  clearTimeout(timer);electron.app.exit(0);
 }).catch(e=>{console.error(e);clearTimeout(timer);electron.app.exit(1);});

@@ -390,6 +390,12 @@ function rebuildTray() {
         { label: t.follow, type: 'checkbox', checked: cfg.follow !== false, click: (item) => updateConfig({ follow: item.checked }) },
       ],
     },
+    {id:'caprii-model-profile',label:'โหมดคุณภาพโมเดล',submenu:[
+      {label:'เลือกโมเดลเอง',type:'radio',checked:!cfg.modelProfile||cfg.modelProfile==='manual',click:()=>updateConfig({modelProfile:'manual'})},
+      ...[['speed','รวดเร็ว — Flash Lite'],['balanced','สมดุล — Flash ที่ไม่ใช่ Lite'],['quality','คุณภาพสูง — Pro ถ้ามีใน API']].map(([profile,label])=>({id:'caprii-profile-'+profile,label,type:'radio',checked:cfg.modelProfile===profile,enabled:cfg.provider==='gemini'&&!!chatModels?.length,click:()=>chooseModelProfile(profile)})),
+      {label:'API อาจมีค่าใช้จ่าย/โควตา แยกจาก Gemini บนเว็บ',enabled:false},
+    ]},
+    {label:'โฟกัสงาน: ตอบตามข้อเท็จจริงและความยาก',type:'checkbox',checked:cfg.assistantFocus!==false,click:item=>updateConfig({assistantFocus:item.checked})},
     {
       label: t.chatModel,
       submenu: [
@@ -402,7 +408,7 @@ function rebuildTray() {
         ...(chatModels?.length
           ? chatModels.map((name) => ({
             label: cloud.free.includes(name) ? `${name} · ${t.cloudFree}` : name,
-            type: 'radio', checked: name === pickModel(cfg), click: () => updateConfig({ chatModel: name }),
+            type: 'radio', checked: name === pickModel(cfg), click: () => updateConfig({ chatModel: name, modelProfile:'manual' }),
           }))
           : [{ label: (chatError || t.noOllama).slice(0, 80), enabled: false }]),
         // Ollama's free cloud models when you're signed in to it, fetched on the click (it takes a second)
@@ -528,9 +534,25 @@ function runHooks(action, { quiet = false } = {}) {
 
 // The model she talks with: the one picked in her menu if it's still installed, else the first one
 // on this PC (a cloud model only once you pick it).
+async function chooseModelProfile(profile){
+  if(chats.size){await dialog.showMessageBox({message:'หยุดงานปัจจุบันก่อนเปลี่ยนโมเดล'});rebuildTray();return;}
+  const cfg=config.load(),model=require('./model-profiles').candidates(chatModels,profile)[0];
+  if(cfg.provider!=='gemini'||!model){await dialog.showMessageBox({message:'ไม่พบโมเดลสำหรับโหมดนี้ในรายชื่อ API',detail:'เลือกผู้ให้บริการ Gemini และตรวจรายชื่อโมเดลก่อน รายชื่อไม่ได้ยืนยันสิทธิ์หรือโควตาในการตอบจริง'});rebuildTray();return;}
+  const controller=new AbortController();chats.set('model-profile',controller);
+  try{
+    const answer=await dialog.showMessageBox(overlay,{type:'question',message:'ทดสอบและใช้โมเดลนี้?',detail:model+'\n\nจะส่งคำถามทดสอบสั้นหนึ่งครั้งก่อนบันทึก การเรียก API อาจใช้โควตาหรือคิดค่าบริการตามบัญชี และสิทธิ์ Gemini บนเว็บไม่ใช่สิทธิ์ API โมเดลนี้ไม่รับประกันว่าทำงานเหมือน Gemini บนเว็บทุกอย่าง',buttons:['ยกเลิก','ทดสอบแล้วใช้'],defaultId:0,cancelId:0,signal:controller.signal});
+    if(answer.response!==1)return;
+    const result=await require('./chat-runner').runChat({models:[model],signal:controller.signal,timeoutMs:profile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:[{role:'system',content:'ตอบเป็นภาษาไทยสั้น ๆ'},{role:'user',content:'ตอบว่าพร้อมใช้งาน เป็นภาษาไทย'}]},()=>{},signal)});
+    if(!/[\u0e00-\u0e7f]/.test(result.text))throw Error('โมเดลยังไม่ตอบภาษาไทยตามการทดสอบ');
+    controller.signal.throwIfAborted();updateConfig({modelProfile:profile,chatModel:model});
+  }catch(err){if(!controller.signal.aborted)await dialog.showMessageBox({type:'error',message:'ยังไม่ได้เปลี่ยนโมเดล ทดสอบไม่สำเร็จ',detail:err.message});}
+  finally{chats.delete('model-profile');rebuildTray();}
+}
+
 function pickModel(cfg = config.load()) {
   if (!chatModels?.length) return null;
   if (chatModels.includes(cfg.chatModel)) return cfg.chatModel;
+  if(cfg.modelProfile && cfg.modelProfile!=='manual')return null; // Retest explicitly if an opted-in model disappears.
   return chatModels.find((m) => !ollama.isCloud(m)) || chatModels[0];
 }
 
@@ -592,7 +614,7 @@ async function chatWithFallback(cfg, messages, send, signal) {
   const selected = pickModel(cfg);
   let requests=0;
   const { text, model } = await require('./chat-runner').runChat({
-    models: [selected, ...(chatModels || [])], signal, onDelta: send,
+    models: require('./model-profiles').fallbackModels({provider:cfg.provider,selected,models:chatModels||[]}), signal, onDelta: send, timeoutMs:cfg.modelProfile==='quality'?60000:30000,
     request: async (model, onDelta, signal) => {
       const text=await require('./thai-language').thaiResponse({messages,request:async fixed=>{if(++requests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}});
       onDelta(text);return text;
@@ -658,7 +680,7 @@ async function sayAboutSnap({ id, persona, prompt, history = [] }, signal) {
 
 async function pickProvider(provider) {
   for (const controller of chats.values()) controller.abort();
-  updateConfig({ provider });
+  updateConfig({ provider, modelProfile:'manual' });
   await refreshModels();
   if (chatErrorCode) sendCommand('setupKey'); // it needs a key or an address: she asks for it
 }

@@ -226,7 +226,7 @@ async function boot() {
   const guide = new Guide({ capri, panel, voice, host, brain });
   // Talking to her (chat.js): "Talk to her" in her menu, or the button when you click her idle.
   const chat = new Chat({ capri, panel, voice, host, brain });
-  chat.dictationAvailable=config.canDictate===true;
+  chat.dictationAvailable=config.canDictate===true;chat.focusedAssistant=config.assistantFocus!==false;
   brain.onTalk = () => chat.start();
   // Getting her chat going with buttons (setup.js): Ollama and a model, a key, or an address
   const setup = new Setup({ guide, panel, host, brain, capri, voice });
@@ -597,6 +597,8 @@ async function boot() {
   });
 
   host.onConfig((cfg) => {
+    chat.focusedAssistant=cfg.assistantFocus!==false;
+    if(chat.open&&typeof cfg.chatModel==='string')panel.tag.textContent=cfg.chatModel.replace(/^models\//,'').replace(/:latest$/,'');
     voice.configure(cfg);
     thaiSpeech.configure(cfg);
     jealousy.enabled = cfg.jealous !== false;

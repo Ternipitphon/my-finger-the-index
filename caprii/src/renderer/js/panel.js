@@ -310,7 +310,7 @@ export class Panel {
     this.setFace(face);
     this.quote.textContent = quote;
     this.quote.hidden = !quote;
-    this.line.textContent = '';
+    this.line.textContent = 'กำลังประมวลผลคำขอ…';
     this.line.classList.add('is-streaming');
     this.place();
   }
