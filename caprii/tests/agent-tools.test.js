@@ -73,3 +73,11 @@ test('math keypad clicks cannot bypass exact answer verification',async()=>{
  await assert.rejects(tools.execute({tool:'browser.click',id:0,generation:'1',intent:'answer_key'},c),/ตรวจคำตอบ/);assert.equal(clicks,0);
  await tools.execute({tool:'math.evaluate',expression:'2*7+9/9'},c);await tools.execute({tool:'browser.click',id:0,generation:'1',intent:'answer_key'},c);assert.equal(clicks,1);
 });
+test('an acknowledgment already present before submit cannot verify a new submission',async()=>{
+ const browser={snapshot:async()=>({text:'คำตอบถูกต้อง',elements:[],generation:'2'})};const tools=createAgentTools({browser});const c={signal:AbortSignal.timeout(1000),permission:async()=>true,submitBaseline:{text:'คำตอบถูกต้อง'}};
+ const r=await tools.execute({tool:'browser.expect',contains:'คำตอบถูกต้อง'},c);assert.equal(r.result.passed,false);assert.equal(r.result.alreadyPresentBeforeSubmit,true);
+});
+test('explicit do-not-fill and do-not-submit instructions block tools before permission or input',async()=>{
+ let performed=0,asked=0;const browser={target:()=>({label:'ส่งคำตอบ'}),interact:async()=>{performed++;return{};}};const tools=createAgentTools({browser});const c={signal:AbortSignal.timeout(1000),intentRequirements:{noInput:true,noSubmit:true},permission:async()=>{asked++;}};
+ await assert.rejects(tools.execute({tool:'browser.type',id:0,generation:'1',value:'15'},c),/ไม่ให้กรอก/);await assert.rejects(tools.execute({tool:'browser.click',id:0,generation:'1',intent:'submit'},c),/ไม่ให้กดส่ง/);assert.equal(performed,0);assert.equal(asked,0);
+});

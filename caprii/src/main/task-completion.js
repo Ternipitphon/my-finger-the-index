@@ -1,10 +1,11 @@
 'use strict';
 function requirements(goal) {
+ const current=goal.indexOf('\nคำสั่งตอนนี้:');if(current>=0)goal=goal.slice(current);
  const page=/(?:หน้าจอ|ดูจอ|บนจอ|บนหน้า|หน้าเว็บ|แท็บ|screen|page|\btab\b)/i.test(goal);
  const solvePage=page&&/(?:ทำ|แก้)โจท(?:ย์|ย)?|ทำข้อ/i.test(goal);
  const noInput=/(?:ไม่ต้อง|อย่า|ห้าม|do not|don't)\s*(?:ให้\s*)?(?:กรอก|พิมพ์|ใส่คำตอบ|เติมคำตอบ|fill|type)/i.test(goal);
  const noSubmit=/(?:ไม่ต้อง|อย่า|ห้าม|do not|don't)\s*(?:ให้\s*)?(?:กดส่ง|ส่งคำตอบ|submit)/i.test(goal);
- return {input:!noInput&&(solvePage||/(?:กรอก|พิมพ์|ใส่คำตอบ|เติมคำตอบ|\bfill\b|\btype\b)/i.test(goal)),submit:!noSubmit&&/(?:กดส่ง|ส่งคำตอบ|\bsubmit\b)/i.test(goal)};
+ return {noInput,noSubmit,input:!noInput&&(solvePage||/(?:กรอก|พิมพ์|ใส่คำตอบ|เติมคำตอบ|\bfill\b|\btype\b)/i.test(goal)),submit:!noSubmit&&/(?:กดส่ง|ส่งคำตอบ|\bsubmit\b)/i.test(goal)};
 }
 function createCompletion(goal) {
  const wanted=requirements(goal);let input=false,submitted=false,target=null;

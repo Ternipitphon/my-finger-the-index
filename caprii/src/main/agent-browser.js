@@ -75,9 +75,10 @@ function createBrowser({ BrowserWindow, session }) {
   async function interact(action, signal) {
     check(signal);
     const wc = current();
+    const before=lastSnapshot?{url:lastSnapshot.url,text:lastSnapshot.text}:null;
     const payload=JSON.stringify({id:action.id,generation:action.generation,value:action.value});
     const outcome=await wc.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.__capriiDOM.execute(${JSON.stringify(action.kind)},${payload})`}]);
-    check(signal);lastSnapshot=outcome.observed;return outcome;
+    check(signal);lastSnapshot=outcome.observed;return{...outcome,before};
   }
   async function verifyField(action,signal){
     check(signal);const wc=current(),payload=JSON.stringify({id:action.id,generation:action.generation,value:action.value});

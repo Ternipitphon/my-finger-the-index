@@ -278,7 +278,7 @@ function resolveLang(setting) { return 'th'; }
 // What the overlay gets: `lang` is the resolved one, `langSetting` what the user picked.
 function rendererConfig() {
   const { apiKeys, ...cfg } = config.load(); // the keys stay here: the overlay only learns which ones are set
-  return { ...cfg, automaticActions, keys: Object.keys(apiKeys || {}), assistant: activeAssistant().id, lang: resolveLang(cfg.lang), langSetting: cfg.lang, floorGap: overlayArea().gap };
+  return { ...cfg, automaticActions, canDictate:process.platform==='win32', keys: Object.keys(apiKeys || {}), assistant: activeAssistant().id, lang: resolveLang(cfg.lang), langSetting: cfg.lang, floorGap: overlayArea().gap };
 }
 
 function updateConfig(patch) {
@@ -704,6 +704,20 @@ function registerIpc() {
   ipcMain.handle('config:get', () => rendererConfig());
   ipcMain.handle('hooks:status', () => activeHooks().status());
   ipcMain.handle('config:set', (_e, patch) => updateConfig(patch));
+  ipcMain.handle('voice:dictate',async event=>{
+    if(event.sender!==overlay?.webContents)return{error:'ผู้เรียกไม่ถูกต้อง'};
+    if(process.platform!=='win32')return{error:'ใช้ Windows Voice Typing ได้บน Windows เท่านั้น'};
+    if(chats.size)return{error:'หยุดงานปัจจุบันก่อนเริ่มพิมพ์ด้วยเสียง'};
+    const controller=new AbortController();chats.set('dictation',controller);
+    try{
+      const answer=await dialog.showMessageBox(overlay,{type:'info',message:'เริ่มพิมพ์คำสั่งด้วยเสียงผ่าน Windows?',detail:'เลือกภาษาแป้นพิมพ์เป็นไทยก่อน Windows เป็นผู้ประมวลผลเสียงตามการตั้งค่าระบบ ซึ่งอาจใช้บริการออนไลน์ของ Microsoft แอปไม่บันทึกเสียงเอง\nข้อความจะลงช่องแชตให้คุณตรวจ หยุดไมค์แล้วกดส่งเอง ไม่มีการส่งคำสั่ง AI อัตโนมัติ\nหยุดไมค์จากแถบ Windows หรือกด Win+H อีกครั้ง (Ctrl+Alt+Esc หยุดงาน AI แต่ไม่ได้ปิดไมค์ของ Windows)',buttons:['ยกเลิก','เริ่มพิมพ์ด้วยเสียง'],defaultId:0,cancelId:0,signal:controller.signal});
+      if(answer.response!==1)return{cancelled:true};
+      controller.signal.throwIfAborted();overlay.setFocusable(true);overlay.show();overlay.focus();overlay.webContents.focus();
+      const focused=await overlay.webContents.executeJavaScript(`(()=>{const e=document.querySelector('.panel__input'),form=document.querySelector('.panel__chat');if(!e||e.type==='password'||e.disabled||!form||form.hidden||!e.getClientRects().length)return false;e.focus();return document.activeElement===e;})()`);
+      if(!focused)return{error:'เปิดช่องแชตปกติก่อน ไม่ใช้การพิมพ์เสียงในช่องคีย์หรือรหัสผ่าน'};
+      return await require('./windows-dictation').startWindowsDictation({signal:controller.signal});
+    }catch(err){return{error:controller.signal.aborted?'ยกเลิกแล้ว':err.message};}finally{chats.delete('dictation');}
+  });
   ipcMain.handle('demo:window', (_e, open) => demoWindow(open));
   // right-clicking her: the same menu as the tray icon (which Windows often hides behind the ^ by the clock)
   ipcMain.on('menu:open', () => trayMenu?.popup({ window: overlay }));
@@ -777,6 +791,7 @@ function registerIpc() {
         approve: action => taskPermissions.approve(action),
         onProgress: event => {
           task.update(event);
+          if(event.status==='recovering')overlay?.webContents.send('chat:delta',{id,text:'กำลังตรวจและแก้ขั้นตอนที่ติดขัด…\n'});
           if (event.status === 'running' || event.tool === 'plan') overlay?.webContents.send('chat:delta', { id, text: `ขั้นตอน ${event.step}: ${({'desktop.look':'ดูหน้าจอ','desktop.windows':'อ่านหน้าต่าง','desktop.input':'ควบคุมหน้าจอ','browser.read':'อ่านแท็บเว็บ','browser.type':'กรอกช่องคำตอบ','browser.click':'คลิกปุ่ม','browser.expect_value':'ตรวจค่าที่กรอกจริง','browser.expect':'ตรวจผลหน้าเว็บ','math.solve':'ค้นหาคำตอบ','math.evaluate':'คำนวณ','math.verify':'ตรวจคำตอบ','plan':'วางแผน'})[event.tool]||'กำลังดำเนินการ'}\n` });
         },
       });

@@ -21,6 +21,9 @@ electron.app.whenReady().then(async()=>{
  console.log('PASS: actual renderer starts centered; random movement exists and stops while a task is active');
  await overlay.webContents.executeJavaScript(`(async()=>{await window.dev.chat.start();await window.dev.chat.send('เปิดyoutube');})()`);
  assert.deepEqual(opened,['https://www.youtube.com/']);assert.deepEqual(confirmations,['เปิดเว็บไซต์ในเบราว์เซอร์?']);
+ const voiceUI=await overlay.webContents.executeJavaScript(`(async()=>{const p=window.dev.panel,saved=p.current.onVoice;let clicks=0;p.current.onVoice=async()=>{clicks++;};p.chatVoice.hidden=false;p.chatVoice.click();await Promise.resolve();await Promise.resolve();const normal=clicks;p.setChatBusy(true);p.chatVoice.click();const busy=clicks;p.setChatBusy(false);const chat=p.current.chat;p.renderChat({...chat,voice:true,secret:true});const secretHidden=p.chatVoice.hidden;p.renderChat(chat);p.current.onVoice=saved;return{normal,busy,secretHidden};})()`);
+ assert.deepEqual(voiceUI,{normal:1,busy:1,secretHidden:true});
+ console.log('PASS: voice input button is explicit, disabled during AI work, hidden for secret fields, and does not send a command automatically');
  console.log('PASS: real renderer Thai YouTube command -> main IPC -> explicit confirmation -> OS browser launch API; no LLM call');assert.equal(latestMenu.getMenuItemById('caprii-auto-actions').checked,false);
  const toggle=latestMenu.getMenuItemById('caprii-auto-actions');toggle.click(toggle);assert.equal(latestMenu.getMenuItemById('caprii-auto-actions').checked,true);
  await overlay.webContents.executeJavaScript(`window.dev.chat.send('เปิดyoutube')`);

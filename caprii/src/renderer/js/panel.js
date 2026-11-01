@@ -62,6 +62,8 @@ export class Panel {
     // talking to her (chat.js): a line to type in, under her answer
     this.chatForm = panel.querySelector('.panel__chat');
     this.chatInput = panel.querySelector('.panel__input');
+    this.chatVoice=panel.querySelector('.panel__voice');
+    this.chatVoice?.addEventListener('click',async()=>{if(this.chatInput.disabled||this.current?.chat?.secret||this.chatVoice.disabled)return;this.chatVoice.disabled=true;try{await this.current?.onVoice?.();}finally{this.chatVoice.disabled=this.chatInput.disabled;}});
     this.chatSend = panel.querySelector('.panel__send');
     this.chatClose = panel.querySelector('.panel__close');
     this.note = panel.querySelector('.panel__note');
@@ -283,6 +285,7 @@ export class Panel {
     this.chatForm.hidden = !chat;
     this.note.hidden = !chat?.note;
     if (!chat) return;
+    if(this.chatVoice)this.chatVoice.hidden=!!chat.secret||!chat.voice;
     this.chatInput.type = chat.secret ? 'password' : 'text';
     this.chatInput.placeholder = chat.placeholder;
     this.chatInput.setAttribute('aria-label', chat.placeholder);
@@ -314,11 +317,11 @@ export class Panel {
 
   // Her answer so far (done: all of it). It decodes in through noise like her other lines, catching
   // up faster the further behind it is (Claude Code's answer comes in one piece), and glitches once done.
-  stream(text, { done = false } = {}) {
+  stream(text, { done = false, speak = true } = {}) {
     if (!this.current?.chat) return;
     this.streamTo = [...text];
     this.streamDone = done;
-    if(done)this.onSpeak?.(text);
+    if(done&&speak)this.onSpeak?.(text);
     // an answer rewritten rather than added to (a reasoning block cut out, an error): from where they part
     let same = 0;
     const max = Math.min(this.streamShown, this.streamTo.length);
@@ -373,6 +376,7 @@ export class Panel {
   // While she answers you can't send another.
   setChatBusy(busy) {
     this.chatInput.disabled = busy;
+    if(this.chatVoice)this.chatVoice.disabled=busy;
     this.chatSend.disabled = busy && !this.current?.onStop;
     if (this.current?.chat) this.chatSend.textContent = busy && this.current.onStop ? 'หยุด' : this.current.chat.send;
     if (!busy && this.current?.chat) this.chatInput.focus();

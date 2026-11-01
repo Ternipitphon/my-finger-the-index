@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('host', {
   cursor: () => ipcRenderer.invoke('overlay:cursor'),
   screens: () => ipcRenderer.invoke('screens:list'),
   moveScreen: (id) => ipcRenderer.invoke('screens:move', id),
+  dictate: () => ipcRenderer.invoke('voice:dictate'),
   getConfig: () => ipcRenderer.invoke('config:get'),
   setConfig: (patch) => ipcRenderer.invoke('config:set', patch),
   listSounds: () => ipcRenderer.invoke('sounds:list'),

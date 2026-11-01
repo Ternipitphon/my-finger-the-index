@@ -84,6 +84,7 @@ async function boot() {
   });
 
   panel.onSpeak=text=>thaiSpeech.speak(text);
+  panel.onSilence=()=>{try{thaiSpeech.synthesis?.cancel();}catch{}};
   const capri = new Capri({
     root: document.getElementById('capri'),
     canvas: document.getElementById('sprite'),
@@ -225,6 +226,7 @@ async function boot() {
   const guide = new Guide({ capri, panel, voice, host, brain });
   // Talking to her (chat.js): "Talk to her" in her menu, or the button when you click her idle.
   const chat = new Chat({ capri, panel, voice, host, brain });
+  chat.dictationAvailable=config.canDictate===true;
   brain.onTalk = () => chat.start();
   // Getting her chat going with buttons (setup.js): Ollama and a model, a key, or an address
   const setup = new Setup({ guide, panel, host, brain, capri, voice });

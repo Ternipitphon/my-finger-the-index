@@ -21,3 +21,22 @@ export function actionCommand(text) {
  if (/^(?:ข้อนี้|โจทย์นี้).*(?:ตอบ|ทำ|คำนวณ)/i.test(normalized(text))) return true;
  return /^(?:(?:ช่วย|กรุณา)\s*)?(?:ใช้เมาส์|เอาเมาส์|use the mouse|คลิก|ดับเบิลคลิก|คลิกขวา|ลาก|เลื่อน|ขยับเมาส์|ย้ายเมาส์|พิมพ์|กรอก|กด|เปิด|เข้าเว็บ|ค้นหาในเว็บ|คำนวณ|คิดเลข|แก้โจท(?:ย์|ย)?|ทำโจท(?:ย์|ย)?|calculate|solve|click|double.click|right.click|drag|scroll|type|fill|open)\s*/i.test(normalized(text));
 }
+
+// Uses only the current chat's previous user instruction, never stored task evidence.
+export function resolveTaskCommand(text,previous='') {
+ if(typeof text!=='string'||refusedCommand(text))return null;
+ const command=normalized(text).replace(/[.!?\s]+$/,'');
+ const shortDo=/^(?:ทำ|แก้|คิด)(?:โจท(?:ย์|ย)?|ข้อ)(?:ข้อ)?(?:นี้|ที่เห็น|บนหน้า|บนจอ|ในแท็บ)/i.test(command);
+ if(shortDo){
+  if(/ยังไง|อย่างไร|วิธี|สอน|อธิบาย/.test(command))return{goal:`อ่านโจทย์ปัจจุบันบนหน้าจอหรือแท็บที่เชื่อม แล้วคำนวณและอธิบาย อย่ากรอกคำตอบและอย่ากดส่งคำตอบ\nคำสั่งผู้ใช้: ${text}`};
+  const wantsInput=!/(?:ไม่ต้อง|อย่า|ห้าม)\s*(?:กรอก|พิมพ์|ใส่คำตอบ)/.test(command)&&(/^(?:ทำ|แก้)/.test(command)||/กรอก|พิมพ์|ใส่คำตอบ/.test(command));
+  const submit=/(?:กดส่ง|ส่งคำตอบ|ส่งเลย|ส่งด้วย)/.test(command)&&!/(?:ไม่ต้อง|อย่า|ห้าม)\s*(?:กด)?ส่ง/.test(command);
+  return{goal:`อ่านโจทย์ปัจจุบันบนหน้าจอหรือแท็บที่เชื่อมใหม่ คำนวณ${wantsInput?'และกรอกคำตอบ':' อย่ากรอกคำตอบ'} ${submit?'แล้วกดส่งคำตอบ':'อย่ากดส่งคำตอบ'}\nคำสั่งผู้ใช้: ${text}`};
+ }
+ const follow=/^(?:ทำต่อ|ไปต่อ|ทำให้หน่อย|จัดการให้หน่อย|ทำให้เลย|เอาเลย|กรอกเลย|พิมพ์เลย|ส่ง(?:เลย|ให้หน่อย|ให้ด้วย|ด้วย|ที|หน่อย)?|กดส่ง(?:เลย|ให้หน่อย|หน่อย|ที)?|ทำ(?:ให้)?แล้วส่ง(?:ให้)?ด้วย|ทำให้แล้วส่งเลย)(?:นะ|ครับ|ค่ะ|ให้หน่อย|หน่อย|ด้วย)*$/i.test(command);
+ if(!follow)return null;
+ if(!previous||refusedCommand(previous)||siteCommand(previous)||!actionCommand(previous))return{question:'ต้องการให้ทำอะไรบนหน้าเว็บหรือหน้าจอครับ เช่น ทำโจทย์ กรอกข้อมูล หรือกดส่ง'};
+ const submit=/ส่ง/.test(command),input=/กรอก|พิมพ์/.test(command);
+ const resume=/(?:กรอก|พิมพ์|(?:ทำ|แก้|คิด)(?:โจท|ข้อ))/.test(previous)?'อ่านโจทย์ปัจจุบันและคำนวณแล้วกรอกคำตอบ '+(/กดส่ง|ส่งคำตอบ|ส่งเลย/.test(previous)&&!/(?:ไม่ต้อง|อย่า|ห้าม).*ส่ง/.test(previous)?'แล้วกดส่งคำตอบ':'อย่ากดส่งคำตอบ'):previous;
+ return{goal:`ตรวจหน้าจอหรือแท็บปัจจุบันใหม่ก่อนลงมือ ห้ามใช้ค่าหรือคำตอบเก่าหากโจทย์เปลี่ยน\nบริบทคำสั่งผู้ใช้ก่อนหน้า: ${previous}\nคำสั่งตอนนี้: ${submit?'ตรวจคำตอบปัจจุบันแล้วกดส่งคำตอบ':input?'ตรวจคำตอบแล้วกรอกคำตอบ':resume}\nคำสั่งผู้ใช้: ${text}`};
+}

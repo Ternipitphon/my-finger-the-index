@@ -21,11 +21,15 @@ function createAgentTools({ browser, desktop, screen, openExternal }) {
       validate: a => { number(a.id, 'element ID', 0, 79); text(a.generation, 'snapshot generation', 20); if (kind === 'type') text(a.value, 'field text', 4000); },
       run: async (a, c) => {
         const target = browser.target(a);
+        if(kind==='type'&&c.intentRequirements?.noInput)throw Error('คำสั่งนี้ระบุไม่ให้กรอกข้อมูล');
+        if(kind==='click'&&c.intentRequirements?.noSubmit&&(a.intent==='submit'||/ส่ง|submit|ยืนยัน|confirm/i.test(target.label)))throw Error('คำสั่งนี้ระบุไม่ให้กดส่ง');
+        if(kind==='click'&&c.intentRequirements?.noInput&&(a.intent==='answer_key'||(c.mathTask&&/^[0-9()+\-×÷*/.]$/.test(target.label))))throw Error('คำสั่งนี้ระบุไม่ให้กรอกคำตอบ');
         if (kind === 'type') allowMathText(c, a.value);
         if(kind==='click'&&c.mathTask&&(a.intent==='answer_key'||/^[0-9()+\-×÷*/.]$/.test(target.label))&&!c.mathEvidence?.allowed?.length)throw Error('คำนวณและตรวจคำตอบก่อนกดแป้นคำตอบ');
         if (kind === 'click' && c.mathTask && /ส่ง|submit|confirm|ยืนยัน/i.test(target.label) && !c.mathEvidence?.allowed?.length) throw new Error('Verify the math answer before submitting');
         await c.permission({ tool: a.tool, target, intent:a.intent, ...(c.mathTask ? { mathProof: c.mathEvidence } : {}), ...(kind === 'type' ? { value: a.value } : {}), note: 'Clicking can submit, purchase, delete, or send data. Check the target and approve only the action you intend.' });
-        return browser.interact({ ...a, kind }, c.signal);
+        try{const result=await browser.interact({...a,kind},c.signal);if(kind==='click'&&a.intent==='submit')c.submitBaseline=result.before;return result;}
+        catch(err){if(kind==='type')err.inputTarget=target;throw err;}
       },
     });
     tools.add('browser.expect', {
@@ -34,13 +38,13 @@ function createAgentTools({ browser, desktop, screen, openExternal }) {
       run: async (a, c) => {
         await c.permission({ tool: a.tool, expected: a.contains, note: 'Read the current page to verify this text; send the observation to AI' });
         const observed = await browser.snapshot(c.signal);
-        return { passed: observed.text.includes(a.contains), expected: a.contains, observed };
+        const alreadyPresent=c.submitBaseline?.text?.includes(a.contains)===true;return {passed:observed.text.includes(a.contains)&&!alreadyPresent,expected:a.contains,alreadyPresentBeforeSubmit:alreadyPresent,observed};
       },
     });
     if(browser.verifyField)tools.add('browser.expect_value',{
       description:{id:'field ID from latest snapshot',generation:'latest snapshot generation',value:'exact expected field value',purpose:'Read the actual field value after typing; this does NOT prove form submission'},
       validate:a=>{number(a.id,'field ID',0,79);text(a.generation,'snapshot generation',20);text(a.value,'expected field value',4000);},
-      run:async(a,c)=>{await c.permission({tool:a.tool,target:browser.target(a),note:'Read this selected field to verify the typed answer'});return browser.verifyField(a,c.signal);},
+      run:async(a,c)=>{await c.permission({tool:a.tool,target:browser.target(a),note:'Read this selected field to verify the typed answer'});const inputTarget=browser.target(a);const result=await browser.verifyField(a,c.signal);return{...result,inputTarget};},
     });
     if(browser.capture)tools.add('browser.look', {
       description: { purpose: 'Send a screenshot of the isolated browser to the vision model' }, validate: () => {},
@@ -64,7 +68,7 @@ function createAgentTools({ browser, desktop, screen, openExternal }) {
     if (desktop.supportedInput) tools.add('desktop.input', {
       description: { intent: 'optional: answer_key for a virtual answer-keypad click, submit for the actual submit button', kind: 'move, click, doubleclick, rightclick, drag, type, key, focus, scroll', x: 'logical desktop x for click', y: 'logical desktop y', toX: 'drag destination x', toY: 'drag destination y', allowOutsideWindow: 'true only for an explicitly confirmed desktop/menu action outside target bounds', replace: 'optional boolean for type: select and replace the focused field text AFTER clicking it; default false', text: 'text for type; when a field is visible supply x and y to click-focus and type atomically. Inspect the returned image to confirm the actual field value; if the field stays unchanged use its visible keypad instead', key: KEYS.join(', '), handle: 'window handle for focus', targetHandle: 'required observed window handle for click/type/key/scroll; refocused AFTER permission', amount: 'scroll -10..10', purpose: 'Windows only. Always inspect first, one action at a time, inspect the resulting screenshot to verify before acting again.' },
       validate: a => validateDesktop(a, screen.getAllDisplays()),
-      run: async (a, c) => { if (a.kind === 'type') allowMathText(c, a.text); if (c.mathTask && a.kind === 'key' && (a.key === 'ctrl+v' || (a.key === 'enter' && !c.mathEvidence?.allowed?.length))) throw new Error('Use type with a verified math result before submitting; clipboard answers are not verified'); if (c.mathTask && ['click','doubleclick','rightclick','drag'].includes(a.kind) && !c.mathEvidence?.allowed?.length) throw new Error('Calculate and verify the math answer before interacting with the answer controls'); const target = desktop.target(a); const displayId=String(desktop.displayForAction(a,target).id); await c.permission({ ...a, target, displayId, ...(c.mathTask ? { mathProof: c.mathEvidence } : {}), note: 'This changes your desktop and sends a screenshot afterward. Ensure the intended window is active. Stop with Ctrl+Alt+Esc.' }); return desktop.act(a, c.signal, {approvedDisplayId:displayId,authorizeDisplay:id=>c.permission({tool:'desktop.look',displayId:String(id),note:'Target moved to another display; share this screen image?'})}); },
+      run: async (a, c) => { if(c.intentRequirements?.noInput&&(a.kind==='type'||a.intent==='answer_key'))throw Error('คำสั่งนี้ระบุไม่ให้กรอกข้อมูล');if(c.intentRequirements?.noSubmit&&(a.intent==='submit'||(a.kind==='key'&&a.key==='enter')))throw Error('คำสั่งนี้ระบุไม่ให้กดส่ง'); if (a.kind === 'type') allowMathText(c, a.text); if (c.mathTask && a.kind === 'key' && (a.key === 'ctrl+v' || (a.key === 'enter' && !c.mathEvidence?.allowed?.length))) throw new Error('Use type with a verified math result before submitting; clipboard answers are not verified'); if (c.mathTask && ['click','doubleclick','rightclick','drag'].includes(a.kind) && !c.mathEvidence?.allowed?.length) throw new Error('Calculate and verify the math answer before interacting with the answer controls'); const target = desktop.target(a); const displayId=String(desktop.displayForAction(a,target).id); await c.permission({ ...a, target, displayId, ...(c.mathTask ? { mathProof: c.mathEvidence } : {}), note: 'This changes your desktop and sends a screenshot afterward. Ensure the intended window is active. Stop with Ctrl+Alt+Esc.' }); return desktop.act(a, c.signal, {approvedDisplayId:displayId,authorizeDisplay:id=>c.permission({tool:'desktop.look',displayId:String(id),note:'Target moved to another display; share this screen image?'})}); },
     });
     if (desktop.supportedInput) tools.add('desktop.expect', {
       description: { titleContains: 'expected text in the foreground window title', purpose: 'Verify a window was focused/opened using actual Windows state; this does not verify arbitrary screen contents' },

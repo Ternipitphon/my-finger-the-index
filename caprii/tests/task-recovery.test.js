@@ -1,0 +1,5 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const {createRecoveryBudget}=require('../src/main/task-recovery');
+test('failed repeated edits are limited while observations and another method stay available',()=>{const r=createRecoveryBudget(),a={tool:'browser.type',id:0,value:'15',generation:'1'};for(let i=0;i<2;i++){r.before(a);assert.equal(r.failed(a,'ช่องนี้เป็น read-only').kind,'input');}assert.throws(()=>r.before({...a,generation:'2'}),/2 ครั้ง/);r.before({tool:'browser.read'});r.before({tool:'browser.click',id:1,intent:'answer_key'});});
+test('uncertain input blocks all further mutations, not just the original button ID',()=>{const r=createRecoveryBudget();r.failed({tool:'browser.click',id:3},'แท็บไม่ตอบกลับ ห้ามส่งซ้ำ');assert.throws(()=>r.before({tool:'browser.click',id:4}),/ห้ามส่งซ้ำ/);assert.throws(()=>r.before({tool:'browser.type',id:0,value:'15'}),/ห้ามส่งซ้ำ/);r.before({tool:'browser.read'});r.before({tool:'browser.expect',contains:'สำเร็จ'});});

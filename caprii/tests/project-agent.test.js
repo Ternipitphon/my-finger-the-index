@@ -117,3 +117,10 @@ test('matching a field value cannot prove a requested submission was accepted',a
  const actions=[{tool:'browser.type',value:'15'},{tool:'browser.click',intent:'submit'},{tool:'browser.expect_value'},{tool:'finish',summary:'กรอกแล้ว'}];
  const r=await runProjectAgent({root,goal:'กรอกคำตอบแล้วกดส่ง',tools,allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions.shift())});assert.equal(r.verified,false);
 });
+test('verifying a different field cannot erase a failed edit',async t=>{
+ const root=await fixture(t);const {createAgentTools}=require('../src/main/agent-tools');
+ const target=a=>({id:a.id,url:'https://example.com/',label:'คำตอบ',elementId:a.id===0?'first':'second'});
+ const browser={target,interact:async a=>{if(a.kind==='type')throw Error('ช่องนี้เป็น read-only');return{performed:true,observed:{}};},verifyField:async()=>({passed:true,observedValue:'15',observed:{}})};
+ const actions=[{tool:'math.evaluate',expression:'2*7+9/9'},{tool:'browser.type',id:0,generation:'1',value:'15'},{tool:'browser.click',id:1,generation:'1',intent:'answer_key'},{tool:'browser.expect_value',id:1,generation:'1',value:'15'},{tool:'finish',summary:'ตรวจแล้ว'}];
+ const r=await runProjectAgent({root,goal:'คำนวณกรอกคำตอบ',tools:createAgentTools({browser}),allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions.shift())});assert.equal(r.verified,false);
+});

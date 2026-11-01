@@ -50,7 +50,7 @@ function createChromeBroker({port=47824,token=randomBytes(32).toString('base64ur
   return{connected:true,description:()=>status(),snapshot,
    navigate:async(url,signal)=>{if(browserUrl(url)!==connection?.url)throw Error('ส่วนขยายควบคุมเฉพาะแท็บที่เลือก ใช้ browser.read หรือเลือกเชื่อมแท็บใหม่');return snapshot(signal);},
    target:a=>{checkLease();if(!last||a.generation!==last.generation)throw Error('อ่านหน้าเว็บใหม่ก่อน');const e=last.elements.find(e=>e.id===a.id);if(!e)throw Error('ไม่พบช่องหรือปุ่ม');return{url:last.url,...e};},
-   interact:async(a,signal)=>{checkLease();const r=await command(a.kind,{id:a.id,generation:a.generation,value:a.value},signal);remember(r.observed);return r;},
+   interact:async(a,signal)=>{checkLease();const before=last?{url:last.url,text:last.text}:null;const r=await command(a.kind,{id:a.id,generation:a.generation,value:a.value},signal);remember(r.observed);return{...r,before};},
    verifyField:async(a,signal)=>{checkLease();const r=await command('verify',{id:a.id,generation:a.generation,value:a.value},signal);remember(r.observed);return r;},
    close:async()=>{cancel('จบงานแล้ว');},
   };

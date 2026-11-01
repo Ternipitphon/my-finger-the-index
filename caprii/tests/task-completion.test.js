@@ -18,3 +18,4 @@ test('focusing a field is not filling; a new answer invalidates the previous sub
 test('asking for an explanation without typing or submission does not create action requirements',()=>{
  const c=createCompletion('คำนวณโจทย์บนหน้าเว็บให้ดู ไม่ต้องกรอกและไม่ต้องกดส่ง');assert.deepEqual(c.missing(),[]);
 });
+test('the current followup instruction overrides an old no-submit instruction in quoted context',()=>{const c=createCompletion('บริบทคำสั่งผู้ใช้ก่อนหน้า: กรอกแต่ไม่ต้องกดส่ง\nคำสั่งตอนนี้: ตรวจคำตอบแล้วกดส่งคำตอบ\nคำสั่งผู้ใช้: ส่งเลย');assert.equal(c.wanted.submit,true);assert.equal(c.wanted.input,false);});

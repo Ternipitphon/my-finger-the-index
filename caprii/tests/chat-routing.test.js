@@ -32,3 +32,8 @@ test('math request from the screenshot and informal spelling start the actual ag
   chat.open=true;await chat.send(text);assert.equal(goal,text);
  }
 });
+test('a short followup starts a new observation task; an ambiguous one asks locally',async()=>{
+ const {Chat}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/chat.js')));let goal='',reply='';
+ const chat=new Chat({capri:{pulse(){}},panel:{setChatBusy(){},setActions(){},chatTurn(){},stream:s=>{reply=s;}},voice:{},brain:{},host:{onChatDelta(){},agentRun:async r=>{goal=r.goal;return{ok:true,text:'เริ่มแล้ว'};},chatSend(){throw Error('must not guess through text-only chat');}}});
+ chat.open=true;await chat.send('ทำต่อ');assert.match(reply,/ต้องการให้ทำอะไร/);assert.equal(goal,'');chat.history=[{role:'user',content:'กรอกคำตอบบนหน้าเว็บแต่ไม่ต้องกดส่ง'}];await chat.send('ส่งเลย');assert.match(goal,/ตรวจหน้าจอหรือแท็บปัจจุบันใหม่/);assert.match(goal,/คำสั่งตอนนี้: ตรวจคำตอบปัจจุบันแล้วกดส่ง/);
+});

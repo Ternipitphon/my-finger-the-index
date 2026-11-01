@@ -1,4 +1,4 @@
-import { siteCommand, actionCommand, refusedCommand } from './command-intent.js';
+import { siteCommand, actionCommand, refusedCommand, resolveTaskCommand } from './command-intent.js';
 import { screenIntent } from './screen-intent.js';
 // Talking to her: you type in her panel, and a model (setup.js picks which) answers as her, in
 // writing. The replies are AI-generated, and the panel says so on every chat.
@@ -241,11 +241,19 @@ export class Chat {
         this.onBetterModel?.();
       },
       chat: {
+        voice:this.dictationAvailable===true,
         placeholder: t.placeholder,
         send: t.send,
         close: t.close,
         noteTag: t.noteTag,
         note: status.local ? t.note : t.noteCloud,
+      },
+      onVoice:async()=>{
+        if(this.turn||!this.open)return;
+        this.panel.onSilence?.();
+        const result=await this.host.dictate().catch(()=>({error:'เปิดการพิมพ์ด้วยเสียงไม่สำเร็จ'}));
+        if(result.error)this.panel.stream(result.error,{done:true});
+        else if(result.requested)this.panel.stream('ส่งคำขอเปิด Windows Voice Typing แล้ว ตรวจข้อความในช่อง หยุดไมค์ด้วย Win+H แล้วกดส่ง',{done:true,speak:false});
       },
       onSend: (text) => this.send(text),
       onStop: () => { if (this.turn) this.host.chatStop(this.turn); },
@@ -295,9 +303,12 @@ export class Chat {
       } finally { if (this.turn === id) { this.turn = 0; this.panel.setChatBusy(false); } }
       return;
     }
-    if (/^\/agent\s+/i.test(text) || screenIntent(text) === 'agent' || actionCommand(text)) {
+    const previous=this.history.slice(0,-1).filter(m=>m.role==='user').at(-1)?.content||'';
+    const resolved=resolveTaskCommand(text,typeof previous==='string'?previous:'');
+    if(resolved?.question){this.panel.stream(resolved.question,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
+    if (resolved?.goal || /^\/agent\s+/i.test(text) || screenIntent(text) === 'agent' || actionCommand(text)) {
       try {
-        const res = await this.host.agentRun({ id, goal: text.replace(/^\/agent\s+/i, '') });
+        const res = await this.host.agentRun({ id, goal: resolved?.goal || text.replace(/^\/agent\s+/i, '') });
         if (this.turn === id) this.panel.stream(res.ok ? res.text : `${this.t.failed} ${res.error}`, { done: true });
       } catch {
         if (this.turn === id) this.panel.stream(this.t.failed, { done: true });

@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const {startWindowsDictation}=require('../src/main/windows-dictation');
+test('voice typing is unavailable off Windows and never starts a microphone in this test',async()=>{let ran=false;await assert.rejects(startWindowsDictation({platform:'linux',run:async()=>{ran=true;}}),/Windows/);assert.equal(ran,false);});
+test('Windows dictation validates process identity and passes only JSON to a fixed guarded shortcut helper',async()=>{let call;const r=await startWindowsDictation({platform:'win32',pid:123,signal:AbortSignal.timeout(1000),run:async(...args)=>{call=args;return{passed:true,stdout:'requested'};}});assert.deepEqual(r,{requested:true,verified:false});assert.equal(call[0],'powershell.exe');assert.deepEqual(JSON.parse(call[2].input),{pid:123});const script=call[1].at(-1);assert.ok(script.indexOf('if(-not [CapriiDictation]::OwnWindow')<script.indexOf('[CapriiDictation]::Start()'));await assert.rejects(startWindowsDictation({platform:'win32',pid:'malicious',run:async()=>{throw Error('must not execute');}}),/Invalid app/);});
+test('failed native launch is not reported as a working microphone',async()=>{await assert.rejects(startWindowsDictation({platform:'win32',pid:123,run:async()=>({passed:false,stdout:''})}),/ไม่สำเร็จ/);});

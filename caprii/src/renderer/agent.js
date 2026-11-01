@@ -11,7 +11,7 @@ function render(state) {
   list('plan', state.plan || []);
   const events = new Map();
   for (const event of state.events || []) events.set(`${event.step}:${event.tool}`, event);
-  list('events', [...events.values()].map(e => `ขั้นตอน ${e.step}: ${names[e.tool] || e.tool}${e.path ? ' · ' + e.path : ''}${e.action ? ' · ' + ({move:'เลื่อนเมาส์',click:'คลิก',doubleclick:'ดับเบิลคลิก',rightclick:'คลิกขวา',drag:'ลาก',type:'พิมพ์',key:'กดปุ่ม',focus:'โฟกัสหน้าต่าง',scroll:'เลื่อนจอ'}[e.action] || e.action) : ''} — ${({ done: 'ดำเนินการแล้ว', failed: 'ไม่ผ่าน', running: 'กำลังทำ' })[e.status] || e.status}${e.error ? ' · ' + e.error : ''}`));
+  list('events', [...events.values()].map(e => `ขั้นตอน ${e.step}: ${names[e.tool] || e.tool}${e.path ? ' · ' + e.path : ''}${e.action ? ' · ' + ({move:'เลื่อนเมาส์',click:'คลิก',doubleclick:'ดับเบิลคลิก',rightclick:'คลิกขวา',drag:'ลาก',type:'พิมพ์',key:'กดปุ่ม',focus:'โฟกัสหน้าต่าง',scroll:'เลื่อนจอ'}[e.action] || e.action) : ''} — ${({ done: 'ดำเนินการแล้ว', failed: 'ไม่ผ่าน', running: 'กำลังทำ', recovering:'กำลังตรวจและแก้', recovered:'แก้แล้วและตรวจผ่าน', incomplete:'ยังไม่ครบ' })[e.status] || e.status}${e.error ? ' · ' + e.error : ''}`));
   byId('summary').textContent = state.summary || '';
   byId('checks').textContent = (state.checks || []).map(c => `${c.tool}${c.script ? ': ' + c.script : ''} — ${c.passed ? 'ผ่าน' : 'ไม่ผ่าน'}${c.exitCode != null ? ' (exit ' + c.exitCode + ')' : ''}${c.stdout ? '\n' + c.stdout : ''}${c.stderr ? '\n' + c.stderr : ''}`).join('\n');
 }
