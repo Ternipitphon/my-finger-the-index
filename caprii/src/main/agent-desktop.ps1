@@ -176,6 +176,8 @@ switch ($request.kind) {
       'home' = @(36); 'end' = @(35); 'pageup' = @(33); 'pagedown' = @(34); 'delete' = @(46); 'space' = @(32);
       'ctrl+v' = @(17,86); 'alt+tab' = @(18,9); 'ctrl+z' = @(17,90)
     }
+    foreach($letter in 'abcdefghijklmnopqrstuvwxyz0123456789'.ToCharArray()){ $keys[[string]$letter]=@([int][char]([string]$letter).ToUpperInvariant()) }
+    for($f=1;$f -le 12;$f++){ $keys['f'+$f]=@(111+$f) }
     if (-not $keys.ContainsKey([string]$request.key)) { throw 'Key combination not supported' }
     $pressed = @()
     try { foreach ($k in $keys[[string]$request.key]) { [CapriiDesktop]::keybd_event([byte]$k, 0, 0, [UIntPtr]::Zero); $pressed += $k } }

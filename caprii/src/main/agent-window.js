@@ -14,10 +14,10 @@ function registerAgentWindowIpc(ipcMain) {
     return { ok: true };
   });
 }
-function createAgentWindow({ BrowserWindow, goal, stop }) {
+function createAgentWindow({ BrowserWindow, goal, stop, show = false }) {
   let finished = false;
   let state = { state: 'running', goal, plan: [], events: [], summary: '' };
-  const window = new BrowserWindow({ width: 720, height: 650, title: 'Caprii — งานที่กำลังทำ', backgroundColor: '#101622',
+  const window = new BrowserWindow({ show, width: 720, height: 650, title: 'Caprii — งานที่กำลังทำ', backgroundColor: '#101622',
     webPreferences: { preload: path.join(__dirname, '..', 'agent-preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', event => event.preventDefault());
@@ -39,7 +39,7 @@ function createAgentWindow({ BrowserWindow, goal, stop }) {
       finished = true;
       state = { ...state, state: result.state, summary: result.summary, checks: result.checks || [], audit: result.audit || [] };
       send();
-      if (!window.isDestroyed()) window.show();
+      if (!window.isDestroyed()){if(show)window.show();else window.destroy();}
     },
   };
 }

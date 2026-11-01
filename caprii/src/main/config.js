@@ -19,6 +19,7 @@ const DEFAULTS = {
   linked: false,     // a Claude Code event has reached her at least once
   persistChat: false, // no conversation memory across app restarts
   modelProfile: 'manual', // opt-in: manual, speed, balanced, quality
+  showTaskWindow: false, // status stays in chat; detailed task window is opt-in
   assistantFocus: true, // factual, adaptive answers without forced roleplay/three-sentence cap
   chatModel: null,   // the model she talks with (null: the provider's first one)
   provider: 'ollama', // who answers her chat: a key of llm.js PROVIDERS

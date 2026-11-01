@@ -16,7 +16,7 @@ function createTaskPermissions({signal,prompt,now=Date.now,expiresAt=now()+30000
  const active=()=>!cleared&&!signal.aborted&&now()<expiresAt;
  return {clear(){cleared=true;grants.clear();},async approve(action){
    if(!active())return false;
-   if(automatic() && /^(?:desktop|browser)\./.test(action.tool))return true;
+   if(automatic() && /^(?:desktop|browser|uia|launcher)\./.test(action.tool))return true;
    const scope=scopeFor(action);
    if(scope&&grants.has(scope))return true;
    const decision=await prompt(action,!!scope);

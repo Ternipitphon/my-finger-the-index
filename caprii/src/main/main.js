@@ -323,7 +323,7 @@ function rebuildTray() {
       try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?'เชื่อมอยู่: '+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nรหัสใช้เฉพาะรอบที่เปิดโปรแกรม ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
     }},
     {label:'อ่านบทพูดด้วยเสียงไทย',type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
-    { id:'caprii-auto-actions', label:'โหมดไม่ถาม: ดูจอ/คลิก/พิมพ์/เปิดเว็บ (จนปิด Caprii)', type:'checkbox', checked:automaticActions, click:item=>{
+    { id:'caprii-auto-actions', label:'โหมดไม่ถาม: จอ/เว็บ/เปิดไฟล์และโปรแกรม (จนปิด Caprii)', type:'checkbox', checked:automaticActions, click:item=>{
       for(const controller of chats.values())controller.abort();
       automaticActions=item.checked===true;
       updateConfig({});
@@ -390,6 +390,7 @@ function rebuildTray() {
         { label: t.follow, type: 'checkbox', checked: cfg.follow !== false, click: (item) => updateConfig({ follow: item.checked }) },
       ],
     },
+    {label:'แสดงหน้าต่างติดตามงาน',type:'checkbox',checked:cfg.showTaskWindow===true,click:item=>updateConfig({showTaskWindow:item.checked})},
     {id:'caprii-model-profile',label:'โหมดคุณภาพโมเดล',submenu:[
       {label:'เลือกโมเดลเอง',type:'radio',checked:!cfg.modelProfile||cfg.modelProfile==='manual',click:()=>updateConfig({modelProfile:'manual'})},
       ...[['speed','รวดเร็ว — Flash Lite'],['balanced','สมดุล — Flash ที่ไม่ใช่ Lite'],['quality','คุณภาพสูง — Pro ถ้ามีใน API']].map(([profile,label])=>({id:'caprii-profile-'+profile,label,type:'radio',checked:cfg.modelProfile===profile,enabled:cfg.provider==='gemini'&&!!chatModels?.length,click:()=>chooseModelProfile(profile)})),
@@ -799,16 +800,16 @@ function registerIpc() {
       }
       const cfg = config.load();
       if (cfg.provider === 'claude') throw new Error('Project Agent requires Gemini or another chat/vision provider. Claude Code has its own agent mode.');
-      task = require('./agent-window').createAgentWindow({ BrowserWindow, goal, stop: () => abort.abort() });
+      task = require('./agent-window').createAgentWindow({ BrowserWindow, goal, show:cfg.showTaskWindow===true, stop: () => abort.abort() });
       browser = (chromeBroker.status().paired||chromeBroker.status().connected) ? chromeBroker.browser() : require('./agent-browser').createBrowser({ BrowserWindow, session: require('electron').session });
       const desktop = require('./agent-desktop').createDesktop({ desktopCapturer, screen, platform: emergencyStopReady ? process.platform : 'unavailable', withCapture:withoutCapriiOverlay,
         beforeCapture: async () => { if (emergencyStopReady) task.hide(); await new Promise(resolve => setTimeout(resolve, 200)); },
       });
-      const tools = require('./agent-tools').createAgentTools({ browser, desktop, screen, openExternal: url => launch.site(url) });
+      const tools = require('./agent-tools').createAgentTools({ browser, desktop, screen, openExternal: url => launch.site(url), launcher:require('./agent-launcher').createLauncher({shell,roots:require('./agent-launcher').defaultRoots(app)}), uia:desktop.supportedInput?require('./agent-uia').createUIAutomation({desktop}):null });
       taskPermissions = require('./task-permissions').createTaskPermissions({signal, automatic:()=>automaticActions, prompt: async (action, reusable) => {
         signal.throwIfAborted();
         if(task.window.isDestroyed())return 'deny';
-        task.window.restore(); task.window.show();
+        if(config.load().showTaskWindow===true){task.window.restore();task.window.show();}
         const answer=await dialog.showMessageBox(task.window,{
           type:'warning',buttons:['ไม่อนุญาต','อนุญาตครั้งนี้',...(reusable?['อนุญาตตลอดงานนี้']:[])],defaultId:0,cancelId:0,signal,
           message:'Caprii ขออนุญาต: '+action.tool,

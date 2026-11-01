@@ -5,7 +5,7 @@ const { spawn } = require('node:child_process');
 const { setTimeout: delay } = require('node:timers/promises');
 const { runProcess } = require('./agent-process');
 const { number, text } = require('./agent-registry');
-const KEYS = ['enter', 'escape', 'tab', 'backspace', 'ctrl+a', 'ctrl+s', 'ctrl+c', 'ctrl+v', 'alt+tab', 'ctrl+z', 'ctrl+l', 'ctrl+f', 'ctrl+w', 'ctrl+tab', 'ctrl+shift+tab', 'alt+f4', 'up', 'down', 'left', 'right', 'home', 'end', 'pageup', 'pagedown', 'delete', 'space'];
+const KEYS = ['enter', 'escape', 'tab', 'backspace', 'ctrl+a', 'ctrl+s', 'ctrl+c', 'ctrl+v', 'alt+tab', 'ctrl+z', 'ctrl+l', 'ctrl+f', 'ctrl+w', 'ctrl+tab', 'ctrl+shift+tab', 'alt+f4', 'up', 'down', 'left', 'right', 'home', 'end', 'pageup', 'pagedown', 'delete', 'space', ...'abcdefghijklmnopqrstuvwxyz0123456789', ...Array.from({length:12},(_,i)=>'f'+(i+1))];
 function validateDesktop(action, displays) {
   if (!['state', 'focus', 'release'].includes(action.kind) && !/^\d{1,18}$/.test(String(action.targetHandle))) throw new Error('Select an observed target window handle before input');
   if(action.replace!==undefined && typeof action.replace!=='boolean')throw Error('replace must be boolean');

@@ -36,6 +36,7 @@ electron.app.whenReady().then(async()=>{
  await overlay.webContents.executeJavaScript(`window.dev.chat.send('เปิดyoutube')`);
  assert.equal(opened.length,3);assert.equal(confirmations.length,2);
  assert.equal(Object.hasOwn(config.load(),'automaticActions'),false,'session permission must not be persisted');
+ assert.ok(electron.BrowserWindow.getAllWindows().filter(w=>w.webContents.getURL().endsWith('/agent.html')).every(w=>!w.isVisible()),'task windows must stay hidden by default');
  console.log('PASS: explicit session toggle skips screen/web prompts, actual capture task runs, turning off restores prompts, and no permission is saved');
  let visionCalls=0,initialMessages;
  llm.chat=async(_provider,_cfg,request)=>{visionCalls++;if(visionCalls===1)initialMessages=request.messages;return visionCalls===1?'ภาพนี้มีโจทย์ nigga':'ภาพนี้มีโจทย์คณิตศาสตร์ ต้องตรวจด้วยเครื่องคิดเลข';};

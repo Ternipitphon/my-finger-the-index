@@ -19,7 +19,7 @@ export function refusedCommand(text) { return typeof text === 'string' && /^(?:(
 export function actionCommand(text) {
  if(typeof text!=='string'||refusedCommand(text))return false;
  if (/^(?:ข้อนี้|โจทย์นี้).*(?:ตอบ|ทำ|คำนวณ)/i.test(normalized(text))) return true;
- return /^(?:(?:ช่วย|กรุณา)\s*)?(?:ใช้เมาส์|เอาเมาส์|use the mouse|คลิก|ดับเบิลคลิก|คลิกขวา|ลาก|เลื่อน|ขยับเมาส์|ย้ายเมาส์|พิมพ์|กรอก|กด|เปิด|เข้าเว็บ|ค้นหาในเว็บ|คำนวณ|คิดเลข|แก้โจท(?:ย์|ย)?|ทำโจท(?:ย์|ย)?|calculate|solve|click|double.click|right.click|drag|scroll|type|fill|open)\s*/i.test(normalized(text));
+ return /^(?:(?:ช่วย|กรุณา)\s*)?(?:ใช้เมาส์|เอาเมาส์|use the mouse|คลิก|ดับเบิลคลิก|คลิกขวา|ลาก|เลื่อน|ขยับเมาส์|ย้ายเมาส์|พิมพ์|กรอก|กด|เปิด|เข้าเว็บ|ค้นหาไฟล์|หาไฟล์|ค้นหาโปรแกรม|เปิดเกม|เล่นเกม|ค้นหาในเว็บ|คำนวณ|คิดเลข|แก้โจท(?:ย์|ย)?|ทำโจท(?:ย์|ย)?|calculate|solve|click|double.click|right.click|drag|scroll|type|fill|open)\s*/i.test(normalized(text));
 }
 
 // Uses only the current chat's previous user instruction, never stored task evidence.

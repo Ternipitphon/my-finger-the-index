@@ -13,10 +13,11 @@ function createCompletion(goal) {
  return {wanted,record(a,r){
   const desktop=a.tool==='desktop.input'&&r?.text?.inputDelivered===true;
   const browser=['browser.type','browser.click'].includes(a.tool);
-  if(!desktop&&!browser)return;
-  const current=desktop?String(a.targetHandle||a.handle):'browser';
-  if((desktop&&a.kind==='type')||a.tool==='browser.type'||(a.intent==='answer_key'&&(a.kind==='click'||a.tool==='browser.click'))){input=true;submitted=false;target=current;}
-  const submit=(desktop&&a.kind==='key'&&a.key==='enter')||((a.kind==='click'||a.tool==='browser.click')&&a.intent==='submit');
+  const uia=['uia.type','uia.invoke'].includes(a.tool)&&r?.inputDelivered===true;
+  if(!desktop&&!browser&&!uia)return;
+  const current=uia?'uia:'+r.windowHandle:desktop?String(a.targetHandle||a.handle):'browser';
+  if((desktop&&a.kind==='type')||a.tool==='browser.type'||a.tool==='uia.type'||(a.intent==='answer_key'&&(a.kind==='click'||a.tool==='browser.click'))){input=true;submitted=false;target=current;}
+  const submit=(desktop&&a.kind==='key'&&a.key==='enter')||((a.kind==='click'||a.tool==='browser.click'||a.tool==='uia.invoke')&&a.intent==='submit');
   if(submit&&(!wanted.input||(input&&target===current)))submitted=true;
  },missing(){return [...(wanted.input&&!input?['กรอกคำตอบในช่องจริง (หรือคลิกแป้นคำตอบ)']:[]),...(wanted.submit&&!submitted?['กดส่งคำตอบ']:[])];},facts(){return{inputDelivered:input,submitDelivered:submitted};}};
 }

@@ -6,12 +6,12 @@ chrome.runtime.onMessage.addListener((message,sender,reply)=>{
   const {connection}=await chrome.storage.session.get('connection');
   if(message.type==='connect'&&!sender.tab){
    const [tab]=await chrome.tabs.query({active:true,currentWindow:true});const url=new URL(tab.url);if(!['http:','https:'].includes(url.protocol))throw Error('เลือกหน้าเว็บปกติก่อน');
-   const next={code:message.code,tabId:tab.id,origin:url.origin};const result=await request('/connect',{url:tab.url,title:tab.title},next);next.session=result.session;
-   await chrome.storage.session.set({connection:next});
+   const next={code:message.code,tabId:tab.id,origin:url.origin,title:tab.title,url:tab.url};const result=await request('/connect',{url:tab.url,title:tab.title},next);next.session=result.session;
+   await chrome.storage.session.set({connection:next,lastCode:message.code});
    await chrome.scripting.executeScript({target:{tabId:tab.id},files:['dom.js','content.js']});return{ok:true};
   }
-  if(message.type==='disconnect'&&!sender.tab){if(connection)await request('/disconnect',{session:connection.session},connection).catch(()=>{});await chrome.storage.session.remove('connection');return{ok:true};}
-  if(message.type==='status'&&!sender.tab)return{connected:!!connection};
+  if(message.type==='disconnect'&&!sender.tab){if(connection)await request('/disconnect',{session:connection.session},connection).catch(()=>{});await chrome.storage.session.remove(['connection','lastCode']);return{ok:true};}
+  if(message.type==='status'&&!sender.tab)return{connected:!!connection,title:connection?.title,url:connection?.url,code:(await chrome.storage.session.get('lastCode')).lastCode||''};
   if(!connection||sender.tab?.id!==connection.tabId||new URL(sender.url).origin!==connection.origin)return{stop:true};
   if(message.type==='poll')return request('/poll',{session:connection.session},connection);
   if(message.type==='reply')return request('/reply',{session:connection.session,id:message.id,result:message.result,error:message.error},connection);

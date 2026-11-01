@@ -4,7 +4,7 @@ const { browserUrl } = require('./agent-browser');
 const { registerMath, allowMathText } = require('./agent-math');
 const { validateDesktop, KEYS } = require('./agent-desktop');
 
-function createAgentTools({ browser, desktop, screen, openExternal }) {
+function createAgentTools({ browser, desktop, screen, openExternal, launcher, uia }) {
   const tools = registerMath(new ToolRegistry());
   if (browser) {
     tools.add('browser.open', {
@@ -86,6 +86,8 @@ function createAgentTools({ browser, desktop, screen, openExternal }) {
       run: async (a, c) => { await c.permission({ tool: a.tool, app: a.app, project: c.projectEnabled ? c.root : null }); return desktop.openApp(a.app, c.projectEnabled ? c.root : null, c.signal); },
     });
   }
+  if(launcher)require('./agent-launcher').registerLauncher(tools,launcher);
+  if(uia)require('./agent-uia').registerUIAutomation(tools,uia);
   return tools;
 }
 module.exports = { createAgentTools };

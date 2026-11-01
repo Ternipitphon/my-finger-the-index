@@ -57,7 +57,7 @@ app.whenReady().then(async()=>{
  await browser.close();
  registerAgentWindowIpc(ipcMain);
  let stopped=0;
- task=createAgentWindow({BrowserWindow,goal:'<img src=x onerror=alert(1)>',stop:()=>stopped++});
+ task=createAgentWindow({BrowserWindow,show:true,goal:'<img src=x onerror=alert(1)>',stop:()=>stopped++});
  await new Promise(resolve=>task.window.webContents.once('did-finish-load',resolve));
  const state=await task.window.webContents.executeJavaScript('window.agentTask.state()');
  assert.equal(state.goal,'<img src=x onerror=alert(1)>');

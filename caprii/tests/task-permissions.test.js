@@ -10,7 +10,7 @@ test('expiry revokes cached scope',async()=>{let time=0;const p=createTaskPermis
 test('files, shell, sensitive keys and outside-window actions remain single-use',()=>{for(const a of [{tool:'write'}, {...windowAction,kind:'key',key:'alt+f4'},{...windowAction,risk:'sensitive'},{...windowAction,allowOutsideWindow:true},{...windowAction,target:{handle:'8',title:'Quiz'}}])assert.equal(scopeFor(a),null);});
 test('explicit session mode skips screen/web prompts but abort still revokes',async()=>{
  const a=new AbortController();let calls=0;const p=createTaskPermissions({signal:a.signal,automatic:()=>true,prompt:async()=>{calls++;return'deny';}});
- for(const action of [{tool:'desktop.look',displayId:'1'},windowAction,{tool:'desktop.open_url'},{tool:'browser.click'}])assert.equal(await p.approve(action),true);
+ for(const action of [{tool:'desktop.look',displayId:'1'},windowAction,{tool:'desktop.open_url'},{tool:'browser.click'},{tool:'uia.read'},{tool:'uia.type'},{tool:'launcher.search'},{tool:'launcher.open'}])assert.equal(await p.approve(action),true);
  assert.equal(calls,0);a.abort();assert.equal(await p.approve(windowAction),false);
 });
 test('session screen mode does not approve project scripts or changed puzzle rules',async()=>{
