@@ -27,3 +27,7 @@ Chrome broker ฟังเฉพาะ loopback หลังผู้ใช้�
 ## DOM forms (0.5.5 development)
 
 Read [DOM-FORMS-TH.md](DOM-FORMS-TH.md) for selected-tab reading, text/dropdown/checkbox/radio input, exact field readback, scoped result checks, and local browser validation. This source update is not published.
+
+## Caprii Test Lab
+
+Run `npm run lab`, open `http://127.0.0.1:5173` in Chrome, connect that tab to Caprii, and copy a test prompt. See [test-lab/README-TH.md](test-lab/README-TH.md) for seven versioned regression cases and JSON evidence reports. The lab is local source only and is updated alongside capability changes.

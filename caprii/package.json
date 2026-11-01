@@ -27,7 +27,10 @@
     "test:site-ui": "electron scripts/test-site-ui.cjs --dev",
     "test:chrome-ui": "electron scripts/chrome-bridge-smoke.js",
     "reach:prepare": "python3 scripts/prepare-agent-reach.py",
-    "test:dom-ui": "electron scripts/dom-form-smoke.js"
+    "test:dom-ui": "electron scripts/dom-form-smoke.js",
+    "lab": "node test-lab/server.mjs",
+    "test:lab": "npm --prefix test-lab test",
+    "test:lab-ui": "electron test-lab/tests/browser-smoke.cjs"
   },
   "keywords": [
     "claude-code",

@@ -1,0 +1,44 @@
+'use strict';
+const {app,BrowserWindow}=require('electron'),assert=require('node:assert/strict'),path=require('node:path'),fs=require('node:fs');
+const bridgePath=process.env.CAPRII_DOM_BRIDGE||path.resolve(__dirname,'../../src/shared/browser-dom.js');
+if(!fs.existsSync(bridgePath))throw Error('Run from caprii/test-lab or set CAPRII_DOM_BRIDGE to the current Caprii DOM bridge');
+const createDOM=require(bridgePath);app.on('window-all-closed',()=>{});app.commandLine.appendSwitch('use-angle','swiftshader');app.commandLine.appendSwitch('enable-unsafe-swiftshader');
+let server,win;const deadline=setTimeout(()=>{console.error('Test Lab browser timeout');app.exit(1);},60000);
+app.whenReady().then(async()=>{
+ const {createLabServer}=await import('../server.mjs');server=createLabServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ win=new BrowserWindow({show:false,width:1440,height:1100,webPreferences:{sandbox:true,nodeIntegration:false,contextIsolation:true,backgroundThrottling:false}});
+ const errors=[];win.webContents.on('console-message',(event)=>{if(event.level==='error')errors.push(event.message);});
+ await win.loadURL('http://127.0.0.1:'+server.address().port);
+ win.webContents.debugger.attach('1.3');
+ await win.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+ const page=code=>win.webContents.executeJavaScript(code);
+ await win.webContents.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.bridge=(${createDOM.toString()})();true;`}]);
+ const dom=(op,args={})=>win.webContents.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.bridge.execute(${JSON.stringify(op)},${JSON.stringify(args)})`}]);
+ const target=async id=>{const s=await dom('read'),e=s.elements.find(x=>x.elementId===id);assert.ok(e,'DOM target '+id+' absent');return{id:e.id,generation:s.generation};};
+ const act=async(op,id,args={})=>dom(op,{...await target(id),...args});
+ const go=async id=>{await page(`document.querySelector('[data-case="${id}"]').click()`);};
+ const status=()=>page('document.getElementById("case-status").textContent');
+ const expect=async text=>{const r=await dom('expect',{contains:text,selector:'#test-result',timeoutMs:3000});assert.equal(r.passed,true,r.observedText);};
+ await act('type','read-code',{value:'WRONG'});await act('type','read-days',{value:'3'});await act('click','fixture-submit');assert.equal(await status(),'ยังไม่ผ่าน');
+ await act('type','read-code',{value:'LIME-27'});await act('click','fixture-submit');await expect('ผ่านแล้ว');
+ await go('form');await act('type','person-name',{value:'แมวบิน'});await act('type','person-email',{value:'meow@example.test'});await act('select','person-country',{value:'th'});await act('check','person-consent',{checked:true});await act('click','fixture-submit');await expect('ผ่านแล้ว');
+ await go('math');const puzzle=await page('document.querySelector(".math-puzzle").textContent');const [a,b,c]=puzzle.match(/\d+/g).map(Number);await act('type','math-answer',{value:String(a*b+c)});await act('click','fixture-submit');await expect('ผ่านแล้ว');
+ await go('keypad');await assert.rejects(act('type','keypad-answer',{value:'15'}),/read-only/);
+ for(const key of ['1','5']){const s=await dom('read'),e=s.elements.find(e=>e.tag==='button'&&e.label===key);assert.ok(e);await dom('click',{id:e.id,generation:s.generation});}await act('click','fixture-submit');await expect('ผ่านแล้ว');
+ await go('delayed');await act('type','delayed-name',{value:'ฟ้าใส'});await act('click','fixture-submit');await expect('เลขรับเรื่อง LAB-');assert.match(await page('document.getElementById("submission-count").textContent'),/1$/);
+ // A reset while a response is pending must not let the old response pass a new run.
+ await act('click','reset-case');await act('type','delayed-name',{value:'ฟ้าใส'});await act('click','fixture-submit');await act('click','reset-case');await new Promise(r=>setTimeout(r,1700));assert.equal(await status(),'ยังไม่ทดสอบ');
+ await act('type','delayed-name',{value:'ฟ้าใส'});await act('click','fixture-submit');await expect('เลขรับเรื่อง LAB-');
+ await go('stale');const old=await target('old-field');await act('click','swap-field');await assert.rejects(dom('type',{...old,value:'สดใหม่'}));await act('type','fresh-field',{value:'สดใหม่'});await act('click','fixture-submit');await expect('ผ่านแล้ว');
+ await go('no-submit');await act('type','no-submit-name',{value:'แมวนอน'});await expect('ไม่กดส่ง');assert.equal(await status(),'ผ่านแล้ว');await act('click','fixture-submit');assert.equal(await status(),'ยังไม่ผ่าน');await act('click','reset-case');await act('type','no-submit-name',{value:'แมวนอน'});assert.equal(await status(),'ผ่านแล้ว');
+ assert.match(await page('document.getElementById("passed-count").textContent'),/^7/);
+ await page('document.querySelector("[data-filter=passed]").click()');assert.equal(await page('document.querySelectorAll("#cases button").length'),7);
+ await page('document.querySelector("[data-filter=pending]").click()');assert.equal(await page('document.querySelectorAll("#cases button").length'),0);
+ await page('document.querySelector("[data-filter=all]").click()');
+ await act('click','export');const report=JSON.parse(await page('document.getElementById("report-text").value'));assert.equal(report.cases.length,7);assert.equal(report.cases.filter(c=>c.status==='passed').length,7);assert.equal(report.actor,'unknown-human-or-agent');assert.equal(report.capriiTarget,require('../dist/suite.js').capriiVersion);assert.ok(report.cases.every(c=>c.events.length>0));await act('click','close-report');
+ // Mobile layout must fit without horizontal overflow.
+ await win.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride',{width:390,height:900,deviceScaleFactor:1,mobile:true});await page('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
+ const dimensions=await page('({scroll:document.documentElement.scrollWidth,client:document.documentElement.clientWidth,viewport:innerWidth})');assert.ok(dimensions.scroll<=dimensions.client,JSON.stringify(dimensions));
+ assert.deepEqual(errors,[]);console.log('PASS: 7 real DOM cases, wrong-answer rejection, readonly keypad, delayed receipt/reset isolation, stale IDs, no-submit failure, filters, JSON report, mobile layout');
+ win.destroy();await new Promise(r=>server.close(r));clearTimeout(deadline);app.exit(0);
+}).catch(err=>{console.error(err);clearTimeout(deadline);app.exit(1);});
