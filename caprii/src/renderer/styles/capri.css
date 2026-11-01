@@ -866,3 +866,7 @@ html[data-motion='reduced'] .panel__line.is-glitching,
 html[data-motion='reduced'] .panel[data-kind='alert'] .panel__state {
   animation: none !important;
 }
+
+/* Explicit image attachments: thumbnails stay local until Send. */
+.panel__attachment{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:8px;margin-top:10px;padding:8px;border:1px solid var(--accent);border-radius:4px;background:#111827;}
+.panel__attachment[hidden]{display:none}.panel__attachment-preview{width:58px;height:48px;object-fit:contain;background:#080b11}.panel__attachment-name{font-size:10px;overflow-wrap:anywhere}.panel__attachment small{grid-column:1/-1;font-size:9px;opacity:.7}.panel__attach{padding-inline:8px}.panel__chat .panel__input{min-width:0}

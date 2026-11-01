@@ -1,3 +1,12 @@
+# Caprii 0.5.7 validation
+
+- 139 application tests and 3 Test Lab unit/server checks passed.
+- Personality and image unit tests cover default-on behavior, opt-out, preserving tool/consent requirements, resize/limits/expiry, clipboard blobs, attached-image routing and unsupported-model errors.
+- Real Electron Chat/Panel test covers attach button, thumbnail before sending, multimodal HTTP payload, Ctrl+V, image-only message, removal and text-only history. The provider in this UI test is a local fixture.
+- A separate live Gemini 3.5 Flash Lite request correctly counted 3 red boxes in an actually attached synthetic PNG and replied with the personality prompt enabled. No private image was used.
+- Test Lab has 8 cases and tests code readback from a sample picture; website pass status alone does not prove that an AI used vision or grade its personality.
+- Windows installer is cross-built and unsigned. Actual Windows installation/native input remains untested. Website hosting is not deployed.
+
 # Caprii 0.5.6 validation
 
 - 132 application tests passed, including local Test Lab lifecycle and release-version alignment.

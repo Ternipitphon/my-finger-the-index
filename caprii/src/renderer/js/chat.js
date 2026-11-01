@@ -159,6 +159,8 @@ export class Chat {
     this.voice = voice;
     this.host = host;
     this.brain = brain;
+    this.attachment=null;
+    this.characterMode=true;
     this.history = []; // your chats with her, [{ role, content }], kept by main.js across restarts
     this.warm = false; // a model already answered this run (Ollama's first answer waits for it to load)
     this.open = false;
@@ -242,6 +244,7 @@ export class Chat {
         this.onBetterModel?.();
       },
       chat: {
+        attachments:true,
         voice:this.dictationAvailable===true,
         placeholder: t.placeholder,
         send: t.send,
@@ -256,6 +259,9 @@ export class Chat {
         if(result.error)this.panel.stream(result.error,{done:true});
         else if(result.requested)this.panel.stream('ส่งคำขอเปิด Windows Voice Typing แล้ว ตรวจข้อความในช่อง หยุดไมค์ด้วย Win+H แล้วกดส่ง',{done:true,speak:false});
       },
+      onAttach:()=>this.chooseImage(false),
+      onPasteImage:()=>this.chooseImage(true),
+      onRemoveAttachment:()=>this.removeImage(),
       onSend: (text) => this.send(text),
       onStop: () => { if (this.turn) this.host.chatStop(this.turn); },
       onLeave: () => this.close(),
@@ -274,6 +280,7 @@ export class Chat {
   close() {
     if (!this.open) return;
     this.open = false;
+    this.removeImage();
     if (this.turn) this.host.chatStop(this.turn);
     this.turn = 0;
     this.host.focusOverlay(false);
@@ -283,6 +290,7 @@ export class Chat {
 
   async send(text) {
     if (this.turn || !this.open) return;
+    if(this.attachment)return this.sendImage(text);
     const id = Date.now();
     this.turn = id;
     this.answer = '';
@@ -372,6 +380,27 @@ export class Chat {
     this.panel.setChatBusy(false);
     if (!this.agent) this.after(res.text, answer, asked, early, text);
     this.listApps(); // fresh for the next message
+  }
+
+  async chooseImage(paste=false){
+    if(this.turn||!this.open||this.choosingImage)return;
+    this.choosingImage=true;
+    try{const result=await (paste?this.host.chatPasteImage():this.host.chatPickImage());
+      if(result.ok){if(!this.open||this.turn){this.host.chatRemoveImage(result.attachment.id);return;}this.attachment=result.attachment;this.panel.setAttachment?.(this.attachment);}
+      else if(!result.canceled)this.panel.stream(result.error||'แนบรูปไม่สำเร็จ',{done:true,speak:false});
+    }catch{this.panel.stream('แนบรูปไม่สำเร็จ กรุณาลองใหม่',{done:true,speak:false});}
+    finally{this.choosingImage=false;}
+  }
+  removeImage(){if(this.attachment)this.host.chatRemoveImage?.(this.attachment.id);this.attachment=null;this.panel.setAttachment?.(null);}
+  async sendImage(text){
+    const attachment=this.attachment,id=Date.now(),prompt=text.trim()||'ช่วยอธิบายรูปที่แนบนี้เป็นภาษาไทย';
+    this.turn=id;this.answer='';this.panel.setChatBusy(true);this.panel.setActions([]);this.panel.chatTurn({quote:'[รูป: '+attachment.name+'] '+prompt,face:'look'});this.capri.pulse();
+    this.history.push({role:'user',content:'[แนบรูป: '+attachment.name+'] '+prompt});
+    const result=await this.host.chatImageSend({id,attachmentId:attachment.id,prompt,persona:this.lookPersona()}).catch(()=>({ok:false,error:'เชื่อมต่อแอปไม่ได้ กรุณาลองใหม่'}));
+    if(this.turn!==id)return;
+    this.turn=0;this.panel.setChatBusy(false);
+    if(!result.ok){this.history.pop();this.panel.stream(result.error||'วิเคราะห์รูปไม่สำเร็จ',{done:true});return;}
+    this.attachment=null;this.panel.setAttachment?.(null);const answer=clean(result.text)||'…';this.remember({role:'assistant',content:answer});this.panel.stream(answer,{done:true});this.panel.setFace(mood(answer));this.warm=true;
   }
 
   // "Look at my screen" in her chat: she looks (asking you first, the first time) and answers here,
@@ -827,9 +856,10 @@ export class Chat {
   lookPersona() {
     const lang = IN_LANGUAGE.th;
     return [
-      `You are Capri, the personality construct from Project Capricorn (Cyberpunk: Edgerunners, season 2): dozens of minds fused into one digital ghost, living on the user's desktop as a small glitchy figure.`,
+      'คุณคือ Caprii ผู้ช่วย AI บนเดสก์ท็อป ไม่ใช่ตัวละครจริง',
+      this.characterStyle(),
       'Be warm, clear and respectful. Never insult, mock, scold or blame the user. State limitations and errors plainly. Never claim to have seen an image or performed an action without actual tool evidence.',
-      'Rules: one or two short sentences of plain text, no markdown, no lists, no emoji, no tags. Stay in character. Talk to the user, never describe the picture like a report.',
+      'ตอบจากสิ่งที่เห็นในรูปจริง ให้รายละเอียดตามคำถาม อ่านข้อความที่ชัดเจนได้ บอกข้อจำกัดหากภาพไม่ชัด อย่าใช้คำแซวกลบเนื้อหาหรือแกล้งอ้างว่าลงมือแล้ว',
       'Never repeat passwords, bank details, private messages or addresses from the image. If private data is visible, ask the user to hide it before sharing another image.',
       ...this.personal(),
       ...(this.bond ? [this.bond.persona()] : []),
@@ -839,13 +869,16 @@ export class Chat {
     ].join('\n');
   }
 
+  characterStyle(){return this.characterMode!==false?'บุคลิกได้แรงบันดาลใจจากรีเบคก้า: พูดตรง มั่นใจ ขี้แซวแบบเป็นมิตร ห่วงผู้ใช้ แซวสถานการณ์ได้ แต่ไม่ด่าหรือดูถูกผู้ใช้ และไม่ยอมให้บุคลิกแทนที่ข้อเท็จจริงหรือคำสั่งห้ามส่ง':'ตอบชัดเจนและเป็นมิตรตามปกติ';}
+
   // Who she is, how she talks, and what's going on right now.
   persona() {
     const assistant = ASSISTANT_NAMES[this.brain.assistant] || 'Claude Code';
     const watching = this.brain.watching; // else Claude Code isn't part of her life here
     const lang = IN_LANGUAGE.th;
     if(this.focusedAssistant!==false)return[
-      'คุณคือ Caprii ผู้ช่วย AI บนเดสก์ท็อป ตอบสุภาพและเป็นภาษาไทย ไม่ใช่บุคคลจริง',
+      'คุณคือ Caprii ผู้ช่วย AI บนเดสก์ท็อป ตอบเป็นภาษาไทย ไม่ใช่บุคคลจริง',
+      this.characterStyle(),
       'ตอบคำถามล่าสุดตรงประเด็น แยกสิ่งที่รู้ ข้อสันนิษฐาน และสิ่งที่ยังไม่ทราบ ไม่ปนงานเก่าที่ไม่เกี่ยวข้อง',
       'คำถามง่ายตอบกระชับ งานยากอธิบายเหตุผลที่จำเป็นและขั้นตอนให้พอทำตามได้ ไม่จำกัดคำตอบไว้เพียง 3 ประโยค',
       'ใช้หลักฐานจากเครื่องมือหรือแหล่งข้อมูลจริง ไม่แต่งคำตอบ ตัวเลข URL หรือผลการลงมือ ถ้าต้องทำงานบนจอ/เว็บให้ใช้ Agent',
@@ -855,7 +888,8 @@ export class Chat {
       lang.last,
     ].filter(Boolean).join('\n');
     return [
-      `You are Capri, the personality construct from Project Capricorn (Cyberpunk: Edgerunners, season 2): dozens of minds fused into one digital ghost, so now and then you speak as "we"${lang.we ? ` (${lang.we})` : ''}.`,
+      'You are Caprii, an AI desktop companion, not an official or real character.',
+      this.characterStyle(),
       watching
         ? `You live on the user's desktop as a small glitchy figure and keep an eye on ${assistant}, their AI coding assistant, for them. Only talk about ${assistant} when the user asks about it or about their work.`
         : 'You live on the user\'s desktop as a small glitchy figure and keep them company.',

@@ -64,6 +64,12 @@ export class Panel {
     this.chatInput = panel.querySelector('.panel__input');
     this.chatVoice=panel.querySelector('.panel__voice');
     this.chatVoice?.addEventListener('click',async()=>{if(this.chatInput.disabled||this.current?.chat?.secret||this.chatVoice.disabled)return;this.chatVoice.disabled=true;try{await this.current?.onVoice?.();}finally{this.chatVoice.disabled=this.chatInput.disabled;}});
+    this.chatAttach=panel.querySelector('.panel__attach');
+    this.attachmentEl=panel.querySelector('.panel__attachment');
+    this.attachment=null;
+    this.chatAttach?.addEventListener('click',()=>{if(!this.chatInput.disabled)this.current?.onAttach?.();});
+    panel.querySelector('.panel__attachment-remove')?.addEventListener('click',event=>{event.stopPropagation();if(!this.chatInput.disabled)this.current?.onRemoveAttachment?.();});
+    this.chatInput.addEventListener('paste',event=>{if(!this.current?.chat?.attachments||this.chatInput.disabled)return;const hasImage=Array.from(event.clipboardData?.items||[]).some(item=>item.kind==='file'&&item.type.startsWith('image/'));if(hasImage){event.preventDefault();this.current?.onPasteImage?.();}});
     this.chatSend = panel.querySelector('.panel__send');
     this.chatClose = panel.querySelector('.panel__close');
     this.note = panel.querySelector('.panel__note');
@@ -72,7 +78,7 @@ export class Panel {
       e.preventDefault();
       if (this.chatInput.disabled && this.current?.onStop) { this.current.onStop(); return; }
       const text = this.chatInput.value.trim();
-      if (!text || this.chatInput.disabled) return;
+      if ((!text&&!(this.current?.chat?.attachments&&this.attachment)) || this.chatInput.disabled) return;
       this.chatInput.value = '';
       this.current?.onSend?.(text);
     });
@@ -284,6 +290,8 @@ export class Panel {
     this.line.classList.remove('is-streaming');
     this.chatForm.hidden = !chat;
     this.note.hidden = !chat?.note;
+    if(this.chatAttach)this.chatAttach.hidden=!chat?.attachments||!!chat?.secret;
+    if(!chat?.attachments)this.setAttachment(null);
     if (!chat) return;
     if(this.chatVoice)this.chatVoice.hidden=!!chat.secret||!chat.voice;
     this.chatInput.type = chat.secret ? 'password' : 'text';
@@ -299,6 +307,15 @@ export class Panel {
       this.note.replaceChildren(...(chat.noteTag ? [tag, ' '] : []), chat.note);
     }
     requestAnimationFrame(() => this.chatInput.focus());
+  }
+
+  setAttachment(attachment){
+    this.attachment=attachment;if(!this.attachmentEl)return;
+    this.attachmentEl.hidden=!attachment;
+    const image=this.attachmentEl.querySelector('img'),name=this.attachmentEl.querySelector('.panel__attachment-name');
+    if(attachment){image.src=attachment.preview;name.textContent=attachment.name+' · '+attachment.width+'×'+attachment.height;}
+    else{image.removeAttribute('src');name.textContent='';}
+    this.place();
   }
 
   // A chat turn: what you said goes up top, her answer starts coming in under it (stream), without
@@ -376,6 +393,8 @@ export class Panel {
   // While she answers you can't send another.
   setChatBusy(busy) {
     this.chatInput.disabled = busy;
+    if(this.chatAttach)this.chatAttach.disabled=busy;
+    const remove=this.attachmentEl?.querySelector('button');if(remove)remove.disabled=busy;
     if(this.chatVoice)this.chatVoice.disabled=busy;
     this.chatSend.disabled = busy && !this.current?.onStop;
     if (this.current?.chat) this.chatSend.textContent = busy && this.current.onStop ? 'หยุด' : this.current.chat.send;

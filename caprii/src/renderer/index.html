@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="th">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy"
@@ -37,8 +37,15 @@
           <p class="panel__summary" hidden></p>
           <ol class="panel__log" hidden></ol>
           <div class="panel__actions" hidden></div>
+          <div class="panel__attachment" hidden>
+            <img class="panel__attachment-preview" alt="ตัวอย่างรูปที่แนบ">
+            <span class="panel__attachment-name"></span>
+            <button class="panel__attachment-remove panel__action" type="button" aria-label="นำรูปแนบออก">✕</button>
+            <small>ส่งรูปให้โมเดลที่เลือกเมื่อกดส่ง · ไม่ใช่การจับภาพหน้าจอ</small>
+          </div>
           <form class="panel__chat" hidden autocomplete="off">
             <input class="panel__input" type="text" maxlength="500" spellcheck="false">
+            <button class="panel__action panel__attach" type="button" hidden title="แนบรูป PNG/JPEG/WebP" aria-label="แนบรูป">📎</button>
             <button class="panel__action panel__voice" type="button" hidden title="พิมพ์ด้วยเสียงผ่าน Windows (Win+H)" aria-label="พิมพ์ด้วยเสียง">🎤</button>
             <button class="panel__action is-primary panel__send" type="submit"></button>
             <button class="panel__action panel__close" type="button">✕</button>

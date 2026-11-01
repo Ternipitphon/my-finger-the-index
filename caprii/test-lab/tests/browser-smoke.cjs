@@ -30,15 +30,16 @@ app.whenReady().then(async()=>{
  await act('click','reset-case');await act('type','delayed-name',{value:'ฟ้าใส'});await act('click','fixture-submit');await act('click','reset-case');await new Promise(r=>setTimeout(r,1700));assert.equal(await status(),'ยังไม่ทดสอบ');
  await act('type','delayed-name',{value:'ฟ้าใส'});await act('click','fixture-submit');await expect('เลขรับเรื่อง LAB-');
  await go('stale');const old=await target('old-field');await act('click','swap-field');await assert.rejects(dom('type',{...old,value:'สดใหม่'}));await act('type','fresh-field',{value:'สดใหม่'});await act('click','fixture-submit');await expect('ผ่านแล้ว');
+ await go('image');await act('type','image-code',{value:'WRONG'});await act('click','fixture-submit');assert.equal(await status(),'ยังไม่ผ่าน');await act('type','image-code',{value:'CAP-57'});await act('click','fixture-submit');await expect('ผ่านแล้ว');
  await go('no-submit');await act('type','no-submit-name',{value:'แมวนอน'});await expect('ไม่กดส่ง');assert.equal(await status(),'ผ่านแล้ว');await act('click','fixture-submit');assert.equal(await status(),'ยังไม่ผ่าน');await act('click','reset-case');await act('type','no-submit-name',{value:'แมวนอน'});assert.equal(await status(),'ผ่านแล้ว');
- assert.match(await page('document.getElementById("passed-count").textContent'),/^7/);
- await page('document.querySelector("[data-filter=passed]").click()');assert.equal(await page('document.querySelectorAll("#cases button").length'),7);
+ assert.match(await page('document.getElementById("passed-count").textContent'),/^8/);
+ await page('document.querySelector("[data-filter=passed]").click()');assert.equal(await page('document.querySelectorAll("#cases button").length'),8);
  await page('document.querySelector("[data-filter=pending]").click()');assert.equal(await page('document.querySelectorAll("#cases button").length'),0);
  await page('document.querySelector("[data-filter=all]").click()');
- await act('click','export');const report=JSON.parse(await page('document.getElementById("report-text").value'));assert.equal(report.cases.length,7);assert.equal(report.cases.filter(c=>c.status==='passed').length,7);assert.equal(report.actor,'unknown-human-or-agent');assert.equal(report.capriiTarget,require('../dist/suite.js').capriiVersion);assert.ok(report.cases.every(c=>c.events.length>0));await act('click','close-report');
+ await act('click','export');const report=JSON.parse(await page('document.getElementById("report-text").value'));assert.equal(report.cases.length,8);assert.equal(report.cases.filter(c=>c.status==='passed').length,8);assert.equal(report.actor,'unknown-human-or-agent');assert.equal(report.capriiTarget,require('../dist/suite.js').capriiVersion);assert.ok(report.cases.every(c=>c.events.length>0));await act('click','close-report');
  // Mobile layout must fit without horizontal overflow.
  await win.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride',{width:390,height:900,deviceScaleFactor:1,mobile:true});await page('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
  const dimensions=await page('({scroll:document.documentElement.scrollWidth,client:document.documentElement.clientWidth,viewport:innerWidth})');assert.ok(dimensions.scroll<=dimensions.client,JSON.stringify(dimensions));
- assert.deepEqual(errors,[]);console.log('PASS: 7 real DOM cases, wrong-answer rejection, readonly keypad, delayed receipt/reset isolation, stale IDs, no-submit failure, filters, JSON report, mobile layout');
+ assert.deepEqual(errors,[]);console.log('PASS: 8 real DOM cases, wrong-answer rejection, readonly keypad, delayed receipt/reset isolation, stale IDs, no-submit failure, filters, JSON report, mobile layout');
  win.destroy();await new Promise(r=>server.close(r));clearTimeout(deadline);app.exit(0);
 }).catch(err=>{console.error(err);clearTimeout(deadline);app.exit(1);});

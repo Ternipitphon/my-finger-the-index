@@ -9,6 +9,7 @@ const {
   clipboard, ClipboardItem, dialog, powerMonitor, desktopCapturer,
 } = require('electron');
 const { randomUUID } = require('node:crypto');
+const imageAttachments=require('./image-attachments').createImageAttachments({nativeImage});
 
 const config = require('./config');
 const { TRAY, LANGS } = require('./labels');
@@ -399,6 +400,7 @@ function rebuildTray() {
       ...[['speed','รวดเร็ว — Flash Lite'],['balanced','สมดุล — Flash ที่ไม่ใช่ Lite'],['quality','คุณภาพสูง — Pro ถ้ามีใน API']].map(([profile,label])=>({id:'caprii-profile-'+profile,label,type:'radio',checked:cfg.modelProfile===profile,enabled:cfg.provider==='gemini'&&!!chatModels?.length,click:()=>chooseModelProfile(profile)})),
       {label:'API อาจมีค่าใช้จ่าย/โควตา แยกจาก Gemini บนเว็บ',enabled:false},
     ]},
+    {label:'บุคลิกกวน ๆ แบบรีเบคก้า',type:'checkbox',checked:cfg.rebeccaPersonality!==false,click:item=>updateConfig({rebeccaPersonality:item.checked})},
     {label:'โฟกัสงาน: ตอบตามข้อเท็จจริงและความยาก',type:'checkbox',checked:cfg.assistantFocus!==false,click:item=>updateConfig({assistantFocus:item.checked})},
     {
       label: t.chatModel,
@@ -615,6 +617,7 @@ async function signInToOllama() {
 // closed to new keys), or signed out of Ollama. A model on this PC first. The model that answered is
 // kept for next time.
 async function chatWithFallback(cfg, messages, send, signal) {
+  messages=require('./personality').personalityMessages(messages,cfg.rebeccaPersonality!==false);
   const selected = pickModel(cfg);
   let requests=0;
   const { text, model } = await require('./chat-runner').runChat({
@@ -669,7 +672,7 @@ async function sayAboutSnap({ id, persona, prompt, history = [] }, signal) {
     ? { role: 'user', content: prompt, images: [image] }
     : { role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${image}` } }] };
   // Each screen observation is grounded in this image/question, not unrelated previous tasks.
-  const messages = [{role:'system',content:persona},{...user}];
+  const messages = require('./personality').personalityMessages([{role:'system',content:persona},{...user}],cfg.rebeccaPersonality!==false);
   let requests=0;
   try {
     const result = await require('./chat-runner').runChat({ models: [model], signal, maxAttempts: 2,
@@ -843,6 +846,32 @@ function registerIpc() {
       await browser?.close().catch(() => {});
       chats.delete(id);
     }
+  });
+  ipcMain.handle('chat:image-pick',async event=>{
+    if(event.sender!==overlay?.webContents||chats.size)return{ok:false,error:'มีคำขออื่นทำงานอยู่'};
+    try{const choice=await dialog.showOpenDialog(overlay,{title:'แนบรูปให้ Caprii ดู',properties:['openFile'],filters:[{name:'รูปภาพ',extensions:['png','jpg','jpeg','webp']}]});
+      if(choice.canceled||!choice.filePaths[0])return{ok:false,canceled:true};
+      const file=choice.filePaths[0],stat=await fs.promises.stat(file);if(!stat.isFile()||stat.size>require('./image-attachments').MAX_FILE)throw Error('เลือกรูปขนาดไม่เกิน 15 MB');
+      return{ok:true,attachment:imageAttachments.add(await fs.promises.readFile(file),path.basename(file))};
+    }catch(e){return{ok:false,error:e.message};}
+  });
+  ipcMain.handle('chat:image-paste',async event=>{
+    if(event.sender!==overlay?.webContents||chats.size)return{ok:false,error:'มีคำขออื่นทำงานอยู่'};
+    try{const buffer=await require('./image-attachments').clipboardImageBuffer(clipboard);return{ok:true,attachment:imageAttachments.add(buffer)};}catch(e){return{ok:false,error:e.message};}
+  });
+  ipcMain.on('chat:image-remove',(event,id)=>{if(event.sender===overlay?.webContents)imageAttachments.remove(id);});
+  ipcMain.handle('chat:image-send',async(event,request={})=>{
+    if(event.sender!==overlay?.webContents||chats.size||!Number.isSafeInteger(request.id))return{ok:false,error:'Invalid or concurrent image request'};
+    const abort=new AbortController();chats.set(request.id,abort);
+    try{
+      const dataURL=imageAttachments.get(request.attachmentId),cfg=config.load();
+      if(!chatModels?.length)await refreshModels();const model=pickModel(cfg);if(!model)throw Error('ยังไม่มีโมเดลพร้อมใช้งาน');
+      if(cfg.provider==='claude'||(cfg.provider==='ollama'&&!await ollama.canSee(model)))return{ok:false,code:'novision',error:'โมเดลนี้ยังดูรูปไม่ได้ เลือก Gemini หรือโมเดลที่รองรับภาพแล้วส่งใหม่'};
+      const messages=require('./image-attachments').imageMessages({prompt:request.prompt,persona:request.persona||'คุณคือ Caprii ผู้ช่วย AI',dataURL,personality:cfg.rebeccaPersonality!==false});
+      const result=await require('./chat-runner').runChat({models:[model],signal:abort.signal,timeoutMs:cfg.modelProfile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>require('./thai-language').thaiResponse({messages,request:fixed=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:fixed},()=>{},signal)})});
+      imageAttachments.remove(request.attachmentId);return{ok:true,text:result.text,model};
+    }catch(e){return require('./image-attachments').imageError(e,abort.signal.aborted);}
+    finally{chats.delete(request.id);}
   });
   ipcMain.handle('chat:send', async (_e, { id, messages }) => {
     if (_e.sender !== overlay?.webContents || chats.size || !Array.isArray(messages)) return { ok: false, error: 'Invalid or concurrent chat request' };
@@ -1218,6 +1247,7 @@ function main() {
 
   app.on('will-quit', () => {
     for (const controller of chats.values()) controller.abort();
+    imageAttachments.clear();
     void chromeBroker.close();
     void testLab.close();
     globalShortcut.unregisterAll();

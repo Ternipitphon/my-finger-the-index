@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const suite=require('../dist/suite.js');
 test('versioned suite exposes unique stable cases, plain-language prompts and observable criteria',()=>{
- assert.equal(suite.schemaVersion,1);assert.match(suite.capriiVersion,/^\d+\.\d+\.\d+/);assert.equal(new Set(suite.cases.map(c=>c.id)).size,suite.cases.length);assert.ok(suite.cases.length>=7);
+ assert.equal(suite.schemaVersion,1);assert.match(suite.capriiVersion,/^\d+\.\d+\.\d+/);assert.equal(new Set(suite.cases.map(c=>c.id)).size,suite.cases.length);assert.ok(suite.cases.length>=8);
  for(const c of suite.cases){assert.ok(c.id&&c.name&&c.prompt);assert.equal(c.checks.length,3);assert.ok(c.checks.every(x=>typeof x==='string'&&x.length>0));}
 });
 test('static page resolves local assets and provides result evidence without a manual pass button',()=>{
