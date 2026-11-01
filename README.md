@@ -1,34 +1,88 @@
-# Caprii 0.5.6 — Windows installer
-
-[ดาวน์โหลด ZIP ตัวติดตั้ง 0.5.6](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.5.6-download.zip)
-
-แตก ZIP ทั้งหมด → ปิด Caprii เก่า → เปิด **INSTALL-CAPRII.cmd** → ติดตั้ง → เปิด **Caprii Agent** จาก Desktop/Start Menu
-
-คลิกขวาตัวละคร → **เปิดเว็บทดสอบ Caprii** เพื่อเปิด Test Lab ในเครื่องโดยไม่ต้องติดตั้ง Node.js เพิ่ม ชุดนี้เป็นตัวติดตั้งจริง ไม่ใช่แพตช์หรือซอร์สอย่างเดียว
-
-รายละเอียดและ checksum: [downloads/Caprii-0.5.6](downloads/Caprii-0.5.6/README-TH.md) · ขั้นตอนออกเวอร์ชัน: [RELEASE-WORKFLOW-TH.md](RELEASE-WORKFLOW-TH.md)
-
-ผ่าน 132 app tests, 3 lab checks, 7 เคส browser และ packaged-resource checks ตัวติดตั้งยังไม่มีลายเซ็น และยังไม่ได้ทดสอบติดตั้งบน Windows จริง ไม่มีการ deploy เว็บไซต์
-
----
-
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.5.5 + Agent Reach
+## ดาวน์โหลด Caprii 0.5.6 — ตัวติดตั้ง Windows
 
-[ดาวน์โหลด ZIP ทั้งหมด](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/main.zip) แล้วแตกไฟล์ เปิด `downloads/Caprii-0.5.5/INSTALL-CAPRII.cmd` ปิด Caprii เดิมก่อนติดตั้ง
+[ดาวน์โหลด ZIP ตัวติดตั้ง Caprii 0.5.6](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.5.6-download.zip)
 
-รวม Agent Reach 1.6.0 แบบ public-only พร้อม Python/dependencies ใน Windows installer: วางลิงก์เพื่ออ่านเว็บ/ข้อมูลและคำบรรยาย YouTube หรือค้นข้อมูลจริงผ่าน Jina/Exa/yt-dlp ไม่คัดลอกบัญชี ไม่ถอดเสียงแบบมีค่าใช้จ่าย ไม่อ้างว่าได้ดูคลิปจาก metadata และไม่ข้ามการปิดกั้นเครือข่าย
+รองรับ Windows 10/11 x64 ชุดดาวน์โหลดนี้มีเฉพาะไฟล์ติดตั้งรุ่น 0.5.6 ไม่ต้องดาวน์โหลด ZIP ทั้ง repository หรือเลือกโฟลเดอร์รุ่นเก่า
 
-อ่าน [วิธีติดตั้ง](downloads/Caprii-0.5.5/README.md), [คู่มือไทย](downloads/Caprii-0.5.5/GUIDE-TH.md) และ [ผลทดสอบ](downloads/Caprii-0.5.5/VALIDATION.md)
+### ติดตั้งและเริ่มใช้
 
-ซอร์สอยู่ใน [caprii/](caprii/) ผ่าน 124 tests + 4 parser/bridge tests และตรวจเส้นทาง URL ผ่าน real Electron UI แล้ว Windows runtime และ live web access ยังต้องตรวจบน Windows จริง คง UIA/DOM/เปิดไฟล์/ซ่อนหน้าติดตามงาน ไม่เพิ่ม Memory ข้ามงาน
+1. ดาวน์โหลด ZIP แล้วคลิกขวา **แยกทั้งหมด / Extract All** อย่าเปิดตัวติดตั้งจากใน WinRAR หรือหน้าต่าง ZIP
+2. ปิด Caprii ตัวเก่าจากถาดระบบก่อนติดตั้ง
+3. เข้าโฟลเดอร์ที่แตกแล้ว ดับเบิลคลิก **`INSTALL-CAPRII.cmd`** ให้ไฟล์ `Caprii-Setup.part01`, `part02`, `part03` อยู่ข้างกันครบทั้งสามส่วน
+4. สคริปต์ตรวจ SHA256 ทุกส่วน รวมเป็น **`Caprii-Agent-Setup-0.5.6.exe`** และตรวจ hash ไฟล์รวมก่อนเปิดตัวติดตั้ง
+5. เมื่อติดตั้งแล้ว เปิด **Caprii Agent** จาก Desktop หรือ Start Menu คลิกขวาตัวละครจะเห็น **Caprii 0.5.6**
 
-## เว็บทดสอบคณิตคิดเร็ว 10 ข้อ
+ตัวติดตั้งรวม runtime ที่จำเป็นแล้ว ไม่ต้องติดตั้ง Node.js หรือ Python เพิ่ม ไฟล์ `.patch` และ `source-update.zip` จากงานก่อนเป็นไฟล์สำหรับพัฒนา ไม่ใช่ตัวติดตั้งรุ่นนี้
 
-[ดาวน์โหลด math-quiz.zip](https://github.com/Ternipitphon/my-finger-the-index/raw/refs/heads/main/math-quiz.zip) แล้วแตกไฟล์ เปิด `math-quiz/OPEN-QUIZ.cmd` จากโฟลเดอร์ที่แตกแล้ว
+อ่าน [วิธีติดตั้งและ checksum](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.5.6/downloads/Caprii-0.5.6) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.6/downloads/Caprii-0.5.6/GUIDE-TH.md)
 
-อ่าน [วิธีเปิดเว็บและคำสั่งทดสอบ Caprii](math-quiz/README-TH.md)
+## รุ่น 0.5.6 เพิ่มอะไร
 
+| ส่วนที่ปรับปรุง | สิ่งที่ทำได้ |
+| --- | --- |
+| อ่านเว็บผ่าน DOM | อ่านข้อความที่แสดง ชื่อช่อง ค่าปัจจุบัน ตัวเลือก และสถานะ disabled/read-only จากแท็บที่เชื่อมต่อ |
+| กรอกฟอร์ม | กรอกข้อความและช่อง contenteditable เลือก dropdown และตั้งค่า checkbox/radio ตามคำสั่ง |
+| ตรวจค่าหลังกรอก | อ่านค่าจริงกลับจากช่อง ไม่ถือว่าการส่งคำสั่งพิมพ์เท่ากับกรอกสำเร็จ |
+| ตรวจผลหลังส่ง | รอผลแบบกำหนดเวลาและตรวจเฉพาะส่วนผลลัพธ์ ไม่ใช้ข้อความสำเร็จที่มีอยู่ก่อนคลิกส่งมายืนยันรอบใหม่ |
+| หน้าเว็บเปลี่ยน | ปฏิเสธ ID/generation เก่า ช่องที่ถูกแทนที่ ซ่อน หรือเปลี่ยนตัวเลือก เพื่อให้อ่าน DOM ใหม่ก่อนทำต่อ |
+| ทำตามข้อจำกัด | คำสั่งใหม่เคารพ “ห้ามกรอก” และไม่ส่งคำสั่งซ้ำเมื่อผลก่อนหน้ายังไม่แน่ชัด |
+| Test Lab ในแอป | เปิดเว็บทดสอบในเครื่องจากเมนู Caprii ได้เลย ไม่ต้องเปิด server หรือใช้ Node.js แยก |
+| ชุดติดตั้งรุ่นใหม่ | แอปและส่วนขยาย Chrome เป็น 0.5.6 พร้อมแพ็กเกจ part และการตรวจ SHA256 ตามรูปแบบรุ่นก่อน |
 
-ซอร์สแอปปัจจุบันอยู่ใน `caprii/` เริ่มพัฒนาด้วย `npm ci` แล้ว `npm test` ในโฟลเดอร์นี้ ส่วน Electron GUI ต้องมี graphical display
+การกรอกผ่าน DOM ใช้ได้กับ browser ของแอปและแท็บ Chrome ที่ผู้ใช้เลือกเชื่อมต่อผ่านส่วนขยาย ไม่ได้อ่านทุกแท็บอัตโนมัติ รักษาระบบอนุญาตและปุ่มหยุดเดิมไว้
+
+### ตัวอย่างคำสั่งภาษาพูด
+
+- “หน้านี้มันพูดเรื่องไร เล่าให้ฟังหน่อยดิ”
+- “ช่องชื่อนั่นอะ ใส่แมวบินให้ที ยังไม่ต้องส่งเด้อ”
+- “ประเทศอะ เอาไทยให้หน่อย ติ๊กยอมรับด้วย”
+- “เมื่อกี้ใส่ติดจริงปะ อ่านค่ากลับมาดิ”
+- “โอเค ส่งโลด แล้วดูด้วยว่ามันรับเรื่องยัง อย่าเพิ่งมั่วว่าผ่าน”
+
+ใช้ข้อมูลสมมติในเว็บทดสอบก่อน และดูสิ่งที่เกิดขึ้นบนหน้าเว็บควบคู่กับคำตอบของ Caprii
+
+## เปิดเว็บทดสอบ Caprii
+
+**คลิกขวาตัวละคร → เปิดเว็บทดสอบ Caprii**
+
+แอปจะเปิด server เฉพาะในเครื่องและเปิดหน้า Test Lab ใน browser ให้เอง ใช้ URL ที่แอปเปิดให้จริง พอร์ตอาจต่างจาก `5173` เมื่อปิด Caprii เว็บในเครื่องจะหยุดทำงาน
+
+เลือกเคส → เชื่อมแท็บนั้นผ่านส่วนขยาย Caprii → คัดลอกคำสั่งไปบอก Caprii → ดูฟอร์มและ “หลักฐานของรอบนี้”
+
+มี 7 เคส: อ่านข้อมูล, กรอกฟอร์ม, คำนวณ, ใช้แป้นบนช่อง readonly, รอผลช้าโดยไม่กดซ้ำ, อ่านช่องใหม่หลัง element เปลี่ยน และกรอกโดยห้ามส่ง ส่งออกรายงาน JSON เพื่อเก็บผลเทียบเวอร์ชันได้
+
+ผลผ่านมาจากค่าช่องและเหตุการณ์บนหน้า เว็บยังแยกไม่ได้ว่าผู้ใช้หรือ Caprii เป็นผู้ลงมือ และไม่ยืนยันการบันทึกข้อมูลบน server ไม่มีการ publish เว็บทดสอบออนไลน์
+
+ซอร์สเว็บและแนวทางอัปเดตพร้อม Caprii อยู่ที่ [Test Lab](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.5.6/caprii/test-lab)
+
+## ความสามารถเดิมที่ยังอยู่
+
+รวม Agent Reach 1.6.0 แบบ public-only พร้อม Python/dependencies ที่ล็อกเวอร์ชันและตรวจ checksum ใน Windows installer วางลิงก์เพื่ออ่านเว็บ ข้อมูลหรือคำบรรยาย YouTube และค้นข้อมูลผ่าน Jina/Exa/yt-dlp ไม่คัดลอกบัญชีหรือคุกกี้ ไม่ถอดเสียงแบบมีค่าใช้จ่าย ไม่อ้างว่าได้ดูคลิปจาก metadata และไม่ข้ามการปิดกั้นเครือข่าย
+
+ยังมี Windows UI Automation, เครื่องมือเปิดไฟล์/โปรแกรม, การคำนวณพร้อมตรวจคำตอบ และการซ่อนหน้าติดตามงานตามการตั้งค่าเดิม ไม่เพิ่มความจำข้ามงานจากการอัปเดตนี้
+
+## ทดสอบอะไรแล้ว
+
+- **132 application tests ผ่าน** รวมวงจรเปิด/ปิด server ของ Test Lab และการตรวจเวอร์ชันแอป/lock/ส่วนขยายให้ตรงกัน
+- **3 Test Lab unit/server checks ผ่าน**
+- **7 เคส browser จริงผ่าน** พร้อมกรณีตอบผิด, readonly keypad, ผลตอบกลับช้า/รีเซ็ต, element เก่า, ห้ามส่ง, ตัวกรอง, รายงาน JSON และขนาดหน้าจอมือถือ
+- ตรวจแพ็กเกจจริง: ASAR เวอร์ชัน 0.5.6, Windows x64 PE, Python ที่รวมไว้, ฟอนต์, ส่วนขยาย/DOM bridge และเปิด Test Lab จาก ASAR ได้
+- ตรวจ archive ของ NSIS ผ่าน และรวม part กลับมาได้ SHA256 ตรงกับ installer
+
+**ยังไม่ได้ลองติดตั้งและควบคุมบน Windows จริง** การ cross-build และการทดสอบบน Linux ไม่ยืนยันว่าการควบคุม Windows หรือทุกเว็บไซต์จะทำงานครบ ตัวติดตั้งยังไม่มีลายเซ็นดิจิทัล การอ่านเว็บจริงขึ้นกับเครือข่าย โควตา และข้อมูลที่เว็บไซต์เปิดให้ใช้
+
+อ่าน [รายละเอียดผลทดสอบ](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.6/downloads/Caprii-0.5.6/VALIDATION.md) และ [download manifest](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.6/downloads/Caprii-0.5.6/download-manifest.json)
+
+## ซอร์สและการพัฒนารุ่นถัดไป
+
+ซอร์สรุ่น 0.5.6 อยู่ที่ [branch caprii-0.5.6](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.5.6) ในโฟลเดอร์ `caprii/` เริ่มด้วย `npm ci` แล้ว `npm test` ส่วน Test Lab ใช้ `npm run test:lab` และ `npm run test:lab-ui` เมื่อมีสภาพแวดล้อม Electron GUI
+
+เมื่อเพิ่มความสามารถ ให้ปรับเวอร์ชัน ชุดทดสอบเว็บ และคู่มือไปด้วย พร้อมสร้างตัวติดตั้งและตรวจ hash ตาม [ขั้นตอนออกเวอร์ชัน](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.6/RELEASE-WORKFLOW-TH.md) ซอร์สหรือแพตช์อย่างเดียวไม่ใช่ตัวติดตั้งพร้อมใช้
+
+## ชุดทดสอบและรุ่นก่อน
+
+เว็บคณิตคิดเร็วเดิมยังอยู่: [ดาวน์โหลด math-quiz.zip](https://github.com/Ternipitphon/my-finger-the-index/raw/refs/heads/main/math-quiz.zip) แล้วแตกไฟล์ เปิด `math-quiz/OPEN-QUIZ.cmd` อ่าน [วิธีใช้](https://github.com/Ternipitphon/my-finger-the-index/blob/main/math-quiz/README-TH.md)
+
+สำหรับประวัติรุ่น 0.5.5 + Agent Reach อ่าน [คู่มือรุ่นก่อน](https://github.com/Ternipitphon/my-finger-the-index/blob/main/downloads/Caprii-0.5.5/README.md)
