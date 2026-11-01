@@ -19,3 +19,4 @@ test('asking for an explanation without typing or submission does not create act
  const c=createCompletion('คำนวณโจทย์บนหน้าเว็บให้ดู ไม่ต้องกรอกและไม่ต้องกดส่ง');assert.deepEqual(c.missing(),[]);
 });
 test('the current followup instruction overrides an old no-submit instruction in quoted context',()=>{const c=createCompletion('บริบทคำสั่งผู้ใช้ก่อนหน้า: กรอกแต่ไม่ต้องกดส่ง\nคำสั่งตอนนี้: ตรวจคำตอบแล้วกดส่งคำตอบ\nคำสั่งผู้ใช้: ส่งเลย');assert.equal(c.wanted.submit,true);assert.equal(c.wanted.input,false);});
+test('find the answer on screen is read-and-calculate only unless filling is requested',()=>{const c=createCompletion('ดูจอแล้วหาคำตอบ');assert.equal(c.wanted.noInput,true);assert.equal(c.wanted.noSubmit,true);assert.equal(c.wanted.input,false);assert.equal(createCompletion('ดูจอหาคำตอบแล้วกรอกคำตอบและกดส่ง').wanted.submit,true);});

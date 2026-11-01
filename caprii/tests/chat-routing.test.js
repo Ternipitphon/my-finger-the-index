@@ -37,3 +37,7 @@ test('a short followup starts a new observation task; an ambiguous one asks loca
  const chat=new Chat({capri:{pulse(){}},panel:{setChatBusy(){},setActions(){},chatTurn(){},stream:s=>{reply=s;}},voice:{},brain:{},host:{onChatDelta(){},agentRun:async r=>{goal=r.goal;return{ok:true,text:'เริ่มแล้ว'};},chatSend(){throw Error('must not guess through text-only chat');}}});
  chat.open=true;await chat.send('ทำต่อ');assert.match(reply,/ต้องการให้ทำอะไร/);assert.equal(goal,'');chat.history=[{role:'user',content:'กรอกคำตอบบนหน้าเว็บแต่ไม่ต้องกดส่ง'}];await chat.send('ส่งเลย');assert.match(goal,/ตรวจหน้าจอหรือแท็บปัจจุบันใหม่/);assert.match(goal,/คำสั่งตอนนี้: ตรวจคำตอบปัจจุบันแล้วกดส่ง/);
 });
+test('the reported look-and-find-answer command invokes calculator-capable agent, never vision-only narration',async()=>{
+ const {Chat}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/chat.js')));let goal;
+ const chat=new Chat({capri:{pulse(){}},panel:{setChatBusy(){},setActions(){},chatTurn(){},stream(){}},voice:{},brain:{},host:{onChatDelta(){},agentRun:async r=>{goal=r.goal;return{ok:true,text:'เริ่มตรวจ'};},lookSnap(){throw Error('must not use image-only chat');},chatSend(){throw Error('must use tools');}}});chat.open=true;await chat.send('ดูจอแล้วหาคำตอบ');assert.equal(goal,'ดูจอแล้วหาคำตอบ');
+});

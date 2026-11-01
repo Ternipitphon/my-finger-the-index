@@ -28,7 +28,7 @@ function validateDesktop(action, displays) {
   else if (action.kind === 'scroll') number(action.amount, 'scroll amount', -10, 10);
   else if (!['state','release'].includes(action.kind)) throw new Error('Unknown desktop command');
 }
-function createDesktop({ desktopCapturer, screen, platform = process.platform, run = runProcess, beforeCapture = () => {} }) {
+function createDesktop({ desktopCapturer, screen, platform = process.platform, run = runProcess, beforeCapture = () => {}, withCapture = fn => fn() }) {
   let lastState = null, lastCaptureAt = 0;
   async function state(action = { kind: 'state' }, signal) {
     if (platform !== 'win32') throw new Error('Desktop input requires Windows; browser and project tools work on this platform');
@@ -63,9 +63,9 @@ function createDesktop({ desktopCapturer, screen, platform = process.platform, r
     const display = displayId == null ? (screen.getDisplayNearestPoint?.(screen.getCursorScreenPoint?.() || { x: 0, y: 0 }) || screen.getPrimaryDisplay()) : displays.find(d => String(d.id) === String(displayId));
     if (!display) throw new Error('Display not found');
     const factor = display.scaleFactor || 1;
-    const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: {
+    const sources = await withCapture(()=>desktopCapturer.getSources({ types: ['screen'], thumbnailSize: {
       width: Math.min(1920, Math.round(display.bounds.width * factor)), height: Math.min(1200, Math.round(display.bounds.height * factor)),
-    } });
+    } }));
     signal.throwIfAborted();
     const src = sources.find(s => s.display_id === String(display.id)) || (displays.length === 1 ? sources[0] : null);
     if (!src || src.thumbnail.isEmpty()) throw new Error('No screen image available');

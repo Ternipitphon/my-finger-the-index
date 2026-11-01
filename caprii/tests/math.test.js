@@ -42,3 +42,4 @@ test('a failed constrained puzzle cannot be bypassed with a different calculator
  await assert.rejects(tools.execute({tool:'math.solve',numbers:[7,42,1],target:295},c));
  assert.throws(()=>allowMathText(c,'82'));
 });
+test('reported 7 6 3 4 target 82 does not invent a basic-operator solution',()=>{const {solvePuzzle}=require('../src/main/agent-math');const r=solvePuzzle({numbers:[7,6,3,4],target:82});assert.equal(r.found,false);assert.equal(r.exhaustive,true);});

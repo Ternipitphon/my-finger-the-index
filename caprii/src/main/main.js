@@ -319,8 +319,8 @@ function rebuildTray() {
     { label: t.online(PORT), enabled: false },
     { label: 'Caprii ' + app.getVersion(), enabled: false },
     {label:'เปิดโฟลเดอร์ส่วนขยาย Chrome',click:()=>shell.openPath(app.isPackaged?path.join(process.resourcesPath,'browser-extension'):path.join(__dirname,'../../browser-extension'))},
-    {label:'เชื่อมแท็บ Chrome…',click:async()=>{
-      try{const info=await chromeBroker.start();const selected=chromeBroker.status();const answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?'เชื่อมอยู่: '+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nรหัสใช้เฉพาะรอบที่เปิดโปรแกรม ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
+    {id:'caprii-pair',label:'เชื่อมแท็บ Chrome…',click:async()=>{
+      try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?'เชื่อมอยู่: '+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nรหัสใช้เฉพาะรอบที่เปิดโปรแกรม ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
     }},
     {label:'อ่านบทพูดด้วยเสียงไทย',type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
     { id:'caprii-auto-actions', label:'โหมดไม่ถาม: ดูจอ/คลิก/พิมพ์/เปิดเว็บ (จนปิด Caprii)', type:'checkbox', checked:automaticActions, click:item=>{
@@ -604,13 +604,24 @@ async function chatWithFallback(cfg, messages, send, signal) {
 
 // She looks at your screen (look.js): a picture of the screen she's on, kept here in memory a moment
 // for her AI to look at, never written anywhere. 1280 px wide at most: enough to read, light to send.
+let privateCaptureDialog=0;
+let captureQueue=Promise.resolve();
+function withoutCapriiOverlay(capture){
+  const next=captureQueue.then(async()=>{
+    if(privateCaptureDialog)throw Error('ปิดหน้าต่างรหัสเชื่อมต่อก่อนจับภาพหน้าจอ');
+    const windows=BrowserWindow.getAllWindows().filter(w=>!w.isDestroyed()&&w.webContents.getURL().startsWith('capri://app/')&&w.isVisible()&&!w.isMinimized()).map(window=>({window,focused:window.isFocused()}));
+    try{for(const {window} of windows)window.hide();if(windows.length)await new Promise(r=>setTimeout(r,100));return await capture();}
+    finally{for(const {window,focused} of windows){if(!window.isDestroyed()){if(focused&&chats.size===0){window.show();window.focus();}else window.showInactive();}}}
+  });
+  captureQueue=next.then(()=>{},()=>{});return next;
+}
 const snaps = new Map(); // id -> the picture, base64 JPEG
 async function snapScreen() {
   const d = targetDisplay();
   const k = d.scaleFactor || 1;
   const fit = Math.min(1, 1280 / (d.bounds.width * k));
   const size = { width: Math.round(d.bounds.width * k * fit), height: Math.round(d.bounds.height * k * fit) };
-  const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: size });
+  const sources = await withoutCapriiOverlay(()=>desktopCapturer.getSources({ types: ['screen'], thumbnailSize: size }));
   const src = sources.find((s) => s.display_id === String(d.id)) || sources[0];
   if (!src || src.thumbnail.isEmpty()) throw new Error('no picture of the screen');
   return src.thumbnail.toJPEG(72).toString('base64');
@@ -631,12 +642,12 @@ async function sayAboutSnap({ id, persona, prompt, history = [] }, signal) {
   const user = cfg.provider === 'ollama'
     ? { role: 'user', content: prompt, images: [image] }
     : { role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${image}` } }] };
-  // asked in her chat: the conversation so far comes before it (text only)
-  const before = (Array.isArray(history) ? history : []).filter((m) => typeof m?.content === 'string' && ['user', 'assistant'].includes(m.role));
-  const messages = [{ role: 'system', content: persona }, ...before, user];
+  // Each screen observation is grounded in this image/question, not unrelated previous tasks.
+  const messages = [{role:'system',content:persona},{...user}];
+  let requests=0;
   try {
     const result = await require('./chat-runner').runChat({ models: [model], signal, maxAttempts: 2,
-      request: (model, delta, signal) => llm.chat(cfg.provider, llmConfig(cfg), { model, messages }, delta, signal),
+      request: (model, delta, signal) => require('./thai-language').thaiResponse({messages,request:fixed=>{if(++requests>2)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}}),
     });
     return { ok: true, text: result.text, model };
   } catch (err) {
@@ -768,7 +779,7 @@ function registerIpc() {
       if (cfg.provider === 'claude') throw new Error('Project Agent requires Gemini or another chat/vision provider. Claude Code has its own agent mode.');
       task = require('./agent-window').createAgentWindow({ BrowserWindow, goal, stop: () => abort.abort() });
       browser = (chromeBroker.status().paired||chromeBroker.status().connected) ? chromeBroker.browser() : require('./agent-browser').createBrowser({ BrowserWindow, session: require('electron').session });
-      const desktop = require('./agent-desktop').createDesktop({ desktopCapturer, screen, platform: emergencyStopReady ? process.platform : 'unavailable',
+      const desktop = require('./agent-desktop').createDesktop({ desktopCapturer, screen, platform: emergencyStopReady ? process.platform : 'unavailable', withCapture:withoutCapriiOverlay,
         beforeCapture: async () => { if (emergencyStopReady) task.hide(); await new Promise(resolve => setTimeout(resolve, 200)); },
       });
       const tools = require('./agent-tools').createAgentTools({ browser, desktop, screen, openExternal: url => launch.site(url) });

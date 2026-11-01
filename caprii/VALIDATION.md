@@ -1,8 +1,8 @@
-# Caprii 0.5.1 — validation
+# Caprii 0.5.2 — validation
 
 ## Executed in this Linux environment
 
-- `npm test`: **105 passed, 0 failed**. Includes bounded/cancellable provider calls, file/path/process safeguards, exact math, requested-action completion, session permissions, selected-tab authentication/session isolation/abort/timeout, Thai dialogue shape and placeholder preservation, bounded English-to-Thai repair, bounded recovery/no replay after uncertain writes, current-chat short commands, explicit no-fill/no-submit guards, voice-typing process/sender/UI guards, and local Thai voice selection with no English/online-voice fallback.
+- `npm test`: **111 passed, 0 failed**. Includes bounded/cancellable provider calls, file/path/process safeguards, exact math, requested-action completion, session permissions, selected-tab authentication/session isolation/abort/timeout, Thai dialogue shape and placeholder preservation, bounded English-to-Thai repair, bounded recovery/no replay after uncertain writes, current-chat short commands, explicit no-fill/no-submit guards, voice-typing process/sender/UI guards, and local Thai voice selection with no English/online-voice fallback.
 - `npm run test:electron`: real sandboxed Electron browser form input, actual value readback, wrong-value detection, read-only keypad clicks, rejection when a page clears typed input, password-value redaction, post-submit DOM assertion, blocked cross-origin redirects, task UI/Stop IPC, and virtual screen capture.
 - `npm run test:chrome-ui`: readonly typing failure -> fresh inspection -> actual visible keypad clicks -> exact matching field-value proof -> original edit marked recovered -> new submission acknowledgment. Also  authenticated loopback selected-tab protocol connected to a real isolated Electron DOM using the exact shared DOM bridge shipped in the extension. Exact math -> premature finish rejected -> actual field fill -> independent field readback -> submit click -> page acknowledgment assertion.
 - `npm run test:site-ui`: actual app renderer/main IPC, Thai UI, centered character, idle motion paused during tasks, explicit website confirmation, user-selected session-only no-prompt mode, actual capture/math task without repeated prompts, mode revocation and no persisted permission.
@@ -26,3 +26,12 @@ Successful input delivery or field-value matching is not proof of form acceptanc
 ## Packaging
 
 The release process checks all packaged source files against the working source, verifies the bundled extension files, tests installer archive integrity, and recombines split installer parts against SHA256 before upload. The manifest records the final installer and part hashes. Linux packaging does not establish Windows installation/native-input readiness.
+
+
+## 0.5.2 reported-screen regression
+
+The exact request “ดูจอแล้วหาคำตอบ” routes to calculator-capable Agent tools. Answer-only requests prohibit filling/submitting unless requested. The [7,6,3,4] target 82 fixture has no solution under the supported basic operators/parentheses/use-once rules; its summary cannot append an invented answer.
+
+The real vision IPC uses the same bounded Thai/respectful-output check as ordinary chat. Synthetic inappropriate Thai output is rewritten before returning; persistent known inappropriate language is withheld. Previous unrelated chat history is excluded from each current-image question. Internal Caprii windows are temporarily hidden during capture and restored afterward, including capture failure; a following capture is verified to work. The marker check does not claim to detect every possible inappropriate expression or model hallucination. No live provider/image request was made for these synthetic output tests.
+
+- Pairing-code dialog capture guard: real app menu/dialog fixture opens the code dialog, capture returns a blocked result without calling desktop capture, and capture resumes after the dialog closes. Codes are not logged or transmitted in this test.

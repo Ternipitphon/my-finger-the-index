@@ -2,6 +2,7 @@
 const electron=require('electron');const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),assert=require('node:assert/strict');
 const profile=fs.mkdtempSync(path.join(os.tmpdir(),'caprii-site-ui-'));electron.app.setPath('userData',profile);
 electron.app.commandLine.appendSwitch('use-angle','swiftshader');electron.app.commandLine.appendSwitch('enable-unsafe-swiftshader');
+const captureVisibility=[];const originalSources=electron.desktopCapturer.getSources;electron.desktopCapturer.getSources=async options=>{const overlay=electron.BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith('capri://app/'));captureVisibility.push(electron.BrowserWindow.getAllWindows().some(w=>w.webContents.getURL().startsWith('capri://app/')&&w.isVisible()&&!w.isMinimized()));return originalSources(options);};
 let opened=[],confirmations=[];electron.dialog.showMessageBox=async(_parent,options)=>{confirmations.push(options.message);if(options.message!=='เปิดเว็บไซต์ในเบราว์เซอร์?')throw Error('Unexpected dialog');return{response:1};};
 electron.shell.openExternal=async url=>{opened.push(url);};
 let latestMenu;const originalMenu=electron.Menu.buildFromTemplate;electron.Menu.buildFromTemplate=(template)=>{const menu=originalMenu.call(electron.Menu,template);if(menu.getMenuItemById('caprii-auto-actions'))latestMenu=menu;return menu;};
@@ -36,5 +37,18 @@ electron.app.whenReady().then(async()=>{
  assert.equal(opened.length,3);assert.equal(confirmations.length,2);
  assert.equal(Object.hasOwn(config.load(),'automaticActions'),false,'session permission must not be persisted');
  console.log('PASS: explicit session toggle skips screen/web prompts, actual capture task runs, turning off restores prompts, and no permission is saved');
+ let visionCalls=0,initialMessages;
+ llm.chat=async(_provider,_cfg,request)=>{visionCalls++;if(visionCalls===1)initialMessages=request.messages;return visionCalls===1?'ภาพนี้มีโจทย์ nigga':'ภาพนี้มีโจทย์คณิตศาสตร์ ต้องตรวจด้วยเครื่องคิดเลข';};
+ const vision=await overlay.webContents.executeJavaScript(`(async()=>{const snap=await window.host.lookSnap();return window.host.lookSay({id:snap.id,turnId:987654,persona:'อธิบายภาพปัจจุบัน',prompt:'ดูภาพนี้',history:[{role:'user',content:'old unrelated YouTube task sentinel'}]});})()`);
+ assert.equal(vision.ok,true);assert.equal(visionCalls,2);assert.ok(captureVisibility.length>=2);assert.ok(captureVisibility.every(v=>v===false));assert.equal(overlay.isVisible(),true);assert.doesNotMatch(vision.text,/nigga/i);assert.doesNotMatch(JSON.stringify(initialMessages),/old unrelated YouTube task sentinel/);
+ console.log('PASS: real vision IPC rewrites inappropriate Thai text and excludes unrelated old chat history before returning a reply');
+ const safeCapture=electron.desktopCapturer.getSources;electron.desktopCapturer.getSources=async()=>{throw Error('synthetic capture failure');};const failedSnap=await overlay.webContents.executeJavaScript('window.host.lookSnap()');assert.equal(failedSnap.ok,false);assert.equal(overlay.isVisible(),true);electron.desktopCapturer.getSources=safeCapture;const nextSnap=await overlay.webContents.executeJavaScript('window.host.lookSnap()');assert.equal(nextSnap.ok,true);assert.equal(overlay.isVisible(),true);
+ console.log('PASS: capture failure restores Caprii UI and does not block the next screenshot');
+ let closePair,pairOpened=false;const previousDialog=electron.dialog.showMessageBox;
+ electron.dialog.showMessageBox=async(parent,options)=>{const opts=options||parent;if(opts.message==='เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก'){pairOpened=true;return new Promise(resolve=>{closePair=resolve;});}return previousDialog(parent,options);};
+ latestMenu.getMenuItemById('caprii-pair').click();for(let i=0;i<50&&!pairOpened;i++)await new Promise(r=>setTimeout(r,10));assert.equal(pairOpened,true);
+ const capturesBefore=captureVisibility.length;const privateSnap=await overlay.webContents.executeJavaScript('window.host.lookSnap()');assert.equal(privateSnap.ok,false);assert.match(privateSnap.error,/รหัสเชื่อมต่อ/);assert.equal(captureVisibility.length,capturesBefore);closePair({response:0});await new Promise(r=>setTimeout(r,20));
+ const restoredSnap=await overlay.webContents.executeJavaScript('window.host.lookSnap()');assert.equal(restoredSnap.ok,true);
+ console.log('PASS: pairing-code dialog prevents screen capture until closed, without capturing its secret');
  clearTimeout(timer);electron.app.exit(0);
 }).catch(e=>{console.error(e);clearTimeout(timer);electron.app.exit(1);});
