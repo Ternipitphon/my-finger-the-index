@@ -827,7 +827,7 @@ function registerIpc() {
         onProgress: event => {
           task.update(event);
           if(event.status==='recovering')overlay?.webContents.send('chat:delta',{id,text:'กำลังตรวจและแก้ขั้นตอนที่ติดขัด…\n'});
-          if (event.status === 'running' || event.tool === 'plan') overlay?.webContents.send('chat:delta', { id, text: `ขั้นตอน ${event.step}: ${({'desktop.look':'ดูหน้าจอ','desktop.windows':'อ่านหน้าต่าง','desktop.input':'ควบคุมหน้าจอ','browser.read':'อ่านแท็บเว็บ','browser.type':'กรอกช่องคำตอบ','browser.click':'คลิกปุ่ม','browser.expect_value':'ตรวจค่าที่กรอกจริง','browser.expect':'ตรวจผลหน้าเว็บ','math.solve':'ค้นหาคำตอบ','math.evaluate':'คำนวณ','math.verify':'ตรวจคำตอบ','plan':'วางแผน'})[event.tool]||'กำลังดำเนินการ'}\n` });
+          if (event.status === 'running' || event.tool === 'plan') overlay?.webContents.send('chat:delta', { id, text: `ขั้นตอน ${event.step}: ${({'desktop.look':'ดูหน้าจอ','desktop.windows':'อ่านหน้าต่าง','desktop.input':'ควบคุมหน้าจอ','browser.read':'อ่านแท็บเว็บ','browser.type':'กรอกช่องคำตอบ','browser.select':'เลือกค่าบนเว็บ','browser.check':'ตั้งค่าช่องตัวเลือก','browser.click':'คลิกปุ่ม','browser.expect_value':'ตรวจค่าที่กรอกจริง','browser.expect':'ตรวจผลหน้าเว็บ','math.solve':'ค้นหาคำตอบ','math.evaluate':'คำนวณ','math.verify':'ตรวจคำตอบ','plan':'วางแผน'})[event.tool]||'กำลังดำเนินการ'}\n` });
         },
       });
       task.finish({ ...result, state: result.verified ? 'done' : 'partial' });

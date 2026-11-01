@@ -76,13 +76,18 @@ function createBrowser({ BrowserWindow, session }) {
     check(signal);
     const wc = current();
     const before=lastSnapshot?{url:lastSnapshot.url,text:lastSnapshot.text}:null;
-    const payload=JSON.stringify({id:action.id,generation:action.generation,value:action.value});
+    const payload=JSON.stringify({id:action.id,generation:action.generation,value:action.value,checked:action.checked});
     const outcome=await wc.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.__capriiDOM.execute(${JSON.stringify(action.kind)},${payload})`}]);
-    check(signal);lastSnapshot=outcome.observed;return{...outcome,before};
+    check(signal);lastSnapshot=outcome.observed;return{...outcome,before:outcome.before??before};
   }
   async function verifyField(action,signal){
-    check(signal);const wc=current(),payload=JSON.stringify({id:action.id,generation:action.generation,value:action.value});
+    check(signal);const wc=current(),payload=JSON.stringify({id:action.id,generation:action.generation,value:action.value,checked:action.checked});
     const outcome=await wc.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.__capriiDOM.execute('verify',${payload})`}]);
+    check(signal);lastSnapshot=outcome.observed;return outcome;
+  }
+  async function expectText(action,signal){
+    check(signal);const payload=JSON.stringify({contains:action.contains,selector:action.selector,timeoutMs:action.timeoutMs});
+    const outcome=await current().executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.__capriiDOM ??= (${createDOMBridge.toString()})();globalThis.__capriiDOM.execute('expect',${payload})`}]);
     check(signal);lastSnapshot=outcome.observed;return outcome;
   }
   async function capture(signal) {
@@ -94,6 +99,6 @@ function createBrowser({ BrowserWindow, session }) {
     win = null;
     await isolated.clearStorageData();
   }
-  return { navigate, snapshot, target, interact, verifyField, capture, close };
+  return { navigate, snapshot, target, interact, verifyField, expectText, capture, close };
 }
 module.exports = { createBrowser, browserUrl };

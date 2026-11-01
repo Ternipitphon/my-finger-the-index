@@ -26,7 +26,8 @@
     "dist:cloud": "electron-builder --win --x64 -c.win.signAndEditExecutable=false",
     "test:site-ui": "electron scripts/test-site-ui.cjs --dev",
     "test:chrome-ui": "electron scripts/chrome-bridge-smoke.js",
-    "reach:prepare": "python3 scripts/prepare-agent-reach.py"
+    "reach:prepare": "python3 scripts/prepare-agent-reach.py",
+    "test:dom-ui": "electron scripts/dom-form-smoke.js"
   },
   "keywords": [
     "claude-code",

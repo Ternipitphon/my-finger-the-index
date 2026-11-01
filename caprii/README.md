@@ -23,3 +23,7 @@
 ซอร์สส่วนขยายอยู่ที่ `browser-extension/` และใช้ DOM bridge เดียวกับเบราว์เซอร์ Electron ใน `src/shared/browser-dom.js` หากเปลี่ยน bridge ให้คัดลอกไป `browser-extension/dom.js` ด้วย ชุดทดสอบตรวจว่าไฟล์ตรงกัน รักษา public key ใน manifest และ ID ที่ตรึงไว้ให้ตรงกัน ไม่สร้าง ID ใหม่ทุกครั้งที่ build
 
 Chrome broker ฟังเฉพาะ loopback หลังผู้ใช้เลือกเชื่อม รหัสเกิดใหม่ทุกครั้งที่เปิดโปรแกรม ไม่บันทึกคีย์ลงไฟล์หรือ log คำสั่งรองรับเฉพาะอ่าน/กรอก/คลิก/ตรวจค่า ไม่มีเครื่องมือ eval หรือ shell ผ่านส่วนขยาย
+
+## DOM forms (0.5.5 development)
+
+Read [DOM-FORMS-TH.md](DOM-FORMS-TH.md) for selected-tab reading, text/dropdown/checkbox/radio input, exact field readback, scoped result checks, and local browser validation. This source update is not published.

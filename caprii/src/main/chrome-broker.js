@@ -37,7 +37,7 @@ function createChromeBroker({port=47824,token=randomBytes(32).toString('base64ur
  async function start(){if(server?.listening)return{port:server.address().port,code:token};if(starting)return starting;starting=new Promise((resolve,reject)=>{server=http.createServer(handle);server.once('error',reject);server.listen(port,'127.0.0.1',()=>{server.unref();resolve({port:server.address().port,code:token});});});try{return await starting;}finally{starting=null;}}
  async function command(op,args,signal){
   signal?.throwIfAborted();if(!status().connected)throw Error('ยังไม่ได้เชื่อมแท็บ Chrome เปิดส่วนขยายแล้วเชื่อมแท็บที่ต้องการ');
-  if(!['read','type','click','verify'].includes(op))throw Error('Unsupported browser command');
+  if(!['read','type','click','select','check','verify','expect'].includes(op))throw Error('Unsupported browser command');
   const id=randomBytes(12).toString('hex');let timer,aborted;
   try{return await new Promise((resolve,reject)=>{aborted=()=>reject(signal.reason);signal?.addEventListener('abort',aborted,{once:true});timer=setTimeout(()=>reject(Error('แท็บ Chrome ไม่ตอบกลับ ยังไม่ยืนยันผล ห้ามส่งซ้ำโดยไม่ตรวจหน้าเว็บ')),timeoutMs);pending.set(id,{resolve,reject});queue.push({id,op,args});});}
   finally{clearTimeout(timer);signal?.removeEventListener('abort',aborted);pending.delete(id);const i=queue.findIndex(c=>c.id===id);if(i>=0)queue.splice(i,1);}
@@ -50,8 +50,9 @@ function createChromeBroker({port=47824,token=randomBytes(32).toString('base64ur
   return{connected:true,description:()=>status(),snapshot,
    navigate:async(url,signal)=>{if(browserUrl(url)!==connection?.url)throw Error('ส่วนขยายควบคุมเฉพาะแท็บที่เลือก ใช้ browser.read หรือเลือกเชื่อมแท็บใหม่');return snapshot(signal);},
    target:a=>{checkLease();if(!last||a.generation!==last.generation)throw Error('อ่านหน้าเว็บใหม่ก่อน');const e=last.elements.find(e=>e.id===a.id);if(!e)throw Error('ไม่พบช่องหรือปุ่ม');return{url:last.url,...e};},
-   interact:async(a,signal)=>{checkLease();const before=last?{url:last.url,text:last.text}:null;const r=await command(a.kind,{id:a.id,generation:a.generation,value:a.value},signal);remember(r.observed);return{...r,before};},
-   verifyField:async(a,signal)=>{checkLease();const r=await command('verify',{id:a.id,generation:a.generation,value:a.value},signal);remember(r.observed);return r;},
+   interact:async(a,signal)=>{checkLease();const before=last?{url:last.url,text:last.text}:null;const r=await command(a.kind,{id:a.id,generation:a.generation,value:a.value,checked:a.checked},signal);remember(r.observed);return{...r,before:r.before??before};},
+   verifyField:async(a,signal)=>{checkLease();const r=await command('verify',{id:a.id,generation:a.generation,value:a.value,checked:a.checked},signal);remember(r.observed);return r;},
+   expectText:async(a,signal)=>{checkLease();const r=await command('expect',{contains:a.contains,selector:a.selector,timeoutMs:a.timeoutMs},signal);remember(r.observed);return r;},
    close:async()=>{cancel('จบงานแล้ว');},
   };
  }
