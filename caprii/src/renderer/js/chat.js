@@ -1,3 +1,4 @@
+import { browserTaskIntent } from './browser-task-intent.js';
 import { reachIntent } from './reach-intent.js';
 import { siteCommand, actionCommand, refusedCommand, resolveTaskCommand } from './command-intent.js';
 import { screenIntent } from './screen-intent.js';
@@ -314,12 +315,13 @@ export class Chat {
       return;
     }
     const previous=this.history.slice(0,-1).filter(m=>m.role==='user').at(-1)?.content||'';
-    const publicTask=reachIntent(text);
-    const resolved=resolveTaskCommand(text,typeof previous==='string'?previous:'');
+    const browserTask=browserTaskIntent(text);
+    const publicTask=browserTask?null:reachIntent(text);
+    const resolved=browserTask||resolveTaskCommand(text,typeof previous==='string'?previous:'');
     if(resolved?.question){this.panel.stream(resolved.question,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
     if (publicTask || resolved?.goal || /^\/agent\s+/i.test(text) || screenIntent(text) === 'agent' || actionCommand(text)) {
       try {
-        const res = await this.host.agentRun({ id, scope:publicTask?'public-web':undefined, goal: publicTask || resolved?.goal || text.replace(/^\/agent\s+/i, '') });
+        const res = await this.host.agentRun({ id, scope:browserTask?.scope||(publicTask?'public-web':undefined), goal: publicTask || resolved?.goal || text.replace(/^\/agent\s+/i, '') });
         if (this.turn === id) this.panel.stream(res.ok ? res.text : `${this.t.failed} ${res.error}`, { done: true });
       } catch {
         if (this.turn === id) this.panel.stream(this.t.failed, { done: true });

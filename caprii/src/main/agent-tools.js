@@ -29,7 +29,7 @@ function createAgentTools({ browser, desktop, screen, openExternal, launcher, ui
         if(kind==='click'&&c.mathTask&&(a.intent==='answer_key'||/^[0-9()+\-×÷*/.]$/.test(target.label))&&!c.mathEvidence?.allowed?.length)throw Error('คำนวณและตรวจคำตอบก่อนกดแป้นคำตอบ');
         if (kind === 'click' && c.mathTask && /ส่ง|submit|confirm|ยืนยัน/i.test(target.label) && !c.mathEvidence?.allowed?.length) throw new Error('Verify the math answer before submitting');
         await c.permission({ tool: a.tool, target, intent:a.intent, ...(c.mathTask ? { mathProof: c.mathEvidence } : {}), ...(['type','select'].includes(kind) ? { value: a.value } : kind==='check'?{checked:a.checked}:{}), note: 'Clicking can submit, purchase, delete, or send data. Check the target and approve only the action you intend.' });
-        try{const result=await browser.interact({...a,kind},c.signal);if(kind==='click'&&a.intent==='submit')c.submitBaseline=result.before;return result;}
+        try{const result=await browser.interact({...a,kind},c.signal);const submitted=kind==='click'&&(a.intent==='submit'||/ส่ง|submit|confirm|ยืนยัน/i.test(target.label));if(submitted)c.submitBaseline=result.before;return{...result,submitDelivered:submitted};}
         catch(err){if(kind==='type')err.inputTarget=target;throw err;}
       },
     });

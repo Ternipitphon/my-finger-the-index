@@ -1,24 +1,35 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.5.8 — ตัวติดตั้ง Windows
+## ดาวน์โหลด Caprii 0.5.9 — ตัวติดตั้ง Windows
 
-[ดาวน์โหลด ZIP ตัวติดตั้ง Caprii 0.5.8](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.5.8-download.zip)
+[ดาวน์โหลด ZIP ตัวติดตั้ง Caprii 0.5.9](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.5.9-download.zip)
 
-รองรับ Windows 10/11 x64 ชุดดาวน์โหลดนี้มีเฉพาะไฟล์ติดตั้งรุ่น 0.5.8 ไม่ต้องดาวน์โหลด ZIP ทั้ง repository หรือเลือกโฟลเดอร์รุ่นเก่า
+รองรับ Windows 10/11 x64 ชุดดาวน์โหลดนี้มีเฉพาะไฟล์ติดตั้งรุ่น 0.5.9 ไม่ต้องดาวน์โหลด ZIP ทั้ง repository หรือเลือกโฟลเดอร์รุ่นเก่า
 
 ### ติดตั้งและเริ่มใช้
 
 1. ดาวน์โหลด ZIP แล้วคลิกขวา **แยกทั้งหมด / Extract All** อย่าเปิดตัวติดตั้งจากใน WinRAR หรือหน้าต่าง ZIP
 2. ปิด Caprii ตัวเก่าจากถาดระบบก่อนติดตั้ง
 3. เข้าโฟลเดอร์ที่แตกแล้ว ดับเบิลคลิก **`INSTALL-CAPRII.cmd`** ให้ไฟล์ `Caprii-Setup.part01`, `part02`, `part03` อยู่ข้างกันครบทั้งสามส่วน
-4. สคริปต์ตรวจ SHA256 ทุกส่วน รวมเป็น **`Caprii-Agent-Setup-0.5.8.exe`** และตรวจ hash ไฟล์รวมก่อนเปิดตัวติดตั้ง
-5. เมื่อติดตั้งแล้ว เปิด **Caprii Agent** จาก Desktop หรือ Start Menu คลิกขวาตัวละครจะเห็น **Caprii 0.5.8**
+4. สคริปต์ตรวจ SHA256 ทุกส่วน รวมเป็น **`Caprii-Agent-Setup-0.5.9.exe`** และตรวจ hash ไฟล์รวมก่อนเปิดตัวติดตั้ง
+5. เมื่อติดตั้งแล้ว เปิด **Caprii Agent** จาก Desktop หรือ Start Menu คลิกขวาตัวละครจะเห็น **Caprii 0.5.9**
 
 ตัวติดตั้งรวม runtime ที่จำเป็นแล้ว ไม่ต้องติดตั้ง Node.js หรือ Python เพิ่ม ไฟล์ `.patch` และ `source-update.zip` จากงานก่อนเป็นไฟล์สำหรับพัฒนา ไม่ใช่ตัวติดตั้งรุ่นนี้
 
-อ่าน [วิธีติดตั้งและ checksum](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.5.8/downloads/Caprii-0.5.8) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.8/downloads/Caprii-0.5.8/GUIDE-TH.md)
+อ่าน [วิธีติดตั้งและ checksum](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.5.9/downloads/Caprii-0.5.9) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.9/downloads/Caprii-0.5.9/GUIDE-TH.md)
 
-## ใหม่ใน 0.5.8: สรุปสั้นและตอบจากหลักฐาน
+## แก้บั๊กสำคัญใน 0.5.9: คำสั่งฟอร์มต้องใช้เครื่องมือจริง
+
+- แก้คำสั่งตามภาพผู้ใช้ **“อ่านแท็บที่เชื่อมต่อก่อน…ยังไม่ต้องกรอกหรือกดส่ง”** และ **“ช่องชื่อนั่นใส่แมวบิน เมลเอา…”** ที่เดิมหลุดไปแชตข้อความล้วน
+- แยกการห้ามกรอก/ส่งออกจากการอนุญาตให้อ่าน คำสั่งอ่านอย่างเดียวใช้เครื่องมืออ่านและไม่ให้โมเดลมีเครื่องมือแก้ไขใน scope นี้
+- งานฟอร์มผูกกับ **แท็บ Chrome ที่เชื่อมจริง** ถ้าไม่พร้อมจะแจ้งว่ายังไม่ได้อ่านหรือกรอก ไม่สลับไปคุมจอ/เปิดเว็บอื่นเอง
+- เพิ่มชั้นป้องกันฝั่ง main process ไม่ให้คำสั่งอ่าน/กรอกที่หลุดมา chat:send ตอบเหมือนทำงานแล้ว
+- งานที่ยังไม่ผ่านการตรวจไม่แสดงคำสรุปสำเร็จของโมเดล รายงานจากสถานะเครื่องมือจริงทั้งในแชตและหน้าต่างติดตามงาน ส่วนงานอ่านค่าจะแสดงค่าจาก DOM จริงพร้อมบอกว่ายังไม่ได้กรอก/ส่ง
+- จับการคลิกปุ่มส่งจาก label จริงด้วย ไม่อาศัย intent ที่โมเดลอาจลืมใส่ และให้ตรวจ acknowledgment ใหม่ก่อนจบ โดยไม่สั่งกดส่งซ้ำเพียงเพราะยังไม่ได้ตรวจผล
+
+ทดสอบ Gemini 3.5 Flash Lite จริงกับ Test Lab ใน browser: กรอกชื่อ “แมวบิน”, อีเมล meow@example.test, เลือกไทย, ติ๊กยอมรับ, ส่ง และ browser.expect ตรวจผลจนหน้าเว็บขึ้น **ผ่านแล้ว** รอบนี้เป็น browser fixture ใน Linux ไม่ใช่การยืนยัน Chrome/Windows บนเครื่องผู้ใช้
+
+## ตั้งค่าคำตอบที่ยังคงรองรับ
 
 - **คลิกขวา Caprii → ความยาวคำตอบ / คำพูด** เลือก **สรุปสั้น (1–3 ประโยค)**, **สมดุล**, หรือ **ละเอียด** ค่าเริ่มต้นสรุปสั้นทั้งโปรไฟล์ใหม่และเดิม และจำค่าหลังปิด–เปิดแอป
 - ใช้กับแชต การดูหน้าจอ การอ่านรูปแนบ และสรุปตอนจบของ Agent เอาคำตอบหลักขึ้นก่อน ลดคำเกริ่น/มุกซ้ำ ไม่ตัดข้อความกลางประโยคหรือย่อ JSON/โค้ดของเครื่องมือ
@@ -40,7 +51,7 @@
 
 ตัวอย่าง: แนบรูปแล้วบอก “ดูรูปที่ส่งให้หน่อย รหัสบนภาพเขียนว่าอะไร อย่าไปดูจอแทนนะ”
 
-## ความสามารถในรุ่น 0.5.8
+## ความสามารถในรุ่น 0.5.9
 
 | ส่วนที่ปรับปรุง | สิ่งที่ทำได้ |
 | --- | --- |
@@ -51,7 +62,7 @@
 | หน้าเว็บเปลี่ยน | ปฏิเสธ ID/generation เก่า ช่องที่ถูกแทนที่ ซ่อน หรือเปลี่ยนตัวเลือก เพื่อให้อ่าน DOM ใหม่ก่อนทำต่อ |
 | ทำตามข้อจำกัด | คำสั่งใหม่เคารพ “ห้ามกรอก” และไม่ส่งคำสั่งซ้ำเมื่อผลก่อนหน้ายังไม่แน่ชัด |
 | Test Lab ในแอป | เปิดเว็บทดสอบในเครื่องจากเมนู Caprii ได้เลย ไม่ต้องเปิด server หรือใช้ Node.js แยก |
-| ชุดติดตั้งรุ่นใหม่ | แอปและส่วนขยาย Chrome เป็น 0.5.8 พร้อมแพ็กเกจ part และการตรวจ SHA256 ตามรูปแบบรุ่นก่อน |
+| ชุดติดตั้งรุ่นใหม่ | แอปและส่วนขยาย Chrome เป็น 0.5.9 พร้อมแพ็กเกจ part และการตรวจ SHA256 ตามรูปแบบรุ่นก่อน |
 
 การกรอกผ่าน DOM ใช้ได้กับ browser ของแอปและแท็บ Chrome ที่ผู้ใช้เลือกเชื่อมต่อผ่านส่วนขยาย ไม่ได้อ่านทุกแท็บอัตโนมัติ รักษาระบบอนุญาตและปุ่มหยุดเดิมไว้
 
@@ -77,7 +88,7 @@
 
 ผลผ่านมาจากค่าช่องและเหตุการณ์บนหน้า เว็บยังแยกไม่ได้ว่าผู้ใช้หรือ Caprii เป็นผู้ลงมือ และไม่ยืนยันการบันทึกข้อมูลบน server ไม่มีการ publish เว็บทดสอบออนไลน์
 
-ซอร์สเว็บและแนวทางอัปเดตพร้อม Caprii อยู่ที่ [Test Lab](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.5.8/caprii/test-lab)
+ซอร์สเว็บและแนวทางอัปเดตพร้อม Caprii อยู่ที่ [Test Lab](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.5.9/caprii/test-lab)
 
 ## ความสามารถเดิมที่ยังอยู่
 
@@ -93,21 +104,21 @@ Chromium ใน environment ทดสอบนี้ถูกนโยบาย�
 ทดสอบหน้าต่าง Chat/Panel จริงเพิ่มเติม: แนบรูป, preview ก่อนส่ง, HTTP payload แบบหลายสื่อ, Ctrl+V ผ่าน ClipboardItem API, ส่งเฉพาะรูป, ถอดรูป, และแจ้งเมื่อโมเดลไม่รองรับภาพ รวมทั้งตรวจว่า history ไม่มีพิกเซลรูป
 
 
-- **148 application tests ผ่าน** รวมวงจรเปิด/ปิด server ของ Test Lab และการตรวจเวอร์ชันแอป/lock/ส่วนขยายให้ตรงกัน
+- **153 application tests ผ่าน** รวมวงจรเปิด/ปิด server ของ Test Lab และการตรวจเวอร์ชันแอป/lock/ส่วนขยายให้ตรงกัน
 - **3 Test Lab unit/server checks ผ่าน**
 - **8 เคส browser จริงผ่าน** พร้อมกรณีตอบผิด, readonly keypad, ผลตอบกลับช้า/รีเซ็ต, element เก่า, ห้ามส่ง, ตัวกรอง, รายงาน JSON และขนาดหน้าจอมือถือ
-- ตรวจแพ็กเกจจริง: ASAR เวอร์ชัน 0.5.8, Windows x64 PE, Python ที่รวมไว้, ฟอนต์, ส่วนขยาย/DOM bridge และเปิด Test Lab จาก ASAR ได้
+- ตรวจแพ็กเกจจริง: ASAR เวอร์ชัน 0.5.9, Windows x64 PE, Python ที่รวมไว้, ฟอนต์, ส่วนขยาย/DOM bridge และเปิด Test Lab จาก ASAR ได้
 - ตรวจ archive ของ NSIS ผ่าน และรวม part กลับมาได้ SHA256 ตรงกับ installer
 
 **ยังไม่ได้ลองติดตั้งและควบคุมบน Windows จริง** การ cross-build และการทดสอบบน Linux ไม่ยืนยันว่าการควบคุม Windows หรือทุกเว็บไซต์จะทำงานครบ ตัวติดตั้งยังไม่มีลายเซ็นดิจิทัล การอ่านเว็บจริงขึ้นกับเครือข่าย โควตา และข้อมูลที่เว็บไซต์เปิดให้ใช้
 
-อ่าน [รายละเอียดผลทดสอบ](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.8/downloads/Caprii-0.5.8/VALIDATION.md) และ [download manifest](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.8/downloads/Caprii-0.5.8/download-manifest.json)
+อ่าน [รายละเอียดผลทดสอบ](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.9/downloads/Caprii-0.5.9/VALIDATION.md) และ [download manifest](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.9/downloads/Caprii-0.5.9/download-manifest.json)
 
 ## ซอร์สและการพัฒนารุ่นถัดไป
 
-ซอร์สรุ่น 0.5.8 อยู่ที่ [branch caprii-0.5.8](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.5.8) ในโฟลเดอร์ `caprii/` เริ่มด้วย `npm ci` แล้ว `npm test` ส่วน Test Lab ใช้ `npm run test:lab` และ `npm run test:lab-ui` เมื่อมีสภาพแวดล้อม Electron GUI
+ซอร์สรุ่น 0.5.9 อยู่ที่ [branch caprii-0.5.9](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.5.9) ในโฟลเดอร์ `caprii/` เริ่มด้วย `npm ci` แล้ว `npm test` ส่วน Test Lab ใช้ `npm run test:lab` และ `npm run test:lab-ui` เมื่อมีสภาพแวดล้อม Electron GUI
 
-เมื่อเพิ่มความสามารถ ให้ปรับเวอร์ชัน ชุดทดสอบเว็บ และคู่มือไปด้วย พร้อมสร้างตัวติดตั้งและตรวจ hash ตาม [ขั้นตอนออกเวอร์ชัน](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.8/RELEASE-WORKFLOW-TH.md) ซอร์สหรือแพตช์อย่างเดียวไม่ใช่ตัวติดตั้งพร้อมใช้
+เมื่อเพิ่มความสามารถ ให้ปรับเวอร์ชัน ชุดทดสอบเว็บ และคู่มือไปด้วย พร้อมสร้างตัวติดตั้งและตรวจ hash ตาม [ขั้นตอนออกเวอร์ชัน](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.5.9/RELEASE-WORKFLOW-TH.md) ซอร์สหรือแพตช์อย่างเดียวไม่ใช่ตัวติดตั้งพร้อมใช้
 
 ## ชุดทดสอบและรุ่นก่อน
 

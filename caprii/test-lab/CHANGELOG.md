@@ -1,5 +1,11 @@
 # Test Lab changelog
 
+## 1.2.1 — Caprii 0.5.9
+
+- Preserve the exact colloquial form prompt as a routing regression and document read-only inspection.
+- Add live-model form regression using the actual fixture; require a fresh post-submit check without repeated submission.
+- Keep eight observable cases and target 0.5.9.
+
 ## 1.2.0 — Caprii 0.5.8
 
 - Document saved short/balanced/detailed response preferences and answer-only observation commands.

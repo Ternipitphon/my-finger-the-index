@@ -1,3 +1,10 @@
+# Caprii 0.5.9 validation
+
+- 153 app tests and 3 lab unit/server checks pass, including exact screenshot phrases, read/write separation, selected-tab IPC routing, observation-derived field reports and rejection of unverified success narratives.
+- Live Gemini 3.5 Flash Lite drove the actual local Test Lab browser: name/email/select/checkbox, submit, then browser.expect; all fields and the page passed state were checked. An initial run exposed missing final verification, which is now prompted before finish without re-submitting.
+- Attachment, authenticated DOM broker and 8 Test Lab browser cases were rechecked. Native Chrome unpacked-extension integration remains blocked by managed browser policy; Windows installation/control is not tested.
+- Installer is unsigned and cross-built. Website hosting is not deployed.
+
 # Caprii 0.5.8 validation
 
 - 148 app tests pass, including saved response preferences/default migration, explicit detail overrides, intact image/tool payloads, answer-only observation and Chrome diagnostic/rollback cases.

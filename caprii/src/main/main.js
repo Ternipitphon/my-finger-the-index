@@ -784,22 +784,23 @@ function registerIpc() {
   require('./agent-window').registerAgentWindowIpc(ipcMain);
   ipcMain.handle('agent:run', async (_e, request = {}) => {
     const { id, goal, scope } = request;
-    if (_e.sender !== overlay?.webContents || !Number.isSafeInteger(id) || typeof goal !== 'string' || !goal.trim() || goal.length > 8000 || (scope!==undefined&&scope!=='public-web')) return { ok: false, error: 'Invalid agent request' };
+    if (_e.sender !== overlay?.webContents || !Number.isSafeInteger(id) || typeof goal !== 'string' || !goal.trim() || goal.length > 8000 || (scope!==undefined&&!['public-web','selected-tab'].includes(scope))) return { ok: false, error: 'Invalid agent request' };
     if (chats.size) return { ok: false, error: 'Another task is running' };
     const abort = new AbortController();
     chats.set(id, abort);
     const signal = AbortSignal.any([abort.signal, AbortSignal.timeout(300000)]);
     let task = null, browser = null, taskPermissions = null;
     try {
+      if(scope==='selected-tab'&&!chromeBroker.status().connected)throw Error('ยังไม่ได้เชื่อมแท็บ Chrome ที่พร้อมใช้งาน เปิดเมนู เชื่อมแท็บ Chrome… แล้วอนุญาตแท็บนี้ก่อน ยังไม่ได้อ่านหรือกรอกข้อมูล');
       const consent = automaticActions ? {response:1} : await dialog.showMessageBox(overlay, {
-        type: 'question', buttons: scope==='public-web'?['ยกเลิก','อ่านเว็บสาธารณะ']:['ยกเลิก', 'ทำงานบนจอ/เว็บ', 'เลือกโฟลเดอร์โปรเจกต์'], defaultId: 0, cancelId: 0, signal,
+        type: 'question', buttons: scope==='public-web'?['ยกเลิก','อ่านเว็บสาธารณะ']:scope==='selected-tab'?['ยกเลิก','อ่าน/กรอกแท็บที่เชื่อม']:['ยกเลิก', 'ทำงานบนจอ/เว็บ', 'เลือกโฟลเดอร์โปรเจกต์'], defaultId: 0, cancelId: 0, signal,
         message: 'เริ่มงาน Agent แบบไหน?',
         detail: 'คำสั่งและข้อมูลที่คุณอนุมัติจะส่งให้ผู้ให้บริการ AI ขออนุญาตแยกก่อนอ่าน/แก้ไฟล์ เปิดเว็บ ควบคุมหน้าจอ หรือรันสคริปต์ ไม่เก็บความจำข้ามงาน\nหยุดฉุกเฉิน Ctrl+Alt+Esc\n' + goal,
       });
       signal.throwIfAborted();
       if (consent.response === 0) return { ok: false, error: 'ยกเลิกแล้ว' };
       let projectRoot = app.getPath('temp');
-      const allowProjectFiles = consent.response === 2;
+      const allowProjectFiles = scope===undefined&&consent.response === 2;
       if (allowProjectFiles) {
         const picked = await dialog.showOpenDialog(overlay, { properties: ['openDirectory'] });
         signal.throwIfAborted();
@@ -813,7 +814,8 @@ function registerIpc() {
       const desktop = require('./agent-desktop').createDesktop({ desktopCapturer, screen, platform: emergencyStopReady ? process.platform : 'unavailable', withCapture:withoutCapriiOverlay,
         beforeCapture: async () => { if (emergencyStopReady) task.hide(); await new Promise(resolve => setTimeout(resolve, 200)); },
       });
-      const tools = require('./agent-tools').createAgentTools({ ...(scope==='public-web'?{}:{browser,desktop,screen}), reach:require('./agent-reach').createReach({packaged:app.isPackaged,resourcesPath:process.resourcesPath}), openExternal:scope==='public-web'?null:url=>launch.site(url), launcher:scope==='public-web'?null:require('./agent-launcher').createLauncher({shell,roots:require('./agent-launcher').defaultRoots(app)}), uia:scope!=='public-web'&&desktop.supportedInput?require('./agent-uia').createUIAutomation({desktop}):null });
+      const tools = require('./agent-tools').createAgentTools({ ...(scope==='public-web'?{}:scope==='selected-tab'?{browser}:{browser,desktop,screen}), reach:scope==='selected-tab'?null:require('./agent-reach').createReach({packaged:app.isPackaged,resourcesPath:process.resourcesPath}), openExternal:scope!==undefined?null:url=>launch.site(url), launcher:scope!==undefined?null:require('./agent-launcher').createLauncher({shell,roots:require('./agent-launcher').defaultRoots(app)}), uia:scope===undefined&&desktop.supportedInput?require('./agent-uia').createUIAutomation({desktop}):null });
+      if(scope==='selected-tab'){const wanted=require('./task-completion').requirements(goal);if(wanted.noInput&&wanted.noSubmit)for(const name of tools.tools.keys())if(!name.startsWith('math.')&&!['browser.read','browser.expect','browser.expect_value'].includes(name))tools.tools.delete(name);}
       taskPermissions = require('./task-permissions').createTaskPermissions({signal, automatic:()=>automaticActions, prompt: async (action, reusable) => {
         signal.throwIfAborted();
         if(task.window.isDestroyed())return 'deny';
@@ -837,8 +839,9 @@ function registerIpc() {
           if (event.status === 'running' || event.tool === 'plan') overlay?.webContents.send('chat:delta', { id, text: `ขั้นตอน ${event.step}: ${({'desktop.look':'ดูหน้าจอ','desktop.windows':'อ่านหน้าต่าง','desktop.input':'ควบคุมหน้าจอ','browser.read':'อ่านแท็บเว็บ','browser.type':'กรอกช่องคำตอบ','browser.select':'เลือกค่าบนเว็บ','browser.check':'ตั้งค่าช่องตัวเลือก','browser.click':'คลิกปุ่ม','browser.expect_value':'ตรวจค่าที่กรอกจริง','browser.expect':'ตรวจผลหน้าเว็บ','math.solve':'ค้นหาคำตอบ','math.evaluate':'คำนวณ','math.verify':'ตรวจคำตอบ','plan':'วางแผน'})[event.tool]||'กำลังดำเนินการ'}\n` });
         },
       });
-      task.finish({ ...result, state: result.verified ? 'done' : 'partial' });
-      return { ok: true, text: result.summary + '\nผลตรวจ: ผ่าน ' + result.checks.filter(c=>c.passed).length + ' จาก ' + result.checks.length + ' รายการ', verified: result.verified };
+      const safeSummary=require('./task-result').taskResultText(result);
+      task.finish({ ...result,summary:safeSummary, state: result.verified ? 'done' : 'partial' });
+      return { ok: true, text: safeSummary + '\nผลตรวจ: ผ่าน ' + result.checks.filter(c=>c.passed).length + ' จาก ' + result.checks.length + ' รายการ', verified: result.verified };
     } catch (err) {
       const error = abort.signal.aborted ? 'หยุดงานแล้ว' : signal.aborted ? 'หมดเวลางาน 5 นาที' : err.message;
       task?.finish({ state: signal.aborted ? 'stopped' : 'failed', summary: error });
@@ -877,6 +880,7 @@ function registerIpc() {
   });
   ipcMain.handle('chat:send', async (_e, { id, messages }) => {
     if (_e.sender !== overlay?.webContents || chats.size || !Array.isArray(messages)) return { ok: false, error: 'Invalid or concurrent chat request' };
+    if(require('./task-result').toolRequest(require('./response-style').userText([...messages].reverse().find(m=>m.role==='user'))))return{ok:false,code:'tool_required',error:'ยังไม่ได้อ่านหรือกรอกข้อมูล คำสั่งนี้ต้องใช้ Agent และแท็บที่เชื่อมต่อ ไม่ใช่แชตข้อความล้วน'};
     const abort = new AbortController();
     chats.set(id, abort);
     try {
