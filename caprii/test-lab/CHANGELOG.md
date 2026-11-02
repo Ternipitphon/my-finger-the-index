@@ -1,5 +1,10 @@
 # Test Lab changelog
 
+## 1.2.0 — Caprii 0.5.8
+
+- Document saved short/balanced/detailed response preferences and answer-only observation commands.
+- Keep eight stable DOM cases and update target metadata without inventing automatic grading of AI style.
+
 ## 1.1.0 — Caprii 0.5.7
 
 - Add an eighth, image-reading scenario with a downloadable PNG, exact code verification, and incorrect-answer regression checks.

@@ -1,11 +1,17 @@
-# Caprii 0.5.7
+# ตั้งค่าคำตอบใน Caprii 0.5.8
+
+คลิกขวาตัวละคร → **ความยาวคำตอบ / คำพูด** → สรุปสั้น / สมดุล / ละเอียด ค่าเริ่มต้นสรุปสั้นและจำค่าหลังเปิดใหม่ ใช้กับแชต รูปแนบ หน้าจอ และ Agent summary ขอรายละเอียดเพิ่มเป็นรายครั้งได้
+
+คำสั่ง “ข้อนี้ตอบอะไร” จะอ่านโจทย์ปัจจุบัน ตรวจคำตอบจากหลักฐาน และไม่กรอกหรือส่งเอง การเชื่อม Chrome แสดงสาเหตุผิดพลาดแยกชัดขึ้น
+
+# Caprii 0.5.8
 
 - เปิดบุคลิกกวน ๆ มั่นใจ ขี้แซวแบบเป็นมิตรและห่วงผู้ใช้เป็นค่าเริ่มต้น ปิดได้จากเมนู
 - แชตมีปุ่ม 📎 แนบรูปและ Ctrl+V พร้อมตัวอย่างก่อนส่ง ดูรูปที่แนบจริงแยกจากการดูจอ
 - รูป PNG/JPEG/WebP ไม่เกิน 15 MB ย่อก่อนส่งให้โมเดล vision ไม่เก็บพิกเซลในประวัติ
 - Test Lab เพิ่มเคสภาพ รวม 8 เคส
 
-# Caprii 0.5.7
+# Caprii 0.5.8
 
 รุ่นติดตั้ง Windows x64 พร้อม DOM forms และ Test Lab ในแอป คลิกขวาตัวละคร → เปิดเว็บทดสอบ Caprii ไม่ต้องติดตั้ง Node.js เพิ่ม
 
@@ -35,9 +41,9 @@
 
 Chrome broker ฟังเฉพาะ loopback หลังผู้ใช้เลือกเชื่อม รหัสเกิดใหม่ทุกครั้งที่เปิดโปรแกรม ไม่บันทึกคีย์ลงไฟล์หรือ log คำสั่งรองรับเฉพาะอ่าน/กรอก/คลิก/ตรวจค่า ไม่มีเครื่องมือ eval หรือ shell ผ่านส่วนขยาย
 
-## DOM forms (0.5.7)
+## DOM forms (0.5.8)
 
-Read [DOM-FORMS-TH.md](DOM-FORMS-TH.md) for selected-tab reading, text/dropdown/checkbox/radio input, exact field readback, scoped result checks, and local browser validation. Included in the 0.5.7 Windows installer.
+Read [DOM-FORMS-TH.md](DOM-FORMS-TH.md) for selected-tab reading, text/dropdown/checkbox/radio input, exact field readback, scoped result checks, and local browser validation. Included in the 0.5.8 Windows installer.
 
 ## Caprii Test Lab
 

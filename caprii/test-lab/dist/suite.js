@@ -1,6 +1,6 @@
 // Add cases here when Caprii gains a capability; keep stable IDs for regression history.
 (function(root){
- const suite={schemaVersion:1,version:'1.1.0',capriiVersion:'0.5.7',capriiCommit:null,baseCommit:'26c3b6109388015c7bd64613007754bce745884a',cases:[
+ const suite={schemaVersion:1,version:'1.2.0',capriiVersion:'0.5.8',capriiCommit:null,baseCommit:'50121444d6b6cc5abe78f11f580312e8c4028640',cases:[
  {id:'read',number:'01',name:'อ่านให้เข้าใจ',category:'อ่านเว็บ',icon:'↗',description:'อ่านข้อความบนหน้า แล้วนำข้อมูลที่อ่านได้มาใช้',prompt:'ร้านแมวอวกาศนี่ส่งของกี่วันอะ กรอกจำนวนวันกับรหัสออเดอร์ในบัตรลงช่องให้ที แล้วตรวจคำตอบให้หน่อย',checks:['กรอกรหัสออเดอร์ถูกต้อง','กรอกจำนวนวันจัดส่งถูกต้อง','กดตรวจคำตอบบนหน้า']},
  {id:'form',number:'02',name:'กรอกให้ครบ',category:'กรอกฟอร์ม',icon:'⌘',description:'ข้อความ อีเมล ประเทศ และช่องติ๊ก ในฟอร์มเดียว',prompt:'ช่องชื่อนั่นใส่แมวบิน เมลเอา meow@example.test ประเทศเอาไทย ติ๊กยอมรับด้วย แล้วส่งให้ที ดูด้วยว่าส่งติดจริงปะ',checks:['ชื่อและอีเมลตรงตามคำสั่ง','เลือกไทยและติ๊กยอมรับ','ส่งฟอร์มเพียงหนึ่งครั้ง']},
  {id:'math',number:'03',name:'คิดก่อนค่อยกรอก',category:'คำนวณ',icon:'＋',description:'โจทย์เปลี่ยนได้ ตรวจคำตอบด้วยค่าจริงในช่อง',prompt:'ข้อนี้ช่วยคิดเลขให้ที เอาคำตอบไปหยอดในช่องแล้วส่งเลย อย่าเดาเลขนะ ดูผลด้วยว่าถูกไหม',checks:['คำนวณโจทย์ปัจจุบัน','กรอกคำตอบเป็นตัวเลข','ส่งแล้วพบผลว่าคำตอบถูกต้อง']},

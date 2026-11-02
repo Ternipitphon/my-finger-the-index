@@ -41,3 +41,13 @@ test('the reported look-and-find-answer command invokes calculator-capable agent
  const {Chat}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/chat.js')));let goal;
  const chat=new Chat({capri:{pulse(){}},panel:{setChatBusy(){},setActions(){},chatTurn(){},stream(){}},voice:{},brain:{},host:{onChatDelta(){},agentRun:async r=>{goal=r.goal;return{ok:true,text:'เริ่มตรวจ'};},lookSnap(){throw Error('must not use image-only chat');},chatSend(){throw Error('must use tools');}}});chat.open=true;await chat.send('ดูจอแล้วหาคำตอบ');assert.equal(goal,'ดูจอแล้วหาคำตอบ');
 });
+
+test('short current-question commands observe and calculate without input/submission',async()=>{
+ const {Chat}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/chat.js')));
+ for(const text of ['ข้อนี้ตอบอะไร','อันนี้ตอบอะไร','ช่วยตอบข้อนี้หน่อย']){
+  let goal;const chat=new Chat({capri:{pulse(){}},panel:{setChatBusy(){},setActions(){},chatTurn(){},stream(){}},voice:{},brain:{},host:{onChatDelta(){},agentRun:async r=>{goal=r.goal;return{ok:true,text:'ตรวจแล้ว'};},chatSend(){throw Error('must observe rather than invent an image');}}});chat.open=true;await chat.send(text);assert.match(goal,/จับภาพหน้าจอจริง/);assert.match(goal,/คำนวณและตรวจคำตอบ/);assert.match(goal,/อย่ากรอกคำตอบและอย่ากดส่ง/);
+ }
+});
+test('current-question commands respect an explicit screen-reading prohibition',async()=>{
+ const {Chat}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/chat.js')));let reply;const chat=new Chat({capri:{pulse(){}},panel:{setChatBusy(){},setActions(){},chatTurn(){},stream:s=>reply=s},voice:{},brain:{},host:{onChatDelta(){},agentRun(){throw Error('screen was prohibited');}}});chat.open=true;await chat.send('ข้อนี้ตอบอะไร ห้ามดูหน้าจอ');assert.match(reply,/พิมพ์โจทย์หรือแนบรูป/);
+});

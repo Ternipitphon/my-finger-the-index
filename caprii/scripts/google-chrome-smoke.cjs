@@ -11,7 +11,7 @@ async function until(fn){for(let i=0;i<100;i++){const r=await fn();if(r)return r
 (async()=>{const profile=await fsp.mkdtemp(path.join(os.tmpdir(),'caprii-google-chrome-'));try{
  server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/html; charset=utf-8');res.end('<!doctype html><title>Caprii Chrome fixture</title><label>คำตอบ<input id="answer"></label><button onclick="document.querySelector(\'output\').textContent=document.querySelector(\'input\').value===\'15\'?\'คำตอบถูกต้อง\':\'คำตอบผิด\'">ส่งคำตอบ</button><output></output>');});await new Promise(r=>server.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1:${server.address().port}/`;
  broker=createChromeBroker();const info=await broker.start();
- chrome=spawn(chromePath,['--remote-debugging-pipe','--enable-unsafe-extension-debugging','--user-data-dir='+profile,'--no-first-run','--no-default-browser-check','--disable-gpu','about:blank'],{stdio:['ignore','ignore',fs.openSync(path.join(profile,'chrome.log'),'w'),'pipe','pipe']});
+ chrome=spawn(chromePath,[...(process.env.CAPRII_CHROME_HEADLESS==='1'?['--headless=new','--no-sandbox']:[]),'--remote-debugging-pipe','--enable-unsafe-extension-debugging','--user-data-dir='+profile,'--no-first-run','--no-default-browser-check','--disable-gpu','about:blank'],{stdio:['ignore','ignore',fs.openSync(path.join(profile,'chrome.log'),'w'),'pipe','pipe']});
  chrome.stdio[4].on('data',b=>{buffer=Buffer.concat([buffer,b]);let at;while((at=buffer.indexOf(0))>=0){const msg=JSON.parse(buffer.subarray(0,at));buffer=buffer.subarray(at+1);if(msg.id)pending.get(msg.id)?.(msg);}});
  const version=await call('Browser.getVersion');assert.match(version.product,/Chrome\//);
  const extension=await call('Extensions.loadUnpacked',{path:path.resolve(__dirname,'../browser-extension')});assert.equal(extension.id,require('../src/main/extension-identity.json').id);
@@ -23,11 +23,11 @@ async function until(fn){for(let i=0;i<100;i++){const r=await fn();if(r)return r
  await browser.interact({kind:'type',id:answer.id,generation:snap.generation,value:'15'},signal);
  snap=await browser.snapshot(signal);answer=snap.elements.find(e=>e.tag==='input');assert.equal((await browser.verifyField({id:answer.id,generation:snap.generation,value:'15'},signal)).passed,true);
  snap=await browser.snapshot(signal);const submit=snap.elements.find(e=>/ส่งคำตอบ/.test(e.label));await browser.interact({kind:'click',id:submit.id,generation:snap.generation},signal);snap=await browser.snapshot(signal);assert.match(snap.text,/คำตอบถูกต้อง/);assert.equal(await evaluate(page,"document.querySelector('#answer').value"),'15');
- const shot=await call('Page.captureScreenshot',{format:'png'},page);if(process.env.CAPRII_CHROME_SCREENSHOT)await fsp.writeFile(process.env.CAPRII_CHROME_SCREENSHOT,Buffer.from(shot.data,'base64'));
+ if(process.env.CAPRII_CHROME_SCREENSHOT){const shot=await call('Page.captureScreenshot',{format:'png'},page);await fsp.writeFile(process.env.CAPRII_CHROME_SCREENSHOT,Buffer.from(shot.data,'base64'));}
  console.log('PASS:',version.product,'unmodified extension action -> activeTab -> pair -> DOM read/type/value verification/click -> real acknowledgment; sandbox intact');
  await call('Page.reload',{},page);await until(async()=>!broker.status().connected);await assert.rejects(browser.snapshot(AbortSignal.timeout(2000)));
  pop=await popup();await until(async()=>(await evaluate(pop,"document.getElementById('code')?.value"))===info.code);await evaluate(pop,"document.getElementById('connect').click();true");await until(()=>broker.status().connected);await wait(300);const fresh=await broker.browser().snapshot(AbortSignal.timeout(5000));assert.equal(fresh.elements.find(e=>e.tag==='input').value,'');
  console.log('PASS: reload revokes old task lease; popup reuses session code without recopying, explicit action reconnects current tab');
  await call('Browser.close');await new Promise(r=>chrome.once('exit',r));chrome=null;
- }finally{if(chrome)chrome.kill('SIGKILL');await broker?.close();if(server)await new Promise(r=>server.close(r));await fsp.rm(profile,{recursive:true,force:true});}
+ }finally{if(chrome){const stopped=new Promise(r=>chrome.exitCode!==null?r():chrome.once('exit',r));chrome.kill('SIGKILL');await stopped;}await broker?.close();if(server)await new Promise(r=>server.close(r));await fsp.rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

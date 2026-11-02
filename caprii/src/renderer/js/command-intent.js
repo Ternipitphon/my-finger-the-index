@@ -26,6 +26,10 @@ export function actionCommand(text) {
 export function resolveTaskCommand(text,previous='') {
  if(typeof text!=='string'||refusedCommand(text))return null;
  const command=normalized(text).replace(/[.!?\s]+$/,'');
+ // A deictic answer question requests observation/calculation, not permission to fill or submit.
+ const answerHere=/^(?:(?:ช่วย)?ตอบ(?:โจทย์|ข้อ)(?:ข้อ)?นี้|(?:ข้อ|อัน|โจทย์|โจทย์ข้อ)นี้.*(?:ตอบ(?:อะไร|เท่าไหร่|เท่าไร|ยังไง)|คำตอบ|ได้เท่าไหร่|ได้เท่าไร))/i.test(command);
+ if(answerHere&&/(?:ไม่ต้อง|อย่า|ห้าม)\s*(?:ดู|มอง|อ่าน|จับภาพ)/.test(command))return{question:'คุณระบุไม่ให้ดูโจทย์บนจอ กรุณาพิมพ์โจทย์หรือแนบรูปที่ต้องการให้ใช้แทน'};
+ if(answerHere)return{goal:`อ่านโจทย์ปัจจุบันจากแท็บที่ผู้ใช้เชื่อม หรือจับภาพหน้าจอจริงผ่านเครื่องมือหลังอนุญาต อ่านตัวเลขและเงื่อนไขก่อน คำนวณและตรวจคำตอบด้วยเครื่องมือเมื่อเป็นโจทย์ตัวเลข หากเป็นคำถามข้อความให้ยึดเนื้อหาที่อ่านได้ ถ้าอ่านไม่ชัดให้ระบุจุดที่ไม่ชัด อย่ากรอกคำตอบและอย่ากดส่งคำตอบ สรุปคำตอบหลักก่อนตามความยาวที่ตั้งไว้\nคำสั่งผู้ใช้: ${text}`};
  const shortDo=/^(?:ทำ|แก้|คิด)(?:โจท(?:ย์|ย)?|ข้อ)(?:ข้อ)?(?:นี้|ที่เห็น|บนหน้า|บนจอ|ในแท็บ)/i.test(command);
  if(shortDo){
   if(/ยังไง|อย่างไร|วิธี|สอน|อธิบาย/.test(command))return{goal:`อ่านโจทย์ปัจจุบันบนหน้าจอหรือแท็บที่เชื่อม แล้วคำนวณและอธิบาย อย่ากรอกคำตอบและอย่ากดส่งคำตอบ\nคำสั่งผู้ใช้: ${text}`};

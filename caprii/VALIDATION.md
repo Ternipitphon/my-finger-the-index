@@ -1,3 +1,11 @@
+# Caprii 0.5.8 validation
+
+- 148 app tests pass, including saved response preferences/default migration, explicit detail overrides, intact image/tool payloads, answer-only observation and Chrome diagnostic/rollback cases.
+- 3 lab unit/server tests pass; all 8 local browser cases pass. Attachment UI and authenticated DOM broker smoke tests also pass.
+- Live Gemini 3.5 Flash Lite correctly counted 3 red boxes in a synthetic PNG with the default short response: 54 characters. This is a synthetic check, not a guarantee across models or arbitrary tasks.
+- Real unpacked-extension Chromium QA was blocked by administrator policy. No policy bypass was attempted. Popup/worker integration and Windows-native installation/control remain unverified in this environment.
+- Installer is cross-built and unsigned. Website remains local, with no hosting deployment.
+
 # Caprii 0.5.7 validation
 
 - 139 application tests and 3 Test Lab unit/server checks passed.
