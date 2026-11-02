@@ -1,0 +1,35 @@
+{
+  "version": "0.5.8",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.5.8.exe",
+  "bytes": 183727317,
+  "sha256": "3AC1BC7FE97C6FC36B9333B9CC137421A121F2104BA1261E25045F9EB4C7FFB7",
+  "source_commit": "1d1a0021f85f5b04e9dc4e3f06a5a86b050f2faf",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "BE2C634151C583AA48006ABC5893D0F8C37F757A746D355AE48F6965454AC568"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "70920F1CEFEB7FA85A89D538982ABF985C38A1956ABD54295F7BD17A9CA1B369"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57898197,
+      "sha256": "266B3AB318F822728902568CE85407E66825D32A5E2CEF012404B4D58B045856"
+    }
+  ],
+  "validation": {
+    "application_tests": 148,
+    "lab_unit_tests": 3,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "response_length": "short by default; balanced/detailed saved in settings",
+    "live_vision": "passed Gemini 3.5 Flash Lite synthetic image; correct 3 red boxes in 54 characters",
+    "chrome_extension_integration": "blocked by administrator policy; unit and authenticated broker smoke passed"
+  }
+}
