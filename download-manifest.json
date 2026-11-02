@@ -1,0 +1,34 @@
+{
+  "version": "0.5.9",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.5.9.exe",
+  "bytes": 183734899,
+  "sha256": "25DEF97EF670E52929C0172EFB23E15FF2A9619135ABB15DB9D6244CE6AEB365",
+  "source_commit": "065639250805f1421c5b4a6bbdbb6b37c658c847",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "737A46B76E307BB82BC75F8B98FBF72B9C03821A061A4DB82D3D3A63B4EA99A2"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "75B61D060561F0626B249071AFEE2B78E50511712020EED213196F55B81EA41A"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57905779,
+      "sha256": "7A667FD679DFC3742E1D6086DCCEA610D5934363F1357281915688CC778F5101"
+    }
+  ],
+  "validation": {
+    "application_tests": 157,
+    "lab_unit_tests": 3,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "live_form": "passed Gemini 3.5 Flash Lite actual Test Lab DOM with name/email/select/checkbox/submit/new acknowledgment",
+    "routing": "exact user screenshot commands use selected-tab tools; readonly scopes have no write tools"
+  }
+}
