@@ -32,3 +32,7 @@ test('an actual submit-button delivery is recognized and early finish must verif
  const result=await runProjectAgent({root:os.tmpdir(),goal:'กดส่งแบบฟอร์มและตรวจผล',allowProjectFiles:false,tools:createAgentTools({browser}),signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions[step++])});
  assert.equal(result.verified,true);assert.equal(clicks,1);assert.equal(result.delivery.submitDelivered,true);assert.ok(result.checks.some(c=>c.tool==='browser.expect'&&c.passed));
 });
+
+test('public URL reading keeps its existing route instead of requiring a paired tab',async()=>{
+ const {browserTaskIntent}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/browser-task-intent.js')));assert.equal(browserTaskIntent('อ่านหน้าเว็บ https://example.com ให้ที'),null);
+});

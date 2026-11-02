@@ -1,6 +1,8 @@
 // Browser commands go to tools before chat. A prohibition on writing is not a prohibition on reading.
 export function browserTaskIntent(text){
  if(typeof text!=='string'||/สอน|ตัวอย่างคำสั่ง|คืออะไร|วิธี(?:การ)?กรอก|how (?:to|do)/i.test(text))return null;
+ // An explicit public URL without selected-tab/form instructions remains a public-web read.
+ if(/https?:\/\//i.test(text)&&!/แท็บ|ที่เชื่อม|ฟอร์ม|ช่องชื่อ|ติ๊ก/.test(text))return null;
  const tab=/แท็บ|หน้าเว็บ|เบราว์เซอร์|browser|\btab\b/i.test(text);
  const read=/อ่าน|ตรวจ|บอกค่า|ค่าปัจจุบัน|ดูค่า|read|inspect/i.test(text);
  const noRead=/(?:ห้าม|อย่า|ไม่ต้อง|ไม่อนุญาต)\s*(?:ให้)?\s*(?:อ่าน|ดู|ตรวจ|มอง)|(?:do not|don't)\s+(?:read|look|inspect)/i.test(text);
