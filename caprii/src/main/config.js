@@ -8,8 +8,8 @@ const DEFAULTS = {
   scale: 0.6,        // sprite scale, 0.6 ≈ 250px tall
   muted: false,
   volume: 0.7,
-  speechThai: false, // optional OS Thai voice, never falls back to an English voice
-  lang: 'th',      // 'auto' follows the system language, or 'fr' / 'en'
+  speechThai: false, // optional local OS voice matching selected language
+  lang: 'th',      // primary reply/dialogue language: th or en; auto supports older profiles
   displayId: null,   // null = primary display
   wander: true,      // random teleports when idle
   possess: true,     // now and then she dives into the window she sits on and takes it over
@@ -43,6 +43,7 @@ const DEFAULTS = {
   reminders: [],     // the reminders she keeps: [{ id, at, text, made }] (reminders.js)
   bond: null,        // how close she is to you: { xp, first, last, days, streak, caps } (bond.js)
   pcReact: true,     // she reacts to your PC: the processor at full tilt, the battery, the network, a USB stick, a game (pc.js)
+  idleChatter: false, // opt-in random lines; independent of grounded screen observations
   watchScreen: false, // she looks at your screen now and then and says something about it (look.js)
   lookAsked: false,  // she told you what looking means (where the picture goes) and you said yes
 };

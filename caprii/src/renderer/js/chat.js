@@ -22,7 +22,7 @@ const KEEP = 60;     // messages she remembers across restarts (memory.json)
 const IN_LANGUAGE = {
   th:{we:'เราในภาษาไทย',last:'ตอบเป็นภาษาไทยเสมอ แม้ผู้ใช้เขียนภาษาอื่น ใช้เลขอารบิก คงโค้ดและชื่อโปรแกรมตามจริง',now:'ตอบเป็นภาษาไทยเสมอ'},
   fr: { we: '"on" or "nous" in French', last: 'Écris tout en français, sauf si l’utilisateur t’écrit dans une autre langue : alors dans la sienne. Seuls les mots d’argot de Night City restent en anglais, jamais une phrase entière.', now: 'Réponds en français, sauf si ce message est écrit dans une autre langue.' },
-  en: { we: '', last: 'Write everything in English, unless the user writes to you in another language: then in theirs.', now: 'Answer in English, unless this message is written in another language.' },
+  en: { we: '', last: 'Use English as the primary language for all replies, unless the user explicitly requests another language.', now: 'Answer in English, the selected primary language.' },
   es: { we: '"nosotros" in Spanish', last: 'Escribe todo en español, salvo si el usuario te escribe en otro idioma: entonces en el suyo. Solo las palabras de jerga de Night City se quedan en inglés, nunca una frase entera.', now: 'Responde en español, salvo si este mensaje está escrito en otro idioma.' },
   pt: { we: '"a gente" or "nós" in Portuguese', last: 'Escreva tudo em português do Brasil, a não ser que o usuário te escreva em outra língua: aí, na dele. Só as gírias de Night City ficam em inglês, nunca uma frase inteira.', now: 'Responda em português do Brasil, a não ser que esta mensagem esteja escrita em outra língua.' },
   ru: { we: '"мы" in Russian', last: 'Пиши всё по-русски, если только пользователь не пишет тебе на другом языке: тогда на его языке. По-английски остаются только словечки Найт-Сити, никогда не целые фразы.', now: 'Отвечай по-русски, если только это сообщение не написано на другом языке.' },
@@ -351,7 +351,7 @@ export class Chat {
     if (!this.agent) {
       const mood = this.bond?.moodLine().replace(/^Right now: /, '');
       const last = messages.at(-1);
-      messages[messages.length - 1] = { ...last, content: `${last.content}\n\n(Note for you, never repeat it: ${[mood, /[\u0E00-\u0E7F]/.test(text) ? 'ตอบเป็นภาษาไทย' : this.languageNote()].filter(Boolean).join(' ')})` };
+      messages[messages.length - 1] = { ...last, content: `${last.content}\n\n(Note for you, never repeat it: ${[mood, this.languageNote()].filter(Boolean).join(' ')})` };
     }
     // nothing yet after a few seconds: Ollama is still loading the model (the first answer after a start),
     // or Claude Code is at work
@@ -396,7 +396,7 @@ export class Chat {
   }
   removeImage(){if(this.attachment)this.host.chatRemoveImage?.(this.attachment.id);this.attachment=null;this.panel.setAttachment?.(null);}
   async sendImage(text){
-    const attachment=this.attachment,id=Date.now(),prompt=text.trim()||'ช่วยอธิบายรูปที่แนบนี้เป็นภาษาไทย';
+    const attachment=this.attachment,id=Date.now(),prompt=text.trim()||(this.brain.lang==='en'?'Describe the attached image.':'ช่วยอธิบายรูปที่แนบนี้เป็นภาษาไทย');
     this.turn=id;this.answer='';this.panel.setChatBusy(true);this.panel.setActions([]);this.panel.chatTurn({quote:'[รูป: '+attachment.name+'] '+prompt,face:'look'});this.capri.pulse();
     this.history.push({role:'user',content:'[แนบรูป: '+attachment.name+'] '+prompt});
     const result=await this.host.chatImageSend({id,attachmentId:attachment.id,prompt,persona:this.lookPersona()}).catch(()=>({ok:false,error:'เชื่อมต่อแอปไม่ได้ กรุณาลองใหม่'}));
@@ -445,7 +445,7 @@ export class Chat {
       turnId: id,
       persona: this.lookPersona(),
       history: this.history.slice(-REMEMBER, -1),
-      prompt: `${text}\n\n(Note for you, never repeat it: the picture is the user's screen right now; a small figure with a big red mane on it is you. Answer about what you really see, in character. ${/[\u0E00-\u0E7F]/.test(text) ? 'ตอบเป็นภาษาไทย' : this.languageNote()})`,
+      prompt: `${text}\n\n(Note for you, never repeat it: the picture is the user's screen right now; a small figure with a big red mane on it is you. Answer about what you really see, in character. ${this.languageNote()})`,
     });
     if (!res.ok) {
       const model = String(res.model || '…').replace(/:latest$/, '');
@@ -851,13 +851,13 @@ export class Chat {
 
   // Her language, in it, for right by the message (above).
   languageNote() {
-    return IN_LANGUAGE.th.now;
+    return (IN_LANGUAGE[this.brain.lang] || IN_LANGUAGE.en).now;
   }
 
   // A shorter one, for when she looks at your screen (look.js): who she is, how she talks, how she
   // feels about you right now, and what she's asked to do with the picture.
   lookPersona() {
-    const lang = IN_LANGUAGE.th;
+    const lang = IN_LANGUAGE[this.brain.lang] || IN_LANGUAGE.en;
     return [
       'คุณคือ Caprii ผู้ช่วย AI บนเดสก์ท็อป ไม่ใช่ตัวละครจริง',
       this.characterStyle(),
@@ -878,9 +878,9 @@ export class Chat {
   persona() {
     const assistant = ASSISTANT_NAMES[this.brain.assistant] || 'Claude Code';
     const watching = this.brain.watching; // else Claude Code isn't part of her life here
-    const lang = IN_LANGUAGE.th;
+    const lang = IN_LANGUAGE[this.brain.lang] || IN_LANGUAGE.en;
     if(this.focusedAssistant!==false)return[
-      'คุณคือ Caprii ผู้ช่วย AI บนเดสก์ท็อป ตอบเป็นภาษาไทย ไม่ใช่บุคคลจริง',
+      'คุณคือ Caprii ผู้ช่วย AI บนเดสก์ท็อป ไม่ใช่บุคคลจริง',
       this.characterStyle(),
       'ตอบคำถามล่าสุดตรงประเด็น แยกสิ่งที่รู้ ข้อสันนิษฐาน และสิ่งที่ยังไม่ทราบ ไม่ปนงานเก่าที่ไม่เกี่ยวข้อง',
       'คำถามง่ายตอบกระชับ ยึดความยาวคำตอบที่เลือกในตั้งค่า เอาคำตอบหลักขึ้นก่อน ขยายเมื่อผู้ใช้ขอรายละเอียด',

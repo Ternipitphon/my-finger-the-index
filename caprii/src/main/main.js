@@ -275,7 +275,7 @@ function demoWindow(open) {
 }
 
 // 'auto' -> the first system language Capri speaks, English otherwise.
-function resolveLang(setting) { return 'th'; }
+function resolveLang(setting) { return require('./language').resolveLanguage(setting, app.getLocale()); }
 
 // What the overlay gets: `lang` is the resolved one, `langSetting` what the user picked.
 function rendererConfig() {
@@ -285,6 +285,7 @@ function rendererConfig() {
 
 function updateConfig(patch) {
   config.save(patch);
+  if(patch.watchScreen===false)for(const [key,controller] of chats)if(String(key).startsWith('auto-look:'))controller.abort();
   if ('rest' in patch) {
     fitOverlay(); // the taskbar in her window or not
     windowWatch?.refresh();
@@ -325,7 +326,7 @@ function rebuildTray() {
     {id:'caprii-pair',label:'เชื่อมแท็บ Chrome…',click:async()=>{
       try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?'เชื่อมอยู่: '+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nรหัสใช้เฉพาะรอบที่เปิดโปรแกรม ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
     }},
-    {label:'อ่านบทพูดด้วยเสียงไทย',type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
+    {label:resolveLang(cfg.lang)==='en'?'Read dialogue aloud (English voice)':'อ่านบทพูดด้วยเสียงไทย',type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
     { id:'caprii-auto-actions', label:'โหมดไม่ถาม: จอ/เว็บ/เปิดไฟล์และโปรแกรม (จนปิด Caprii)', type:'checkbox', checked:automaticActions, click:item=>{
       for(const controller of chats.values())controller.abort();
       automaticActions=item.checked===true;
@@ -400,8 +401,8 @@ function rebuildTray() {
       ...[['speed','รวดเร็ว — Flash Lite'],['balanced','สมดุล — Flash ที่ไม่ใช่ Lite'],['quality','คุณภาพสูง — Pro ถ้ามีใน API']].map(([profile,label])=>({id:'caprii-profile-'+profile,label,type:'radio',checked:cfg.modelProfile===profile,enabled:cfg.provider==='gemini'&&!!chatModels?.length,click:()=>chooseModelProfile(profile)})),
       {label:'API อาจมีค่าใช้จ่าย/โควตา แยกจาก Gemini บนเว็บ',enabled:false},
     ]},
-    require('./response-style').responseLengthMenu(cfg.responseLength,value=>updateConfig({responseLength:value})),
-    {label:'บุคลิกกวน ๆ แบบรีเบคก้า',type:'checkbox',checked:cfg.rebeccaPersonality!==false,click:item=>updateConfig({rebeccaPersonality:item.checked})},
+    require('./response-style').responseLengthMenu(cfg.responseLength,value=>updateConfig({responseLength:value}),resolveLang(cfg.lang)),
+    {label:resolveLang(cfg.lang)==='en'?'Playful Rebecca-inspired personality':'บุคลิกกวน ๆ แบบรีเบคก้า',type:'checkbox',checked:cfg.rebeccaPersonality!==false,click:item=>updateConfig({rebeccaPersonality:item.checked})},
     {label:'โฟกัสงาน: ตอบตามข้อเท็จจริงและความยาก',type:'checkbox',checked:cfg.assistantFocus!==false,click:item=>updateConfig({assistantFocus:item.checked})},
     {
       label: t.chatModel,
@@ -440,13 +441,14 @@ function rebuildTray() {
         { label: t.apiKey, click: () => sendCommand('setupKey') },
       ],
     },
+    { id:'caprii-idle-chatter',label:resolveLang(cfg.lang)==='en'?'Idle small talk':'พูดเล่นตอนว่าง',type:'checkbox',checked:cfg.idleChatter===true,click:item=>updateConfig({idleChatter:item.checked}) },
     { label: t.wander, type: 'checkbox', checked: cfg.wander, click: (item) => updateConfig({ wander: item.checked }) },
     { label: t.possess, type: 'checkbox', checked: cfg.possess, click: (item) => updateConfig({ possess: item.checked }) },
     { label: t.jealous, type: 'checkbox', checked: cfg.jealous !== false, click: (item) => updateConfig({ jealous: item.checked }) },
     { label: t.pcReact, type: 'checkbox', checked: cfg.pcReact !== false, click: (item) => updateConfig({ pcReact: item.checked }) },
     {
       // she asks first (what she'll send where), then turns it on herself
-      label: t.lookAuto, type: 'checkbox', checked: Boolean(cfg.watchScreen),
+      id:'caprii-screen-commentary',label:resolveLang(cfg.lang)==='en'?'Observe screen and comment (AI)':'ดูจอแล้วพูดสิ่งที่เห็น (AI)', type: 'checkbox', checked: Boolean(cfg.watchScreen),
       click: (item) => {
         sendCommand('watchScreen', { on: item.checked });
         rebuildTray(); // as it is until she's asked
@@ -496,7 +498,7 @@ function rebuildTray() {
     },
     {
       label: t.lang,
-      submenu: [{label:'ไทย — บทพูดและคำตอบ',type:'radio',checked:true,enabled:false}],
+      submenu: require('./language').languageMenu(cfg.lang, lang=>updateConfig({lang})),
     },
     {
       label: t.startup,
@@ -625,7 +627,7 @@ async function chatWithFallback(cfg, messages, send, signal, {agent=false}={}) {
   const { text, model } = await require('./chat-runner').runChat({
     models: require('./model-profiles').fallbackModels({provider:cfg.provider,selected,models:chatModels||[]}), signal, onDelta: send, timeoutMs:cfg.modelProfile==='quality'?60000:30000,
     request: async (model, onDelta, signal) => {
-      const text=await require('./thai-language').thaiResponse({messages,request:async fixed=>{if(++requests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}});
+      const text=await require('./thai-language').thaiResponse({messages,lang:resolveLang(cfg.lang),request:async fixed=>{if(++requests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}});
       onDelta(text);return text;
     },
   });
@@ -660,7 +662,8 @@ async function snapScreen() {
 
 // What her AI says about that picture, as her (`persona`), asked `prompt`. With a code when it can't:
 // 'noai' (nothing to ask), 'novision' (that model can't look at pictures).
-async function sayAboutSnap({ id, persona, prompt, history = [] }, signal) {
+async function sayAboutSnap({ id, persona, prompt, history = [], automatic = false }, signal) {
+  if(automatic && (!config.load().watchScreen || !config.load().lookAsked)){snaps.delete(id);return {ok:false,code:'disabled'};}
   const image = snaps.get(id);
   snaps.delete(id);
   if (!image) return { ok: false, error: 'the picture is gone' };
@@ -678,7 +681,7 @@ async function sayAboutSnap({ id, persona, prompt, history = [] }, signal) {
   let requests=0;
   try {
     const result = await require('./chat-runner').runChat({ models: [model], signal, maxAttempts: 2,
-      request: (model, delta, signal) => require('./thai-language').thaiResponse({messages,request:fixed=>{if(++requests>2)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}}),
+      request: (model, delta, signal) => require('./thai-language').thaiResponse({messages,lang:resolveLang(cfg.lang),request:fixed=>{if(++requests>2)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}}),
     });
     return { ok: true, text: result.text, model };
   } catch (err) {
@@ -839,7 +842,7 @@ function registerIpc() {
           if (event.status === 'running' || event.tool === 'plan') overlay?.webContents.send('chat:delta', { id, text: `ขั้นตอน ${event.step}: ${({'desktop.look':'ดูหน้าจอ','desktop.windows':'อ่านหน้าต่าง','desktop.input':'ควบคุมหน้าจอ','browser.read':'อ่านแท็บเว็บ','browser.type':'กรอกช่องคำตอบ','browser.select':'เลือกค่าบนเว็บ','browser.check':'ตั้งค่าช่องตัวเลือก','browser.click':'คลิกปุ่ม','browser.expect_value':'ตรวจค่าที่กรอกจริง','browser.expect':'ตรวจผลหน้าเว็บ','math.solve':'ค้นหาคำตอบ','math.evaluate':'คำนวณ','math.verify':'ตรวจคำตอบ','plan':'วางแผน'})[event.tool]||'กำลังดำเนินการ'}\n` });
         },
       });
-      const safeSummary=require('./task-result').taskResultText(result);
+      const safeSummary=require('./task-result').taskResultText(result,resolveLang(config.load().lang));
       task.finish({ ...result,summary:safeSummary, state: result.verified ? 'done' : 'partial' });
       return { ok: true, text: safeSummary + '\nผลตรวจ: ผ่าน ' + result.checks.filter(c=>c.passed).length + ' จาก ' + result.checks.length + ' รายการ', verified: result.verified };
     } catch (err) {
@@ -873,7 +876,7 @@ function registerIpc() {
       if(!chatModels?.length)await refreshModels();const model=pickModel(cfg);if(!model)throw Error('ยังไม่มีโมเดลพร้อมใช้งาน');
       if(cfg.provider==='claude'||(cfg.provider==='ollama'&&!await ollama.canSee(model)))return{ok:false,code:'novision',error:'โมเดลนี้ยังดูรูปไม่ได้ เลือก Gemini หรือโมเดลที่รองรับภาพแล้วส่งใหม่'};
       const messages=require('./image-attachments').imageMessages({prompt:request.prompt,persona:request.persona||'คุณคือ Caprii ผู้ช่วย AI',dataURL,personality:cfg.rebeccaPersonality!==false,responseLength:cfg.responseLength});
-      const result=await require('./chat-runner').runChat({models:[model],signal:abort.signal,timeoutMs:cfg.modelProfile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>require('./thai-language').thaiResponse({messages,request:fixed=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:fixed},()=>{},signal)})});
+      const result=await require('./chat-runner').runChat({models:[model],signal:abort.signal,timeoutMs:cfg.modelProfile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>require('./thai-language').thaiResponse({messages,lang:resolveLang(cfg.lang),request:fixed=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:fixed},()=>{},signal)})});
       imageAttachments.remove(request.attachmentId);return{ok:true,text:result.text,model};
     }catch(e){return require('./image-attachments').imageError(e,abort.signal.aborted);}
     finally{chats.delete(request.id);}
@@ -901,7 +904,9 @@ function registerIpc() {
   });
   ipcMain.on('chat:stop', (_e, id) => { if (_e.sender === overlay?.webContents) chats.get(id)?.abort(); });
   // she looks at your screen (look.js): the picture first, then what her AI says about it
-  ipcMain.handle('look:snap', async () => {
+  ipcMain.handle('look:snap', async (e, request = {}) => {
+    if(e.sender!==overlay?.webContents)return {ok:false,error:'Invalid sender'};
+    if(request.automatic && (!config.load().watchScreen || !config.load().lookAsked))return {ok:false,code:'disabled'};
     try {
       const id = randomUUID();
       snaps.set(id, await snapScreen());
@@ -914,7 +919,7 @@ function registerIpc() {
   ipcMain.handle('look:say', async (_e, request = {}) => {
     if (_e.sender !== overlay?.webContents) return { ok: false, error: 'Invalid sender' };
     if (chats.size) return { ok: false, error: 'Another request is running' };
-    const key = Number.isSafeInteger(request.turnId) ? request.turnId : 'look:' + String(request.id);
+    const key = Number.isSafeInteger(request.turnId) ? request.turnId : (request.automatic?'auto-look:':'look:') + String(request.id);
     const abort = new AbortController(); chats.set(key, abort);
     try { return await sayAboutSnap(request, abort.signal); }
     finally { chats.delete(key); }

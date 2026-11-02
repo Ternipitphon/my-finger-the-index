@@ -1,0 +1,22 @@
+'use strict';
+const {app,BrowserWindow,protocol,net}=require('electron');
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{pathToFileURL}=require('node:url');
+const root=path.resolve(__dirname,'..');let win;
+protocol.registerSchemesAsPrivileged([{scheme:'capri',privileges:{standard:true,secure:true,supportFetchAPI:true}}]);
+app.commandLine.appendSwitch('use-angle','swiftshader');app.commandLine.appendSwitch('enable-unsafe-swiftshader');app.on('window-all-closed',()=>{});
+const timeout=setTimeout(()=>{console.error('Companion regression timed out');app.exit(1);},30000);
+app.whenReady().then(async()=>{
+ protocol.handle('capri',request=>{const u=new URL(request.url),file=path.resolve(root,'.'+u.pathname);if(!file.startsWith(root+path.sep))return new Response('Forbidden',{status:403});if(file===path.join(root,'src/renderer/index.html'))return new Response(fs.readFileSync(file,'utf8').replace('src="js/app.js"','src="../../scripts/companion-ui-fixture.js"'),{headers:{'Content-Type':'text/html'}});return net.fetch(pathToFileURL(file).href);});
+ win=new BrowserWindow({show:true,width:1000,height:800,webPreferences:{sandbox:true,contextIsolation:true,backgroundThrottling:false}});
+ const errors=[];win.webContents.on('console-message',event=>{if(event.level==='error')errors.push(event.message);});
+ await win.loadURL('capri://app/src/renderer/index.html');win.webContents.debugger.attach('1.3');await win.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride',{width:1000,height:800,deviceScaleFactor:1,mobile:false});const page=code=>win.webContents.executeJavaScript(code);
+ for(let i=0;i<100&&!await page('!!window.fixtureReady');i++)await new Promise(r=>setTimeout(r,20));assert.equal(await page('!!window.fixtureReady'),true,errors.join('\n'));
+ const p=await page('fixturePoint()');await page('fixtureCapri.busy=true;fixtureCapri.refuseUntil=performance.now()+999999');
+ win.webContents.sendInputEvent({type:'mouseMove',...p});win.webContents.sendInputEvent({type:'mouseDown',...p,button:'left',clickCount:1});await new Promise(r=>setTimeout(r,30));
+ assert.equal(await page('fixtureCapri.pointerHeld'),true);assert.equal(await page('fixtureCapri.canvas.hasPointerCapture(1)'),true);
+ win.webContents.sendInputEvent({type:'mouseMove',x:p.x+250,y:p.y-100});await new Promise(r=>setTimeout(r,30));assert.equal(await page('fixtureCapri.dragging'),true);const moved=await page('fixtureCapri.pos.x');assert.ok(moved>500);
+ win.webContents.sendInputEvent({type:'mouseUp',x:p.x+250,y:p.y-100,button:'left',clickCount:1});await new Promise(r=>setTimeout(r,30));assert.equal(await page('fixtureCapri.dragging'),false);assert.equal(await page('fixtureCapri.pointerHeld'),false);
+ await page("fixtureCapri.canvas.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true}))");assert.equal(await page('fixtureCapri.pointerHeld'),false);
+ console.log('PASS: actual Capri sprite alpha hit, busy/refusal override, native pointer capture, drag beyond original sprite, release and cancellation');
+ win.destroy();clearTimeout(timeout);app.exit(0);
+}).catch(e=>{console.error(e);clearTimeout(timeout);app.exit(1);});

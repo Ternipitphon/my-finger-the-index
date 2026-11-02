@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Caprii — ควบคุมแท็บที่เลือก",
-  "version": "0.5.9",
+  "version": "0.6.0",
   "description": "ให้ Caprii อ่านและกรอกเฉพาะแท็บที่คุณเลือกเชื่อมต่อ",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1ufLMab6t+jctQAvlBtB3K91N8TZA4R4PgpvPxdkYu6uCX/VJHrDjtmtZhBsV92tNV+nA3EMY9p3ToQZB6tNgKHfDLklRMII0aoi/F9X/lRiitvoS5v+lWHCPhfvQ0SGOv4DD7wowyJ81prm4p4QVGXbBmizt9qc6NF40qcxiIO/ILsNEzw9LHX1LECxaYYQslM+6wZCvgco21h1HzmDTigdEDoH7HmohQBd0wU4w1RF1vgIBd9AgfiY+QehsLOOhKxYSeSawpK+/FLjyYwpURDglvYi2HhF81xWqKb+unCMjDOyQGa0BOnb3AhP1qSVv9uHQwET0JaoDJ7QaRQWSwIDAQAB",
   "permissions": [

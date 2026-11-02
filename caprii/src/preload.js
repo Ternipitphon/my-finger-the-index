@@ -44,7 +44,7 @@ contextBridge.exposeInMainWorld('host', {
   chatMemory: () => ipcRenderer.invoke('chat:memory'),
   chatRemember: (history) => ipcRenderer.send('chat:remember', history),
   onChatDelta: on('chat:delta'),
-  lookSnap: () => ipcRenderer.invoke('look:snap'),
+  lookSnap: request => ipcRenderer.invoke('look:snap', request),
   lookSay: (request) => ipcRenderer.invoke('look:say', request),
   lookWhere: () => ipcRenderer.invoke('look:where'),
   cpu: () => ipcRenderer.invoke('pc:cpu'),

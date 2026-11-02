@@ -1738,20 +1738,21 @@ export class Capri {
       e.preventDefault();
       if (this.hit(e.clientX, e.clientY)) this.onMenu?.(); // right-click: her menu
     });
-    this.canvas.addEventListener('mousedown', (e) => {
+    this.canvas.addEventListener('pointerdown', (e) => {
       if (e.button !== 0 || !this.hit(e.clientX, e.clientY)) return;
       // thrown: you can catch her on the fly, or pick her up off the floor
       const thrown = this.stance === 'fly' || this.stance === 'down';
-      if (this.busy && !thrown) return;
-      if (!thrown && performance.now() < this.refuseUntil) {
-        this.dodge(); // thrown around once too often: not again
-        return;
-      }
+      this.endAct(false);
+      this.busy=false;
+      this.refuseUntil=0;
+      this.pointerHeld=true;
+      this.canvas.setPointerCapture?.(e.pointerId);
+      e.preventDefault();
       down = { x: e.clientX, y: e.clientY, pos: { ...this.pos }, at: this.spritePoint(e.clientX, e.clientY) };
       this.track = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
       if (thrown) this.pickUp(down);
     });
-    window.addEventListener('mousemove', (e) => {
+    window.addEventListener('pointermove', (e) => {
       this.mouse = { x: e.clientX, y: e.clientY }; // a window she's in watches it
       if (down) {
         const now = performance.now();
@@ -1771,26 +1772,31 @@ export class Capri {
       }
       this.notice(e.clientX, e.clientY);
     });
-    window.addEventListener('mouseup', () => {
+    const release = (cancelled=false) => {
+      this.pointerHeld=false;
       if (!down) return;
       const wasDragging = this.dragging;
       down = null;
       this.dragging = false;
       if (!wasDragging) {
-        this.onClick?.();
+        if(!cancelled)this.onClick?.();
         return;
       }
       tween(this.p, { glitch: 0, split: 0 }, 200, ease.out);
       // let go while the pointer was still moving fast: she flies off with it
       const v = this.pointerSpeed();
-      if (Math.hypot(v.x, v.y) >= THROW_MIN && !reducedMotion.matches) {
+      if (!cancelled && Math.hypot(v.x, v.y) >= THROW_MIN && !reducedMotion.matches) {
         this.throwHer(v.x, v.y); // the panel stays away until she's back to herself
         return;
       }
       this.setStance('stand'); // upright again, under where you held her
       this.onTeleport?.('end');
       this.drop();
-    });
+    };
+    window.addEventListener('pointerup',()=>release());
+    this.canvas.addEventListener('lostpointercapture',()=>release(true));
+    window.addEventListener('pointercancel',()=>release(true));
+    window.addEventListener('blur',()=>release(true));
   }
 
   // How fast the pointer holding her was going just now (px/s): none if it had stopped.

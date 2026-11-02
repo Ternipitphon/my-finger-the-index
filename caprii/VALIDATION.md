@@ -1,3 +1,11 @@
+# Caprii 0.6.0 validation
+
+- 165 app regression tests pass, including language selection/persistence, image-preserving English repair, intact tool JSON, selected local speech voice, independent screen/idle settings, capture failure and disabling/re-enabling while vision is pending.
+- Real Electron Capri sprite test passes: alpha hit, busy/refusal override, pointer capture, drag outside the original sprite, release and pointer cancellation. This validates renderer input in a virtual viewport, not Windows click-through hooks.
+- Live Gemini 3.5 Flash Lite read a synthetic screen capture and correctly returned READY-60 and Blue in English despite a Thai question. No private screen was used. This is one fixture, not a general accuracy guarantee.
+- 3 lab unit/server checks and all 8 real browser cases pass. Attachment/clipboard UI regression passes. Test Lab stays local.
+- Packaged-resource verification covers versions, Windows x64 PE, bundled Python/fonts/DOM bridge and live Test Lab from ASAR. Actual Windows installation, OS voice availability and Windows mouse hooks remain untested here. Installer is cross-built and unsigned.
+
 # Caprii 0.5.9 validation
 
 - 157 app tests and 3 lab unit/server checks pass, including exact screenshot phrases, read/write separation, selected-tab IPC routing, observation-derived field reports and rejection of unverified success narratives.

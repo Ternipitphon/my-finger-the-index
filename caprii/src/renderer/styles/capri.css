@@ -108,6 +108,8 @@ body {
 }
 
 .capri__sprite {
+  touch-action: none;
+  cursor: grab;
   display: block;
 }
 

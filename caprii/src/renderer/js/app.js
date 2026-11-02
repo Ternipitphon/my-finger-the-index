@@ -93,6 +93,7 @@ async function boot() {
     voice,
   });
   capri.wander = config.wander;
+  let idleChatter=config.idleChatter===true;
   capri.possessWindows = config.possess;
   capri.restOn = config.rest || 'corner';
   capri.setView(innerWidth, innerHeight, innerHeight - floorGap);
@@ -111,7 +112,7 @@ async function boot() {
   };
   const onChip = () => Boolean(chip.visible && mouse && chip.contains(mouse.x, mouse.y, 0));
   const refreshHit = () => {
-    if (capri.dragging) return setInteractive(true);
+    if (capri.dragging || capri.pointerHeld) return setInteractive(true);
     if (!mouse) return setInteractive(false);
     const r = panel.rect();
     const onPanel = r && mouse.x >= r.left && mouse.x <= r.right && mouse.y >= r.top && mouse.y <= r.bottom;
@@ -150,6 +151,8 @@ async function boot() {
     refreshHit();
     hoverChip();
   });
+  window.addEventListener('pointerdown',refreshHit);
+  window.addEventListener('pointerup',refreshHit);
   document.addEventListener('mouseleave', () => {
     mouse = null;
     refreshHit();
@@ -165,6 +168,7 @@ async function boot() {
     const at = await host.cursor().catch(() => null);
     const before = seen;
     seen = at;
+    if(capri.pointerHeld||capri.dragging){setInteractive(true);return;}
     follow?.(at);
     if (!at?.inside) return;
     const now = performance.now();
@@ -597,6 +601,7 @@ async function boot() {
   });
 
   host.onConfig((cfg) => {
+    idleChatter=cfg.idleChatter===true;
     chat.focusedAssistant=cfg.assistantFocus!==false;chat.characterMode=cfg.rebeccaPersonality!==false;chat.responseLength=cfg.responseLength||'short';
     if(chat.open&&typeof cfg.chatModel==='string')panel.tag.textContent=cfg.chatModel.replace(/^models\//,'').replace(/:latest$/,'');
     voice.configure(cfg);
@@ -794,9 +799,9 @@ async function boot() {
   setInterval(()=>{
     const now=performance.now();
     if(now<nextIdleTalk)return;
-    if(!capri.wander||capri.autonomyPaused()||panel.visible||capri.busy||capri.act||capri.dragging||capri.hidden||capri.stowed||capri.dormant||capri.mode!=='idle')return;
+    if(!idleChatter||capri.autonomyPaused()||panel.visible||capri.busy||capri.act||capri.dragging||capri.hidden||capri.stowed||capri.dormant||capri.mode!=='idle')return;
     nextIdleTalk=now+45000+Math.random()*45000;
-    panel.say({kind:'idle',line:pick(['มีอะไรให้ช่วย เรียกได้เลยนะ','ขอเดินเล่นแถวนี้สักหน่อยนะ','พร้อมช่วยเมื่อคุณต้องการนะ','พักสายตาสักนิดก็ได้นะ']),hold:3500});
+    panel.say({kind:'idle',line:brain.lang==='en'?pick(['Need a hand? Just ask.','Ready when you need me.']):pick(['มีอะไรให้ช่วย เรียกได้เลยนะ','ขอเดินเล่นแถวนี้สักหน่อยนะ','พร้อมช่วยเมื่อคุณต้องการนะ','พักสายตาสักนิดก็ได้นะ']),hold:3500});
   },1000);
 
   // entrance: her face big in the corner says hi, then she dives down to her spot
