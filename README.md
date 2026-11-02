@@ -104,7 +104,7 @@ Chromium ใน environment ทดสอบนี้ถูกนโยบาย�
 ทดสอบหน้าต่าง Chat/Panel จริงเพิ่มเติม: แนบรูป, preview ก่อนส่ง, HTTP payload แบบหลายสื่อ, Ctrl+V ผ่าน ClipboardItem API, ส่งเฉพาะรูป, ถอดรูป, และแจ้งเมื่อโมเดลไม่รองรับภาพ รวมทั้งตรวจว่า history ไม่มีพิกเซลรูป
 
 
-- **155 application tests ผ่าน** รวมวงจรเปิด/ปิด server ของ Test Lab และการตรวจเวอร์ชันแอป/lock/ส่วนขยายให้ตรงกัน
+- **156 application tests ผ่าน** รวมวงจรเปิด/ปิด server ของ Test Lab และการตรวจเวอร์ชันแอป/lock/ส่วนขยายให้ตรงกัน
 - **3 Test Lab unit/server checks ผ่าน**
 - **8 เคส browser จริงผ่าน** พร้อมกรณีตอบผิด, readonly keypad, ผลตอบกลับช้า/รีเซ็ต, element เก่า, ห้ามส่ง, ตัวกรอง, รายงาน JSON และขนาดหน้าจอมือถือ
 - ตรวจแพ็กเกจจริง: ASAR เวอร์ชัน 0.5.9, Windows x64 PE, Python ที่รวมไว้, ฟอนต์, ส่วนขยาย/DOM bridge และเปิด Test Lab จาก ASAR ได้

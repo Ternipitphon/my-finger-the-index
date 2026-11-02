@@ -40,3 +40,8 @@ test('public URL reading keeps its existing route instead of requiring a paired 
 test('explaining or creating forms is not permission to change the current browser form',async()=>{
  const {browserTaskIntent}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/browser-task-intent.js'))),{toolRequest}=require('../src/main/task-result');for(const text of ['สร้างฟอร์มกรอกชื่อ','อธิบายการกรอกฟอร์ม','ช่วยเขียนโค้ดฟอร์มกรอกชื่อ']){assert.equal(browserTaskIntent(text),null);assert.equal(toolRequest(text),false);}
 });
+
+test('all form-action Test Lab prompts route to tools and explicit filling is not downgraded to answer-only',async()=>{
+ const {browserTaskIntent}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/browser-task-intent.js'))),{resolveTaskCommand}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/command-intent.js')));const suite=require('../test-lab/dist/suite.js');for(const id of ['read','form','math','keypad','delayed','stale','no-submit']){const text=suite.cases.find(c=>c.id===id).prompt;assert.equal(browserTaskIntent(text)?.scope,'selected-tab',id);}
+ assert.equal(resolveTaskCommand('ข้อนี้ช่วยคิดเลข เอาคำตอบไปหยอดในช่องแล้วส่งเลย'),null);assert.match(resolveTaskCommand('ข้อนี้ตอบอะไร อย่ากรอกและอย่ากดส่ง').goal,/อย่ากรอกคำตอบ/);
+});
