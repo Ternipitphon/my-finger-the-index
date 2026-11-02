@@ -36,3 +36,7 @@ test('an actual submit-button delivery is recognized and early finish must verif
 test('public URL reading keeps its existing route instead of requiring a paired tab',async()=>{
  const {browserTaskIntent}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/browser-task-intent.js')));assert.equal(browserTaskIntent('อ่านหน้าเว็บ https://example.com ให้ที'),null);
 });
+
+test('explaining or creating forms is not permission to change the current browser form',async()=>{
+ const {browserTaskIntent}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/browser-task-intent.js'))),{toolRequest}=require('../src/main/task-result');for(const text of ['สร้างฟอร์มกรอกชื่อ','อธิบายการกรอกฟอร์ม','ช่วยเขียนโค้ดฟอร์มกรอกชื่อ']){assert.equal(browserTaskIntent(text),null);assert.equal(toolRequest(text),false);}
+});

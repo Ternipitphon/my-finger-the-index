@@ -1,5 +1,5 @@
 'use strict';
-function toolRequest(text){return typeof text==='string'&&!/สอน|ตัวอย่างคำสั่ง|คืออะไร|วิธี(?:การ)?กรอก|how to/i.test(text)&&(/(?:อ่าน|ตรวจ|บอกค่า|ค่าปัจจุบัน).*?(?:แท็บ|หน้าเว็บ|เบราว์เซอร์)|(?:ช่องชื่อ|ฟอร์ม|ติ๊ก.*ยอมรับ).*(?:ใส่|กรอก|พิมพ์|ติ๊ก|เลือก)/i.test(text));}
+function toolRequest(text){return typeof text==='string'&&!/^(?:ช่วย|กรุณา)?\s*(?:สอน|อธิบาย|สร้าง|ออกแบบ|ยกตัวอย่าง|เขียน(?:โค้ด|โปรแกรม|เว็บ))|ตัวอย่างคำสั่ง|คืออะไร|วิธี(?:การ)?กรอก|how to/i.test(text)&&(/(?:อ่าน|ตรวจ|บอกค่า|ค่าปัจจุบัน).*?(?:แท็บ|หน้าเว็บ|เบราว์เซอร์)|(?:ช่องชื่อ|ฟอร์ม|ติ๊ก.*ยอมรับ).*(?:ใส่|กรอก|พิมพ์|ติ๊ก|เลือก)/i.test(text));}
 function taskResultText(result){
  const audit=result.audit||[],submits=!!result.delivery?.submitDelivered;
  if(!result.verified&&!result.readOnly&&!result.requirements?.input&&!result.requirements?.submit&&!toolRequest(result.goal||'')){const error=[...audit].reverse().find(e=>e.error)?.error;return 'ยังไม่ยืนยันว่างานสำเร็จ'+(error?' — '+error:' — ยังไม่มีผลตรวจที่เพียงพอ');}
