@@ -45,3 +45,7 @@ test('all form-action Test Lab prompts route to tools and explicit filling is no
  const {browserTaskIntent}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/browser-task-intent.js'))),{resolveTaskCommand}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/command-intent.js')));const suite=require('../test-lab/dist/suite.js');for(const id of ['read','form','math','keypad','delayed','stale','no-submit']){const text=suite.cases.find(c=>c.id===id).prompt;assert.equal(browserTaskIntent(text)?.scope,'selected-tab',id);}
  assert.equal(resolveTaskCommand('ข้อนี้ช่วยคิดเลข เอาคำตอบไปหยอดในช่องแล้วส่งเลย'),null);assert.match(resolveTaskCommand('ข้อนี้ตอบอะไร อย่ากรอกและอย่ากดส่ง').goal,/อย่ากรอกคำตอบ/);
 });
+
+test('verified screen-only results are not mislabeled as a browser-tab observation',()=>{
+ const {taskResultText}=require('../src/main/task-result');assert.equal(taskResultText({verified:true,readOnly:true,summary:'คำนวณได้ 15',audit:[{tool:'desktop.look',status:'done'}],delivery:{inputDelivered:false,submitDelivered:false}}),'คำนวณได้ 15');
+});
