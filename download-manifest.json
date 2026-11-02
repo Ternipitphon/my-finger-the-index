@@ -1,0 +1,36 @@
+{
+  "version": "0.6.0",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.6.0.exe",
+  "bytes": 183737867,
+  "sha256": "E3047E8F70DCFE3EDB078EA3EB4A2D368370615B7FF1BABB089860A8552E9C39",
+  "source_commit": "c151d8a52fbbf21ca258cd621c42c9614f990da3",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "2DBBD74DA5BF941D097A63B6907ADBC1D3B14FCF48DCA8CF53BDC93144549C84"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "805889811603F5140FE9E15F059B5D032B846CAE5D655C5B56C48DAF5FD71260"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57908747,
+      "sha256": "0E1DAAEF7E0E29ADEA5FC64553CE6588F223DB9C4804CE1F2ACEDCFBAD5F79A3"
+    }
+  ],
+  "validation": {
+    "application_tests": 165,
+    "lab_unit_tests": 3,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "live_screen": "passed: Gemini 3.5 Flash Lite read READY-60 and Blue from synthetic screen in English",
+    "companion_drag": "passed real Electron alpha hit, busy override, pointer capture, outside drag and release",
+    "screen_toggle": "passed capture disabled, failed capture and pending-reply cancellation",
+    "language": "passed English/Thai configuration persistence and image/tool preservation"
+  }
+}
