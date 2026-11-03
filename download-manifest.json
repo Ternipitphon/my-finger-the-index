@@ -1,0 +1,34 @@
+{
+  "version": "0.6.2",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.6.2.exe",
+  "bytes": 183741936,
+  "sha256": "CB8F5835888506761BAE322D1DE557B8B3B63F69A8F45F64F2DEC61A21B98F2E",
+  "source_commit": "01d04ef9657fe5a678759096b2ca39b17d380960",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "91112D687CB482927885B27540B581ED6C3E19F2C68D05218238E7CB098151DD"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "973CC39699ED1AFEAAE5DA203E40C78FCE64CAB423AAD41407A0BDF75AA82EDA"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57912816,
+      "sha256": "C7CD1D18A09F64DFF4B510376A905FDFB9EFD6D02D6728FCEB8253F707B371A7"
+    }
+  ],
+  "validation": {
+    "application_tests": 181,
+    "lab_unit_tests": 3,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "web_open": "passed Spotify, all known services, arbitrary URL/domain, explicit app preservation, canceled/unknown requests and OS shell delegation with stubbed handler",
+    "real_windows_browser": "not tested"
+  }
+}
