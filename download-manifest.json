@@ -1,0 +1,35 @@
+{
+  "version": "0.6.1",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.6.1.exe",
+  "bytes": 183739777,
+  "sha256": "D5B0815F6BAB6C94C241CD31E68D4C1BD1C44A9210F708CF50DB025E136F84BC",
+  "source_commit": "2ed50c391364d072894a2682e13426f0fc5b3d1f",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "003422006711D0683AB0F48286ABC86FCFAA0D79484D2423B84A95F03B4B8C8A"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "B41BE8ACBB0C88F6B6FD4FEBC0FCB3C3A7C00213642F1F0110652DE0C5AC93A0"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57910657,
+      "sha256": "A6AB8B76B731A062E7E462C6CFB9AA5F92FACB5CFC35587FEF0EE2C0439C465C"
+    }
+  ],
+  "validation": {
+    "application_tests": 173,
+    "lab_unit_tests": 3,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "companion_drag": "passed transparent nonfocusable Electron fixture: mouse-only movement, blur/lost capture, controlled cursor sampler fallback, tray placement and cancel",
+    "native_drag_lock": "passed hold, stale hit-test, rearm, release and reload state",
+    "real_windows_mouse": "not tested"
+  }
+}
