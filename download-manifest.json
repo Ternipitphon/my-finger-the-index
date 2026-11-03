@@ -1,0 +1,38 @@
+{
+  "version": "0.7.4",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.7.4.exe",
+  "bytes": 183765149,
+  "sha256": "DCBBFE869049B9323166E7E427C6C37299C1675AE1E665ADAF2D5260035E12C0",
+  "source_commit": "f32f68bfd7564f9e988f2de66f27e788e2f9c5d8",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "C1352D4590EF2791860147D97A6D64014B7812CBB5B09C365673AAAD96F07942"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "29984D49886C8C0559C684D52D879CE8C94AE1E477CA2B5978EA99B2CB274894"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57936029,
+      "sha256": "5A5D97AACF866B0C24963FA9FE2CC5970E7E0E26D5FCBA9DB7DFD625D1054B0E"
+    }
+  ],
+  "validation": {
+    "application_tests": 217,
+    "lab_unit_tests": 4,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "talk_button": "passed Electron mouse input with moving anchor, idle timeout, delayed status, single flight, dismiss cancellation and visible error; native Windows not tested",
+    "browser_pairing": "passed emulated Chrome lifecycle, optional permissions, persisted local pairing, busy-task handoff and real HTTP broker guards; real Chrome not tested",
+    "drag_fixture": "passed 20 no-DOM cycles and 30 existing cycles; native Windows not tested",
+    "media_transport": "passed real HTTP broker + emulated worker + real DOM with disabled page timers, idle lease, live status, same tab and cross-origin revocation",
+    "real_chrome_background_and_spotify_audio": "not tested",
+    "media_ui": "passed local Spotify DOM fixture; no real Spotify account"
+  }
+}
