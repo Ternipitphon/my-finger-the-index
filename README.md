@@ -1,8 +1,22 @@
-# ดาวน์โหลด Caprii 0.7.2
+# Caprii Desktop AI
 
-## [⬇ ดาวน์โหลดตัวติดตั้ง Windows 10/11 x64 — คลิกที่นี่](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.7.2-download.zip)
+## ดาวน์โหลด Caprii 0.7.2 — ตัวติดตั้ง Windows
 
-แตก ZIP ทั้งหมด → ปิด Caprii เก่าจากถาดระบบ → เปิด **`INSTALL-CAPRII.cmd`**
+[ดาวน์โหลด ZIP ตัวติดตั้ง Caprii 0.7.2](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.7.2-download.zip)
+
+รองรับ Windows 10/11 x64 ชุดดาวน์โหลดนี้มีเฉพาะไฟล์ติดตั้งรุ่น 0.7.2 ไม่ต้องดาวน์โหลด ZIP ทั้ง repository หรือเลือกโฟลเดอร์รุ่นเก่า
+
+### ติดตั้งและเริ่มใช้
+
+1. ดาวน์โหลด ZIP แล้วคลิกขวา **แยกทั้งหมด / Extract All** อย่าเปิดตัวติดตั้งจากใน WinRAR หรือหน้าต่าง ZIP
+2. ปิด Caprii ตัวเก่าจากถาดระบบก่อนติดตั้ง
+3. เข้าโฟลเดอร์ที่แตกแล้ว ดับเบิลคลิก **`INSTALL-CAPRII.cmd`** ให้ไฟล์ `Caprii-Setup.part01`, `part02`, `part03` อยู่ข้างกันครบทั้งสามส่วน
+4. สคริปต์ตรวจ SHA256 ทุกส่วน รวมเป็น **`Caprii-Agent-Setup-0.7.2.exe`** และตรวจ hash ไฟล์รวมก่อนเปิดตัวติดตั้ง
+5. เมื่อติดตั้งแล้ว เปิด **Caprii Agent** จาก Desktop หรือ Start Menu คลิกขวาตัวละครจะเห็น **Caprii 0.7.2**
+
+ตัวติดตั้งรวม runtime ที่จำเป็นแล้ว ไม่ต้องติดตั้ง Node.js หรือ Python เพิ่ม ไฟล์ `.patch` และ `source-update.zip` จากงานก่อนเป็นไฟล์สำหรับพัฒนา ไม่ใช่ตัวติดตั้งรุ่นนี้
+
+อ่าน [วิธีติดตั้งและ checksum](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.7.2/downloads/Caprii-0.7.2) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.7.2/downloads/Caprii-0.7.2/GUIDE-TH.md)
 
 ## Caprii 0.7.2 — ลากได้เมื่อปิดแชต
 
@@ -64,26 +78,6 @@ Spotify ใช้การควบคุม Web Player ไม่ใช้รห
 - ต้องยอมรับการส่งภาพให้ผู้ให้บริการ AI ก่อน ภาพอยู่ในหน่วยความจำชั่วคราว ปิดโหมดแล้วหยุดคำตอบอัตโนมัติที่รออยู่ ไม่ควบคุมเมาส์หรือกรอกฟอร์มเอง
 - คลิกขวา → **ภาษา / Language** → **English — primary language** เปลี่ยนภาษาบทสนทนา เมนูที่รองรับ และบทพูดดูจอ บันทึกข้ามการเปิดแอป ค่าเริ่มต้นยังเป็นไทย บางข้อความวินิจฉัยเครื่องมือยังเป็นไทย
 - เปิดอ่านบทพูดด้วยเสียงได้ ใช้เสียงระบบที่ตรงกับภาษาหลักเท่านั้น ถ้าไม่มีเสียงภาษานั้นจะไม่อ่านแทนด้วยภาษาอื่น
-
-# Caprii Desktop AI
-
-## ดาวน์โหลด Caprii 0.7.2 — ตัวติดตั้ง Windows
-
-[ดาวน์โหลด ZIP ตัวติดตั้ง Caprii 0.7.2](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.7.2-download.zip)
-
-รองรับ Windows 10/11 x64 ชุดดาวน์โหลดนี้มีเฉพาะไฟล์ติดตั้งรุ่น 0.7.2 ไม่ต้องดาวน์โหลด ZIP ทั้ง repository หรือเลือกโฟลเดอร์รุ่นเก่า
-
-### ติดตั้งและเริ่มใช้
-
-1. ดาวน์โหลด ZIP แล้วคลิกขวา **แยกทั้งหมด / Extract All** อย่าเปิดตัวติดตั้งจากใน WinRAR หรือหน้าต่าง ZIP
-2. ปิด Caprii ตัวเก่าจากถาดระบบก่อนติดตั้ง
-3. เข้าโฟลเดอร์ที่แตกแล้ว ดับเบิลคลิก **`INSTALL-CAPRII.cmd`** ให้ไฟล์ `Caprii-Setup.part01`, `part02`, `part03` อยู่ข้างกันครบทั้งสามส่วน
-4. สคริปต์ตรวจ SHA256 ทุกส่วน รวมเป็น **`Caprii-Agent-Setup-0.7.2.exe`** และตรวจ hash ไฟล์รวมก่อนเปิดตัวติดตั้ง
-5. เมื่อติดตั้งแล้ว เปิด **Caprii Agent** จาก Desktop หรือ Start Menu คลิกขวาตัวละครจะเห็น **Caprii 0.7.2**
-
-ตัวติดตั้งรวม runtime ที่จำเป็นแล้ว ไม่ต้องติดตั้ง Node.js หรือ Python เพิ่ม ไฟล์ `.patch` และ `source-update.zip` จากงานก่อนเป็นไฟล์สำหรับพัฒนา ไม่ใช่ตัวติดตั้งรุ่นนี้
-
-อ่าน [วิธีติดตั้งและ checksum](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.7.2/downloads/Caprii-0.7.2) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.7.2/downloads/Caprii-0.7.2/GUIDE-TH.md)
 
 ## คงการแก้บั๊กจาก 0.5.9: คำสั่งฟอร์มต้องใช้เครื่องมือจริง
 
