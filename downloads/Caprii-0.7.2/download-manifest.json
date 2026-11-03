@@ -1,0 +1,36 @@
+{
+  "version": "0.7.2",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.7.2.exe",
+  "bytes": 183758468,
+  "sha256": "8996DC443803045A5135CD5B2070540FDC7B56D3A3CE6E06BEC7994721A4CABC",
+  "source_commit": "7d7979a7f147746a93025bf8925ca85747c6c50e",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "B6C6B80109CD7BBF713C92BBCEEA472281F76896A7B538984CFF255CEAF3BEB7"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "DEF09BCA8BB776F5DA5BF2AEB7681AFF4DF591CCC3D12D639A038C197B966637"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57929348,
+      "sha256": "BC8B27BEBF12C065DA28CC6C3C3BD003C6C786C1A31FFF8722F3B3E3725465A4"
+    }
+  ],
+  "validation": {
+    "application_tests": 206,
+    "lab_unit_tests": 4,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "drag_fixture": "passed 20 no-DOM cycles and 30 existing cycles; native Windows not tested",
+    "media_transport": "passed real HTTP broker + emulated worker + real DOM with disabled page timers, idle lease, live status, same tab and cross-origin revocation",
+    "real_chrome_background_and_spotify_audio": "not tested",
+    "media_ui": "passed local Spotify DOM fixture; no real Spotify account"
+  }
+}
