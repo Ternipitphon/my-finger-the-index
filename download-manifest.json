@@ -1,0 +1,36 @@
+{
+  "version": "0.7.0",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.7.0.exe",
+  "bytes": 183750452,
+  "sha256": "AD25AA1A088A74A1DD5777FE9CBB3CB5B9E2AEE31BDD66D6E3B1714CCE47CD2A",
+  "source_commit": "402c9c82c42ac3e998385d06e731562343243b87",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "F48966127FFD634A39E7BD97A80FAF529CEB6FB0E77A7D46477B27F9E6E9B21E"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "0026BAF2A87BF479AE5E66DF4193FEDC96C6A0F751A27A46DBB78B06FFD3DFB0"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57921332,
+      "sha256": "A0574AA4A57D3D1882ED8DEB546D8AE863818D703FDCF1C0DD0D9A805B869B6B"
+    }
+  ],
+  "validation": {
+    "application_tests": 202,
+    "lab_unit_tests": 4,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "media_ui": "passed local Spotify-shaped DOM fixture: liked/song/playlist, exact artist, once-only play, progress, frozen and login checks",
+    "real_spotify_account_and_audio": "not tested",
+    "real_chrome_extension": "not tested; managed browser blocks unpacked extension",
+    "media_routing": "passed exact user commands, YouTube URL, Spotify IPC and short context followup"
+  }
+}
