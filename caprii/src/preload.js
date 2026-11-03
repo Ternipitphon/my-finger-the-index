@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('host', {
   onConfig: on('capri:config'),
   onResize: on('overlay:resize'),
   onWindows: on('windows:update'),
+  holdCharacter: on => ipcRenderer.send('overlay:hold', Boolean(on)),
   setInteractive: (on) => ipcRenderer.send('overlay:interactive', Boolean(on)),
   rearm: () => ipcRenderer.send('overlay:rearm'),
   cursor: () => ipcRenderer.invoke('overlay:cursor'),

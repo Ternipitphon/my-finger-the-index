@@ -1,3 +1,11 @@
+# Caprii 0.6.1 validation
+
+- 173 application tests pass, including native click-through lock during drag/rearm, release/reload state, cursor sampling without DOM move events, no concurrent cursor requests and discarded late samples after release/stop.
+- Real Electron transparent nonfocusable sprite fixture passes mouse-only drag after blur/lost mouse capture, cursor-sampler movement with controlled cursor coordinates and absent DOM moves, right-button release isolation, tray pickup/place/cancel, and ordinary hold/release. The fixture uses a virtual viewport and controlled cursor samples; it is not a Windows-native mouse test.
+- 3 local lab checks and all 8 real browser cases pass. Test Lab stays local; no website deployment.
+- Packaged resource validation checks ASAR/extension versions, Windows x64 PE, Python/fonts/DOM bridge and live Test Lab from ASAR.
+- Actual Windows installation, mouse hooks, native cursor/capture delivery and shortcut availability on the user's PC remain untested. Installer is cross-built and unsigned. A tray pickup mode is provided so movement does not require holding a mouse button or a working pointer stream.
+
 # Caprii 0.6.0 validation
 
 - 165 app regression tests pass, including language selection/persistence, image-preserving English repair, intact tool JSON, selected local speech voice, independent screen/idle settings, capture failure and disabling/re-enabling while vision is pending.

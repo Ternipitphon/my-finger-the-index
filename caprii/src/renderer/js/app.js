@@ -1,3 +1,4 @@
+import {trackDragCursor} from './drag-cursor.js';
 import { ThaiSpeech } from './thai-speech.js';
 import { Capri } from './capri.js';
 import { FxLayer, GRAB_FRAMES } from './fx.js';
@@ -182,6 +183,8 @@ async function boot() {
     rearmedAt = now;
     host.rearm();
   }, WATCH_MS);
+  const dragCursor=trackDragCursor({capri,cursor:()=>host.cursor(),onHeld:()=>setInteractive(true)});
+  window.addEventListener('beforeunload',()=>{dragCursor.stop();capri.cancelDrag();});
   window.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     if (chip.visible && chip.contains(e.clientX, e.clientY, 0)) host.openMenu();
@@ -224,6 +227,7 @@ async function boot() {
   panel.onChar = (kind) => {if(!thaiSpeech.enabled)voice.play('blip', { mood: kind });};
   panel.onTalk = (talking) => talking && capri.perform('talk');
   capri.onMenu = () => host.openMenu();
+  capri.onPointerHold=on=>{host.holdCharacter(on);refreshHit();};
 
   // Her guide (guide.js): her welcome on first launch, and "How does it work?" in her menu,
   // where she takes you to things and points at them.
@@ -642,6 +646,15 @@ async function boot() {
   host.onCommand(async (cmd) => {
     const t = brain.t;
     switch (cmd.name) {
+      case 'pickup': {
+        if(capri.stowed)await capri.unstow();
+        if(capri.dormant)await capri.rouse();
+        capri.wake();
+        const at=await host.cursor().catch(()=>null);
+        capri.startPlacement(at?.inside?at:{x:innerWidth/2,y:innerHeight/2});
+        break;
+      }
+      case 'cancelDrag':capri.cancelDrag();break;
       case 'teleport':
         capri.teleport(capri.spot('random'));
         break;

@@ -1733,70 +1733,70 @@ export class Capri {
   // ---------- pointer ----------
 
   bindPointer() {
-    let down = null;
-    this.canvas.addEventListener('contextmenu', (e) => {
+    let down = null, placing = false, pointerType = 'mouse', timeout;
+    this.canvas.addEventListener('contextmenu', e => {
       e.preventDefault();
-      if (this.hit(e.clientX, e.clientY)) this.onMenu?.(); // right-click: her menu
+      if(down){release(true);return;}
+      if(this.hit(e.clientX,e.clientY))this.onMenu?.();
     });
-    this.canvas.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || !this.hit(e.clientX, e.clientY)) return;
-      // thrown: you can catch her on the fly, or pick her up off the floor
-      const thrown = this.stance === 'fly' || this.stance === 'down';
-      this.endAct(false);
-      this.busy=false;
-      this.refuseUntil=0;
-      this.pointerHeld=true;
-      this.canvas.setPointerCapture?.(e.pointerId);
-      e.preventDefault();
-      down = { x: e.clientX, y: e.clientY, pos: { ...this.pos }, at: this.spritePoint(e.clientX, e.clientY) };
-      this.track = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
-      if (thrown) this.pickUp(down);
-    });
-    window.addEventListener('pointermove', (e) => {
-      this.mouse = { x: e.clientX, y: e.clientY }; // a window she's in watches it
-      if (down) {
-        const now = performance.now();
-        this.track.push({ x: e.clientX, y: e.clientY, t: now });
-        while (this.track.length > 2 && now - this.track[0].t > 160) this.track.shift();
-        const dx = e.clientX - down.x, dy = e.clientY - down.y;
-        if (!this.dragging && Math.hypot(dx, dy) > 5 && !this.busy) this.pickUp(down);
-        if (this.dragging) {
-          this.pos = {
-            x: clamp(down.pos.x + dx, 40, this.view.w - 40),
-            y: clamp(down.pos.y + dy, SPRITE.height * this.scale * 0.5, this.floor),
-          };
-          this.p.glitchSeed = Math.random() * 100;
-          this.place();
-        }
-        return;
-      }
-      this.notice(e.clientX, e.clientY);
-    });
-    const release = (cancelled=false) => {
-      this.pointerHeld=false;
-      if (!down) return;
-      const wasDragging = this.dragging;
-      down = null;
-      this.dragging = false;
-      if (!wasDragging) {
-        if(!cancelled)this.onClick?.();
-        return;
-      }
-      tween(this.p, { glitch: 0, split: 0 }, 200, ease.out);
-      // let go while the pointer was still moving fast: she flies off with it
-      const v = this.pointerSpeed();
-      if (!cancelled && Math.hypot(v.x, v.y) >= THROW_MIN && !reducedMotion.matches) {
-        this.throwHer(v.x, v.y); // the panel stays away until she's back to herself
-        return;
-      }
-      this.setStance('stand'); // upright again, under where you held her
-      this.onTeleport?.('end');
-      this.drop();
+    const begin = (e, placement=false) => {
+      if(e.button!==0)return;
+      if(down){if(placing){e.preventDefault?.();release();}return;}
+      if(!placement&&!this.hit(e.clientX,e.clientY))return;
+      const thrown=this.stance==='fly'||this.stance==='down';
+      this.endAct(false);this.busy=false;this.refuseUntil=0;
+      placing=placement;pointerType=e.pointerType||'mouse';
+      down={x:e.clientX,y:e.clientY,pos:{...this.pos},at:placement?SPRITE.head:this.spritePoint(e.clientX,e.clientY)};
+      this.track=[{x:e.clientX,y:e.clientY,t:performance.now()}];
+      this.pointerHeld=true;this.onPointerHold?.(true);
+      // Forwarded Windows mouse moves may have no corresponding pointer stream.
+      // Capture is optional; losing it must not discard an ordinary mouse hold.
+      if(e.pointerId!=null)try{this.canvas.setPointerCapture(e.pointerId);}catch{}
+      if(e.type!=='pointerdown')e.preventDefault?.();
+      timeout=setTimeout(()=>release(true),30000);
+      if(thrown||placement)this.pickUp(down);
     };
-    window.addEventListener('pointerup',()=>release());
-    this.canvas.addEventListener('lostpointercapture',()=>release(true));
-    window.addEventListener('pointercancel',()=>release(true));
-    window.addEventListener('blur',()=>release(true));
+    const move = e => {
+      this.mouse={x:e.clientX,y:e.clientY};
+      if(!down){this.notice(e.clientX,e.clientY);return;}
+      const now=performance.now(),last=this.track.at(-1);
+      if(!last||last.x!==e.clientX||last.y!==e.clientY)this.track.push({x:e.clientX,y:e.clientY,t:now});
+      while(this.track.length>2&&now-this.track[0].t>160)this.track.shift();
+      const dx=e.clientX-down.x,dy=e.clientY-down.y;
+      if(!this.dragging&&Math.hypot(dx,dy)>5)this.pickUp(down);
+      if(this.dragging){
+        this.pos={x:clamp(down.pos.x+dx,40,this.view.w-40),y:clamp(down.pos.y+dy,SPRITE.height*this.scale*0.5,this.floor)};
+        this.p.glitchSeed=Math.random()*100;this.place();
+      }
+    };
+    const release = (cancelled=false) => {
+      if(!down)return;
+      clearTimeout(timeout);
+      const wasDragging=this.dragging,wasPlacing=placing;
+      down=null;placing=false;this.dragging=false;this.pointerHeld=false;
+      this.onPointerHold?.(false);
+      if(!wasDragging){if(!cancelled)this.onClick?.();return;}
+      tween(this.p,{glitch:0,split:0},200,ease.out);
+      const v=this.pointerSpeed();
+      if(!cancelled&&!wasPlacing&&Math.hypot(v.x,v.y)>=THROW_MIN&&!reducedMotion.matches){this.throwHer(v.x,v.y);return;}
+      this.setStance('stand');this.onTeleport?.('end');this.drop();
+    };
+    this.canvas.addEventListener('pointerdown',e=>begin(e));
+    this.canvas.addEventListener('mousedown',e=>begin(e));
+    window.addEventListener('pointermove',move);
+    window.addEventListener('mousemove',move);
+    const up=e=>{if(e.button===0)release();};
+    window.addEventListener('pointerup',up);
+    window.addEventListener('mouseup',up);
+    const cancelPointer=()=>{if(pointerType!=='mouse')release(true);};
+    this.canvas.addEventListener('lostpointercapture',cancelPointer);
+    window.addEventListener('pointercancel',cancelPointer);
+    // This overlay is intentionally nonfocusable; blur is not a mouse release.
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)release(true);});
+    window.addEventListener('keydown',e=>{if(e.key==='Escape')release(true);});
+    this.dragTo=at=>{if(down)move({clientX:at.x,clientY:at.y});};
+    this.cancelDrag=()=>release(true);
+    this.startPlacement=at=>{release(true);begin({button:0,clientX:at.x,clientY:at.y},true);};
   }
 
   // How fast the pointer holding her was going just now (px/s): none if it had stopped.

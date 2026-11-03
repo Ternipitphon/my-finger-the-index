@@ -38,6 +38,7 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 let overlay = null;
+const overlayInput=require('./overlay-input').createOverlayInput(()=>overlay);
 let tray = null;
 let trayMenu = null; // also what she opens when you right-click her
 let demoTimer = null;
@@ -155,8 +156,7 @@ function fitOverlay() {
 // clicked anymore. Off then on puts in a new one; her place on top and her size are set again too.
 function rearmOverlay() {
   if (!overlay || overlay.isDestroyed()) return;
-  overlay.setIgnoreMouseEvents(false);
-  overlay.setIgnoreMouseEvents(true, { forward: true });
+  if(!overlayInput.rearm())return;
   overlay.setAlwaysOnTop(true, 'screen-saver');
   fitOverlay();
   sendCommand('rearmed'); // click-through again: she waits for the pointer to be on her
@@ -203,7 +203,8 @@ function createOverlay() {
   });
 
   overlay.setAlwaysOnTop(true, 'screen-saver');
-  overlay.setIgnoreMouseEvents(true, { forward: true });
+  overlayInput.reset();
+  overlay.webContents.on('did-start-loading',()=>overlayInput.reset());
   overlay.loadURL('capri://app/src/renderer/index.html');
   // always shown: put away, she's still there as her biochip in the corner. Sized again first:
   // Windows keeps a new window inside the work area, and resting on the taskbar it covers it too.
@@ -212,6 +213,7 @@ function createOverlay() {
     overlay.showInactive();
   });
   overlay.webContents.on('render-process-gone', (_e, details) => {
+    overlayInput.reset();
     console.error('[capri] renderer gone:', details.reason);
   });
   if (DEV) {
@@ -341,6 +343,7 @@ function rebuildTray() {
     } },
     { label: t.sync(Math.min(100, Math.floor(xp / 10)), t.stages[stage]), enabled: false },
     { type: 'separator' },
+    {id:'caprii-pickup',label:resolveLang(cfg.lang)==='en'?'Pick up character — move and click to place':'จับย้ายตัวละคร — ขยับเมาส์แล้วคลิกวาง',click:()=>sendCommand('pickup')},
     { label: t.teleport, click: () => sendCommand('teleport') },
     { label: t.satellite, click: () => sendCommand('satellite') },
     { label: t.demo, click: playDemo },
@@ -719,9 +722,10 @@ function createTray() {
 }
 
 function registerIpc() {
-  ipcMain.on('overlay:interactive', (_e, on) => {
-    overlay?.setIgnoreMouseEvents(!on, { forward: true });
+  ipcMain.on('overlay:interactive', (e, on) => {
+    if(e.sender===overlay?.webContents)overlayInput.setInteractive(on);
   });
+  ipcMain.on('overlay:hold', (e, on) => {if(e.sender===overlay?.webContents)overlayInput.hold(on);});
   ipcMain.on('overlay:rearm', () => rearmOverlay()); // the pointer moved over her and she never heard of it
   ipcMain.handle('overlay:cursor', () => {
     const p = screen.getCursorScreenPoint();
@@ -1236,8 +1240,9 @@ function main() {
       onEvent: (evt) => !llm.isChatSession(evt.session_id) && overlay?.webContents.send('claude:event', evt),
       onDebug: DEV ? debugHandler : null,
     });
+    globalShortcut.register('Control+Alt+M',()=>sendCommand('pickup'));
     globalShortcut.register('Control+Alt+C', () => toggleVisible());
-    emergencyStopReady = globalShortcut.register('Control+Alt+Escape', () => { for (const controller of chats.values()) controller.abort(); });
+    emergencyStopReady = globalShortcut.register('Control+Alt+Escape', () => { for (const controller of chats.values()) controller.abort(); sendCommand('cancelDrag');overlayInput.hold(false); });
     llm.restoreClaude(readMemory().claude);
     refreshModels(); // for her menu's model list
     setTimeout(() => launch.launchables().catch(() => {}), 20000); // what she can open, before you ask
