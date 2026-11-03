@@ -1,6 +1,6 @@
 {
   "name": "capri-desktop",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "Caprii: Thai/English desktop and project AI agent with confirmed tools, bounded chat, browser automation and Windows controls.",
   "author": "mochiiwuff",
   "repository": "github:mochiiwuff/capri-desktop",
@@ -33,7 +33,8 @@
     "test:lab-ui": "electron test-lab/tests/browser-smoke.cjs",
     "test:media-transport": "electron scripts/media-transport-smoke.cjs",
     "test:media-ui": "electron scripts/media-smoke.cjs",
-    "test:images-ui": "electron scripts/attachments-smoke.cjs"
+    "test:images-ui": "electron scripts/attachments-smoke.cjs",
+    "test:talk-ui": "electron scripts/talk-button-smoke.cjs"
   },
   "keywords": [
     "claude-code",

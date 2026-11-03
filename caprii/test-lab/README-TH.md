@@ -1,3 +1,5 @@
+Caprii 0.7.4: ตรวจปุ่มคุยด้วย npm run test:talk-ui แยกจากคะแนน DOM เดิม
+
 Caprii 0.7.3 / suite 1.6.0: browserConnection แยกจาก 8 เคส DOM โหมดจำ Chrome ต้องอนุญาตเว็บไซต์ใน popup ก่อน
 
 Caprii 0.7.2 / suite 1.5.2: ทดสอบลากโดยปิดแชตใน companion fixture แยกจากคะแนน DOM ยังต้องตรวจเมาส์ Windows จริงหลังใช้ไปนาน ๆ

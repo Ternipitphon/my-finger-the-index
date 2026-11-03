@@ -179,6 +179,7 @@ export class Chat {
 
   async start() {
     const { capri, host, t } = this;
+    if(this.starting){host.focusOverlay(true);return;}
     if (this.open) {
       this.panel.chatInput.focus();
       return;
@@ -188,7 +189,19 @@ export class Chat {
       await capri.unstow();
     }
     capri.wake();
-    const status = await host.chatStatus();
+    const ticket=Symbol('opening-chat');this.starting=ticket;
+    let waiting=true,timer;
+    const pending=this.panel.say({kind:'chat',badge:t.badge,line:this.brain.lang==='en'?'Opening chat…':'กำลังเปิดช่องคุย…',hold:null,onLeave:()=>{
+      if(waiting&&this.starting===ticket){this.starting=null;host.focusOverlay(false);}
+    }});
+    if(!pending){this.starting=null;return;}
+    host.focusOverlay(true);
+    let status;
+    try{status=await Promise.race([host.chatStatus(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('ตรวจการเชื่อมต่อ AI นานเกินไป ลองเปิดคุยอีกครั้ง')),15000);})]);}
+    catch(error){status={ok:false,error:error.message||'เปิดแชตไม่สำเร็จ'};}
+    finally{clearTimeout(timer);}
+    if(this.starting!==ticket)return;
+    if(!status.ok){waiting=false;this.starting=null;this.panel.hide();host.focusOverlay(false);}
     if (!status.ok && this.onSetup) {
       this.onSetup(status); // nothing to talk with yet: she sets it up with you, with buttons (setup.js)
       return;
@@ -216,6 +229,8 @@ export class Chat {
       return;
     }
     this.history = await host.chatMemory().catch(() => this.history); // "forget" in her menu may have emptied it
+    if(this.starting!==ticket)return;
+    waiting=false;this.starting=null;
     this.cold = status.warmup && !this.warm;
     this.agent = Boolean(status.agent); // Claude Code answers, as her, and really works in your project
     this.listApps();

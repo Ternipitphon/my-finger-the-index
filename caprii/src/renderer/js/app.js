@@ -113,7 +113,7 @@ async function boot() {
   };
   const onChip = () => Boolean(chip.visible && mouse && chip.contains(mouse.x, mouse.y, 0));
   const refreshHit = () => {
-    if (capri.dragging || capri.pointerHeld) return setInteractive(true);
+    if (panel.interactionHeld || capri.dragging || capri.pointerHeld) return setInteractive(true);
     if (!mouse) return setInteractive(false);
     const r = panel.rect();
     const onPanel = r && mouse.x >= r.left && mouse.x <= r.right && mouse.y >= r.top && mouse.y <= r.bottom;
@@ -169,7 +169,7 @@ async function boot() {
     const at = await host.cursor().catch(() => null);
     const before = seen;
     seen = at;
-    if(capri.pointerHeld||capri.dragging){setInteractive(true);return;}
+    if(panel.interactionHeld||capri.pointerHeld||capri.dragging){setInteractive(true);return;}
     follow?.(at);
     if (!at?.inside) return;
     const now = performance.now();
@@ -189,7 +189,8 @@ async function boot() {
     refreshHit();hoverChip();
     const r=panel.rect();
     const onPanel=r&&at.x>=r.left&&at.x<=r.right&&at.y>=r.top&&at.y<=r.bottom;
-    capri.samplePointer(at,!onPanel&&!onChip());
+    panel.samplePointer(at);
+    capri.samplePointer(at,!onPanel&&!panel.interactionHeld&&!onChip());
   }});
   window.addEventListener('beforeunload',()=>{dragCursor.stop();capri.cancelDrag();});
   window.addEventListener('contextmenu', (e) => {
@@ -234,7 +235,8 @@ async function boot() {
   panel.onChar = (kind) => {if(!thaiSpeech.enabled)voice.play('blip', { mood: kind });};
   panel.onTalk = (talking) => talking && capri.perform('talk');
   capri.onMenu = () => host.openMenu();
-  capri.onPointerHold=on=>{host.holdCharacter(on);refreshHit();};
+  capri.onPointerHold=on=>{host.holdCharacter(on||panel.interactionHeld);refreshHit();};
+  panel.onPointerHold=on=>{host.holdCharacter(on||capri.pointerHeld);refreshHit();};
   capri.readMouseState=()=>host.cursor();
 
   // Her guide (guide.js): her welcome on first launch, and "How does it work?" in her menu,

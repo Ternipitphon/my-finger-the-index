@@ -58,6 +58,19 @@ export class Panel {
     this.tickerShownAt = 0;
     this.tickerTimer = null;
     this.missed = null; // a Claude message that came while you were chatting with her, shown after
+    this.interactionHeld=false;
+    const press=e=>{
+      if(e.button!==0||this.interactionHeld)return;
+      clearTimeout(this.releaseInteractionTimer);clearTimeout(this.hideTimer);this.hideTimer=null;
+      this.interactionHeld=true;this.nativePressSeen=false;this.pressAt=performance.now();this.onPointerHold?.(true);
+    };
+    panel.addEventListener('pointerdown',press);
+    panel.addEventListener('mousedown',press);
+    panel.addEventListener('click',()=>this.releaseInteraction(0),true);
+    const release=e=>{if(e.button==null||e.button===0)this.releaseInteraction();};
+    window.addEventListener('pointerup',release);
+    window.addEventListener('mouseup',release);
+    window.addEventListener('pointercancel',()=>this.releaseInteraction());
 
     // talking to her (chat.js): a line to type in, under her answer
     this.chatForm = panel.querySelector('.panel__chat');
@@ -98,6 +111,23 @@ export class Panel {
 
   get visible() {
     return !this.el.hidden && !this.suspended && !this.leaving;
+  }
+
+  releaseInteraction(delay=80){
+    if(!this.interactionHeld)return;
+    clearTimeout(this.releaseInteractionTimer);
+    // Keep the target still through the click which follows mouseup.
+    this.releaseInteractionTimer=setTimeout(()=>{
+      if(!this.interactionHeld)return;
+      this.interactionHeld=false;this.onPointerHold?.(false);this.place();
+      if(this.current?.hold&&!this.hideTimer)this.hideTimer=setTimeout(()=>this.hide(),Math.max(1000,this.current.hold-(performance.now()-this.current.at)));
+    },delay);
+  }
+
+  samplePointer(at){
+    if(!this.interactionHeld)return;
+    if(at.primaryDown===true)this.nativePressSeen=true;
+    if(at.primaryDown===false&&(this.nativePressSeen||performance.now()-this.pressAt>500))this.releaseInteraction();
   }
 
   // Message: { kind, line, tag, quote, reply, summary, log: [{verb, target, error}], actions, guide,
@@ -580,7 +610,7 @@ export class Panel {
     // lean: the side she wants it on (away from what she's pointing at), else toward the middle
     const towardLeft = lean ? lean < 0 : x > w / 2;
 
-    if (!this.el.hidden) {
+    if (!this.el.hidden && !this.interactionHeld) {
       const pw = this.el.offsetWidth;
       const ph = this.el.offsetHeight;
       let left = towardLeft ? x - pw + 46 : x - 46;

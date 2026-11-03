@@ -1,3 +1,10 @@
+# Caprii 0.7.4 validation
+
+- Actual Panel/Chat Talk-button regression uses Electron mouse down/up on a nonfocusable transparent window. A moving anchor and expired idle timeout do not remove the pressed target. Loading appears before delayed AI status; repeated opening is coalesced; the final chat form is usable.
+- A dismissed pending opening never reopens on a late reply; a rejected status request produces a visible diagnostic. Opening times out after 15 seconds rather than silently waiting indefinitely.
+- Native button fallback shares the existing read-only cursor samples. Physical Windows click delivery and long-running use remain untested; Electron test input is not a Windows-native result.
+- Keep local Test Lab DOM scoring separate from desktop Talk-button checks. No website deployment.
+
 # Caprii 0.7.3 validation
 
 - 217 app tests pass.

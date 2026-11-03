@@ -51,8 +51,8 @@ function createChromeBroker({port=47824,token=randomBytes(32).toString('base64ur
   const remember=data=>{if(!data||!Array.isArray(data.elements)||typeof data.generation!=='string')throw Error('ข้อมูลแท็บไม่สมบูรณ์ กรุณาเชื่อมต่อใหม่');last=data;return data;};
   const snapshot=async signal=>{checkLease();return remember(await command('read',{},signal));};
   return{connected:true,
-   spotify:async(args,signal)=>{checkLease();if(!connection?.media)throw Error('รีโหลดส่วนขยาย Caprii 0.7.3 แล้วเชื่อมแท็บ Spotify ใหม่ก่อน');if(new URL(connection.url).origin!=='https://open.spotify.com')throw Error('ต้องเชื่อมแท็บ Spotify ก่อน');return command('spotify',args,signal);},
-   mediaNavigate:async(url,signal)=>{checkLease();if(!connection?.media)throw Error('รีโหลดส่วนขยาย Caprii 0.7.3 แล้วเชื่อมแท็บ Spotify ใหม่ก่อน');if(new URL(connection.url).origin!=='https://open.spotify.com')throw Error('ต้องเชื่อมแท็บ Spotify ก่อน');return command('media-navigate',{url:require('./media-url').spotifyURL(url)},signal);},
+   spotify:async(args,signal)=>{checkLease();if(!connection?.media)throw Error('รีโหลดส่วนขยาย Caprii 0.7.4 แล้วเชื่อมแท็บ Spotify ใหม่ก่อน');if(new URL(connection.url).origin!=='https://open.spotify.com')throw Error('ต้องเชื่อมแท็บ Spotify ก่อน');return command('spotify',args,signal);},
+   mediaNavigate:async(url,signal)=>{checkLease();if(!connection?.media)throw Error('รีโหลดส่วนขยาย Caprii 0.7.4 แล้วเชื่อมแท็บ Spotify ใหม่ก่อน');if(new URL(connection.url).origin!=='https://open.spotify.com')throw Error('ต้องเชื่อมแท็บ Spotify ก่อน');return command('media-navigate',{url:require('./media-url').spotifyURL(url)},signal);},
    description:()=>status(),snapshot,
    navigate:async(url,signal)=>{if(browserUrl(url)!==connection?.url)throw Error('ส่วนขยายควบคุมเฉพาะแท็บที่เลือก ใช้ browser.read หรือเลือกเชื่อมแท็บใหม่');return snapshot(signal);},
    target:a=>{checkLease();if(!last||a.generation!==last.generation)throw Error('อ่านหน้าเว็บใหม่ก่อน');const e=last.elements.find(e=>e.id===a.id);if(!e)throw Error('ไม่พบช่องหรือปุ่ม');return{url:last.url,...e};},
