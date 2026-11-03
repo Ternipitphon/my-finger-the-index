@@ -1,0 +1,35 @@
+{
+  "version": "0.7.1",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.7.1.exe",
+  "bytes": 183755859,
+  "sha256": "4FA5213D4F778257A329ED00042D24710D8C8F8339D6465A58E56B5353566BCF",
+  "source_commit": "c900bcace41cd6df2368e62e5825efb5e9b52534",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "2E503F1385DFFAEC4824DA501C0802FADD88DB1831E9E2D726AC1B49E728DA9C"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "F338AF344A425352D2CD4971F190046596C8D1F88FE89E91B17B1D0E02D45436"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57926739,
+      "sha256": "65D783600E0B11770C2BEC0E2FC5E4BC23A0048317714A0433D91F872697AFFA"
+    }
+  ],
+  "validation": {
+    "application_tests": 205,
+    "lab_unit_tests": 4,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "media_transport": "passed real HTTP broker + emulated worker + real DOM with disabled page timers, idle lease, live status, same tab and cross-origin revocation",
+    "real_chrome_background_and_spotify_audio": "not tested",
+    "media_ui": "passed local Spotify DOM fixture; no real Spotify account"
+  }
+}
