@@ -1,41 +1,96 @@
 'use strict';
 const BASE='http://127.0.0.1:47824';
+let pumpTimer=null,running=false,failures=0,epoch=0;
+function failure(message,code){return Object.assign(Error(message),{code});}
 async function request(path,data,connection){
- let r;try{r=await fetch(BASE+path,{method:'POST',headers:{'Content-Type':'application/json','X-Caprii-Extension':chrome.runtime.id,Authorization:'Bearer '+connection.code},body:JSON.stringify(data),signal:AbortSignal.timeout(5000)});}catch{throw Error('ติดต่อแอป Caprii ไม่ได้ เปิด Caprii แล้วคลิกขวา → เชื่อมแท็บ Chrome… จากนั้นลองอีกครั้ง');}
- if(r.status===403)throw Error('รหัสเชื่อมต่อหรือส่วนขยายไม่ตรงกับแอป คัดลอกรหัสใหม่จาก Caprii และตรวจว่าใช้ส่วนขยายจากรุ่นเดียวกัน');
- if(r.status===409)throw Error('การเชื่อมแท็บหมดอายุ กดอนุญาตให้ใช้แท็บนี้อีกครั้งด้วยรหัสรอบปัจจุบัน');
- if(!r.ok)throw Error('แอปตอบกลับข้อผิดพลาด ('+r.status+') ยังไม่ได้เชื่อมแท็บ');return r.json();
+ let r;try{r=await fetch(BASE+path,{method:'POST',headers:{'Content-Type':'application/json','X-Caprii-Extension':chrome.runtime.id,Authorization:'Bearer '+connection.code},body:JSON.stringify(data),signal:AbortSignal.timeout(5000)});}catch{throw failure('ติดต่อแอป Caprii ไม่ได้ เปิด Caprii แล้วตรวจการเชื่อมต่ออีกครั้ง','offline');}
+ if(r.status===403)throw failure('รหัสเชื่อมต่อหรือส่วนขยายไม่ตรงกับแอป คัดลอกรหัสใหม่จาก Caprii','auth');
+ if(r.status===409)throw failure('รอบการเชื่อมต่อหมดอายุ เชื่อมแท็บนี้อีกครั้งด้วยรหัสปัจจุบัน','session');
+ if(!r.ok)throw failure('แอปตอบกลับข้อผิดพลาด ('+r.status+')','server');return r.json();
+}
+const selected=async()=> (await chrome.storage.session.get('connection')).connection;
+const same=async c=>{const current=await selected();return current?.session===c.session&&current.tabId===c.tabId;};
+function wake(delay=0){clearTimeout(pumpTimer);pumpTimer=setTimeout(pump,delay);}
+async function inject(tabId){await chrome.scripting.executeScript({target:{tabId},files:['spotify-dom.js','dom.js','content.js']});}
+async function disconnect(expected){
+ const current=await selected();if(!current||expected&&current.session!==expected.session)return;
+ epoch++;clearTimeout(pumpTimer);await chrome.storage.session.remove('connection');
+ await request('/disconnect',{session:current.session},current).catch(()=>{});
+}
+async function checkTab(c){if(!await same(c))throw failure('เปลี่ยนแท็บที่เชื่อมแล้ว','changed');let tab;try{tab=await chrome.tabs.get(c.tabId);}catch{throw failure('แท็บที่เชื่อมปิดแล้ว เลือกแท็บที่ต้องการและเชื่อมใหม่','tab');}if(new URL(tab.url).origin!==c.origin)throw failure('แท็บออกไปคนละเว็บไซต์ ต้องเชื่อมใหม่','origin');return tab;}
+async function execute(c,command){
+ await checkTab(c);
+ if(command.op==='media-navigate'){
+  const url=new URL(command.args.url);
+  if(c.origin!=='https://open.spotify.com'||url.origin!==c.origin||url.username||url.password||!/^\/(?:search(?:\/[^?#]*)?|collection(?:\/(?:tracks|playlists))?|playlist\/[A-Za-z0-9]+|track\/[A-Za-z0-9]+)\/?$/.test(url.pathname))throw Error('ไม่อนุญาตให้ย้ายออกจากหน้าสื่อ Spotify');
+  await chrome.tabs.update(c.tabId,{url:url.href});return{performed:true,url:url.href};
+ }
+ if(command.op==='spotify'&&c.origin!=='https://open.spotify.com')throw Error('ต้องเชื่อมแท็บ Spotify ก่อน');
+ const run=()=>chrome.scripting.executeScript({target:{tabId:c.tabId},func:async(op,args)=>{
+  if(typeof globalThis.createCapriiDOMBridge!=='function'||typeof globalThis.createCapriiSpotifyDOMBridge!=='function')return{needsInjection:true};
+  const state=globalThis.__capriiBridges071||(globalThis.__capriiBridges071={dom:createCapriiDOMBridge(),spotify:createCapriiSpotifyDOMBridge()});
+  return{value:await(op==='spotify'?state.spotify.execute(args):state.dom.execute(op,args))};
+ },args:[command.op,command.args||{}]});
+ let result=await run();if(result[0]?.result?.needsInjection){await inject(c.tabId);await checkTab(c);result=await run();}
+ if(!result[0]?.result||!('value'in result[0].result))throw Error('แท็บยังไม่พร้อมรับคำสั่ง รีเฟรชแท็บแล้วเชื่อมใหม่');
+ return result[0].result.value;
+}
+async function pump(){
+ if(running)return;running=true;let connection;const cycle=epoch;
+ try{
+  connection=await selected();if(!connection)return;
+  const tab=await checkTab(connection);
+  if(tab.status==='loading'){await request('/ping',{session:connection.session},connection);failures=0;return;}
+  const packet=await request('/poll',{session:connection.session},connection);failures=0;
+  if(packet.command&&cycle===epoch&&await same(connection)){
+   const command=packet.command;let result,error;
+   try{result=await execute(connection,command);}catch(e){error=e.message;}
+   // Never retry a consumed mutation after a missing acknowledgment.
+   if(await same(connection))await request('/reply',{session:connection.session,id:command.id,result,error},connection);
+  }
+ }catch(error){
+  failures++;
+  if(connection&&['auth','session','origin','tab'].includes(error.code))await disconnect(connection);
+ }finally{
+  running=false;
+  if(await selected()&&failures<6)wake(failures?Math.min(5000,500*2**failures):350);
+ }
 }
 chrome.runtime.onMessage.addListener((message,sender,reply)=>{
  (async()=>{
-  const {connection}=await chrome.storage.session.get('connection');
+  const connection=await selected();
   if(message.type==='connect'&&!sender.tab){
-   const [tab]=await chrome.tabs.query({active:true,currentWindow:true});const url=new URL(tab.url);if(!['http:','https:'].includes(url.protocol))throw Error(url.protocol==='file:'?'หน้านี้เปิดจากไฟล์ ให้คลิกขวา Caprii → เปิดเว็บทดสอบ Caprii แล้วเชื่อมแท็บ http://127.0.0.1 ที่แอปเปิดให้':'แท็บนี้ไม่รองรับ เลือกหน้าเว็บ http หรือ https ก่อน');
-   const next={code:message.code,tabId:tab.id,origin:url.origin,title:tab.title,url:tab.url};const result=await request('/connect',{url:tab.url,title:tab.title,media:true},next);next.session=result.session;
+   const [tab]=await chrome.tabs.query({active:true,currentWindow:true});const url=new URL(tab.url);
+   if(!['http:','https:'].includes(url.protocol))throw Error(url.protocol==='file:'?'หน้านี้เปิดจากไฟล์ คลิกขวา Caprii → เปิดเว็บทดสอบ Caprii แล้วเชื่อมแท็บ http://127.0.0.1':'เลือกแท็บ http หรือ https ก่อน');
+   epoch++;clearTimeout(pumpTimer);
+   const next={code:message.code,tabId:tab.id,origin:url.origin,title:tab.title,url:tab.url};
+   const result=await request('/connect',{url:tab.url,title:tab.title,media:true,transport:'worker'},next);next.session=result.session;
+   if(result.transport!=='worker'){await request('/disconnect',{session:next.session},next).catch(()=>{});throw Error('อัปเดตแอป Caprii เป็น 0.7.1 ก่อนใช้ส่วนขยายรุ่นนี้');}
    await chrome.storage.session.set({connection:next,lastCode:message.code});
-   try{await chrome.scripting.executeScript({target:{tabId:tab.id},files:['spotify-dom.js','dom.js','content.js']});}catch{await request('/disconnect',{session:next.session},next).catch(()=>{});await chrome.storage.session.remove('connection');throw Error('ส่วนขยายเข้าแท็บนี้ไม่ได้ รีเฟรชหน้าเว็บแล้วกดอนุญาตอีกครั้ง');}return{ok:true};
+   try{await inject(tab.id);}catch{await disconnect(next);throw Error('ส่วนขยายเข้าแท็บนี้ไม่ได้ รีเฟรชหน้าเว็บแล้วกดอนุญาตอีกครั้ง');}
+   failures=0;wake();return{ok:true};
   }
-  if(message.type==='disconnect'&&!sender.tab){if(connection)await request('/disconnect',{session:connection.session},connection).catch(()=>{});await chrome.storage.session.remove(['connection','lastCode']);return{ok:true};}
-  if(message.type==='status'&&!sender.tab)return{connected:!!connection,title:connection?.title,url:connection?.url,code:(await chrome.storage.session.get('lastCode')).lastCode||''};
-  if(!connection||sender.tab?.id!==connection.tabId||new URL(sender.url).origin!==connection.origin)return{stop:true};
-  if(message.type==='mediaNavigate'){
-   const url=new URL(message.url);
-   if(connection.origin!=='https://open.spotify.com'||url.origin!==connection.origin||url.username||url.password||!/^\/(?:search(?:\/[^?#]*)?|collection(?:\/(?:tracks|playlists))?|playlist\/[A-Za-z0-9]+|track\/[A-Za-z0-9]+)\/?$/.test(url.pathname))throw Error('ไม่อนุญาตให้ย้ายออกจากหน้าสื่อ Spotify');
-   try{await chrome.tabs.update(connection.tabId,{url:url.href});await request('/reply',{session:connection.session,id:message.id,result:{performed:true,url:url.href}},connection);return{ok:true};}
-   catch(error){await request('/reply',{session:connection.session,id:message.id,error:error.message},connection);throw error;}
+  if(message.type==='disconnect'&&!sender.tab){await disconnect();await chrome.storage.session.remove('lastCode');return{ok:true};}
+  if(message.type==='status'&&!sender.tab){
+   const code=(await chrome.storage.session.get('lastCode')).lastCode||'';
+   if(!connection)return{connected:false,code};
+   try{await checkTab(connection);const live=await request('/ping',{session:connection.session},connection);if(live.transport!=='worker')throw failure('เชื่อมแท็บนี้ใหม่อีกครั้งเพื่อใช้ตัวส่งคำสั่งรุ่นใหม่','session');failures=0;wake();return{connected:true,title:connection.title,url:connection.url,code};}
+   catch(error){if(['auth','session','origin','tab'].includes(error.code))await disconnect(connection);else{failures=0;wake(500);}return{connected:false,paired:!!await selected(),error:error.message,code};}
   }
-  if(message.type==='poll')return request('/poll',{session:connection.session},connection);
-  if(message.type==='reply')return request('/reply',{session:connection.session,id:message.id,result:message.result,error:message.error},connection);
-  throw Error('Unsupported message');
+  // Old page-timer pollers must not compete with the background dispatcher.
+  return{stop:true};
  })().then(reply,error=>reply({error:/[\u0e00-\u0e7f]/.test(error.message)?error.message:'เชื่อมต่อ Caprii ไม่สำเร็จ กรุณาตรวจโปรแกรมและรหัส'}));return true;
 });
-chrome.tabs.onRemoved.addListener(async id=>{const {connection}=await chrome.storage.session.get('connection');if(connection?.tabId===id){await request('/disconnect',{session:connection.session},connection).catch(()=>{});await chrome.storage.session.remove('connection');}});
+chrome.tabs.onRemoved.addListener(async id=>{const c=await selected();if(c?.tabId===id)await disconnect(c);});
 chrome.tabs.onUpdated.addListener(async(id,change,tab)=>{
- const {connection}=await chrome.storage.session.get('connection');if(connection?.tabId!==id)return;
+ const c=await selected();if(c?.tabId!==id)return;
  if(change.url){
-  if(new URL(change.url).origin!==connection.origin){await request('/disconnect',{session:connection.session},connection).catch(()=>{});await chrome.storage.session.remove('connection');return;}
-  connection.url=change.url;connection.title=tab?.title||connection.title;await chrome.storage.session.set({connection});
-  await request('/location',{session:connection.session,url:connection.url,title:connection.title},connection).catch(()=>{});
+  if(new URL(change.url).origin!==c.origin){await disconnect(c);return;}
+  c.url=change.url;c.title=tab?.title||c.title;await chrome.storage.session.set({connection:c});
+  await request('/location',{session:c.session,url:c.url,title:c.title},c).catch(()=>{});
  }
- if(change.status==='complete')try{await chrome.scripting.executeScript({target:{tabId:id},files:['spotify-dom.js','dom.js','content.js']});}catch{await request('/disconnect',{session:connection.session},connection).catch(()=>{});await chrome.storage.session.remove('connection');}
+ if(change.status==='complete'){failures=0;wake();}
 });
+chrome.runtime.onStartup?.addListener(()=>wake());
+// Resume a still-authorized session when Chrome wakes this worker. No new tabs are granted.
+selected().then(c=>{if(c)wake();});

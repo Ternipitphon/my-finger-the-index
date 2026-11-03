@@ -13,7 +13,7 @@ function destination(r){return r.collection==='liked'?'https://open.spotify.com/
 async function runSpotify({request,browser,signal,onProgress=()=>{},sleep=wait,maxChecks=12}){
  const r=validateMedia(request);let observed,clicked=false,expectedTrack=null;
  const inspect=()=>browser.spotify({action:'inspect'},signal);
- async function go(url){url=spotifyURL(url);onProgress('กำลังเปิดหน้า Spotify ที่ต้องการ');await browser.mediaNavigate(url,signal);for(let i=0;i<20;i++){signal?.throwIfAborted();observed=await inspect();if(new URL(observed.url).pathname===new URL(url).pathname){if(observed.loggedOut)throw Error('กรุณาเข้าสู่ระบบ Spotify ก่อน ยังไม่ได้กดเล่น');return observed;}await sleep(350,signal);}throw Error('หน้า Spotify ยังไม่พร้อม ยังไม่ได้กดเล่น');}
+ async function go(url){url=spotifyURL(url);onProgress('กำลังเปิดหน้า Spotify ที่ต้องการ');if(new URL(observed.url).pathname!==new URL(url).pathname)await browser.mediaNavigate(url,signal);for(let i=0;i<20;i++){signal?.throwIfAborted();observed=await inspect();if(new URL(observed.url).pathname===new URL(url).pathname){if(observed.loggedOut)throw Error('กรุณาเข้าสู่ระบบ Spotify ก่อน ยังไม่ได้กดเล่น');return observed;}await sleep(350,signal);}throw Error('หน้า Spotify ยังไม่พร้อม ยังไม่ได้กดเล่น');}
  try{
   observed=await inspect();if(observed.loggedOut)throw Error('กรุณาเข้าสู่ระบบ Spotify ก่อน ยังไม่ได้กดเล่น');
   if(r.collection==='liked')await go('https://open.spotify.com/collection/tracks');

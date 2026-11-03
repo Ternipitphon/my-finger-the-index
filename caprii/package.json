@@ -1,6 +1,6 @@
 {
   "name": "capri-desktop",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Caprii: Thai/English desktop and project AI agent with confirmed tools, bounded chat, browser automation and Windows controls.",
   "author": "mochiiwuff",
   "repository": "github:mochiiwuff/capri-desktop",
@@ -31,6 +31,7 @@
     "lab": "node test-lab/server.mjs",
     "test:lab": "npm --prefix test-lab test",
     "test:lab-ui": "electron test-lab/tests/browser-smoke.cjs",
+    "test:media-transport": "electron scripts/media-transport-smoke.cjs",
     "test:media-ui": "electron scripts/media-smoke.cjs",
     "test:images-ui": "electron scripts/attachments-smoke.cjs"
   },

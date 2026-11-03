@@ -326,7 +326,7 @@ function rebuildTray() {
     {label:'เปิดเว็บทดสอบ Caprii',click:async()=>{try{await testLab.open();}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดเว็บทดสอบไม่สำเร็จ',detail:err.message});}}},
     {label:'เปิดโฟลเดอร์ส่วนขยาย Chrome',click:()=>shell.openPath(app.isPackaged?path.join(process.resourcesPath,'browser-extension'):path.join(__dirname,'../../browser-extension'))},
     {id:'caprii-pair',label:'เชื่อมแท็บ Chrome…',click:async()=>{
-      try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?'เชื่อมอยู่: '+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nรหัสใช้เฉพาะรอบที่เปิดโปรแกรม ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
+      try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?(selected.responsive?'แท็บตอบรับอยู่: ':'มีการอนุญาตแท็บไว้ แต่กำลังรอสัญญาณ: ')+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nรหัสใช้เฉพาะรอบที่เปิดโปรแกรม ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
     }},
     {label:resolveLang(cfg.lang)==='en'?'Read dialogue aloud (English voice)':'อ่านบทพูดด้วยเสียงไทย',type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
     { id:'caprii-auto-actions', label:'โหมดไม่ถาม: จอ/เว็บ/เปิดไฟล์และโปรแกรม (จนปิด Caprii)', type:'checkbox', checked:automaticActions, click:item=>{
@@ -1045,9 +1045,10 @@ function registerIpc() {
       const status=chromeBroker.status();
       if(!status.connected||new URL(status.url).origin!=='https://open.spotify.com'){
         await require('./launch').site(destination(media));
-        return{ok:false,verified:false,code:'connect_spotify',text:'เปิดหน้า Spotify ให้แล้ว แต่ยังไม่ได้เล่นเพลง เข้าสู่ระบบและเชื่อมแท็บ Spotify ผ่านส่วนขยาย Caprii ก่อน แล้วพิมพ์ “เล่นเลย” หรือคำสั่งเดิม'};
+        return{ok:false,verified:false,code:'connect_spotify',text:status.connected?'แท็บที่เชื่อมอยู่คือ '+new URL(status.url).hostname+' ยังไม่ใช่ Spotify เปิดหน้า Spotify ให้แล้ว ให้เชื่อมแท็บ open.spotify.com แล้วพิมพ์ “เล่นเลย”':'ยังไม่มีแท็บเชื่อมกับ Caprii รอบนี้ เปิดหน้า Spotify ให้แล้ว เข้าสู่ระบบและเชื่อมแท็บ open.spotify.com ก่อน แล้วพิมพ์ “เล่นเลย”'};
       }
-      if(!status.media)return{ok:false,verified:false,text:'ส่วนขยายที่เชื่อมยังไม่รองรับเล่นเพลง รีโหลดส่วนขยายจากโฟลเดอร์ Caprii 0.7.0 แล้วเชื่อมแท็บ Spotify ใหม่ก่อนครับ'};
+      if(!status.media)return{ok:false,verified:false,text:'ส่วนขยายที่เชื่อมยังไม่รองรับเล่นเพลง รีโหลดส่วนขยายจากโฟลเดอร์ Caprii 0.7.1 แล้วเชื่อมแท็บ Spotify ใหม่ก่อนครับ'};
+      if(!status.worker)return{ok:false,verified:false,text:'ส่วนขยายยังใช้ตัวส่งคำสั่งแบบเก่า รีโหลดส่วนขยาย Caprii 0.7.1 แล้วเชื่อมแท็บ Spotify ใหม่ครั้งเดียวครับ'};
       const result=await runSpotify({request:media,browser:chromeBroker.browser(),signal,onProgress:text=>overlay?.webContents.send('chat:delta',{id:request.id,text:text+'\n'})});
       if(resolveLang(config.load().lang)==='en'&&result.verified)result.text='Spotify shows “'+result.track+'” playing and the playback position is advancing.';
       return result;

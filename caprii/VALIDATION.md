@@ -1,3 +1,11 @@
+# Caprii 0.7.1 validation
+
+- 205 app checks include the >8-second false-disconnection regression using an injected clock, live popup acknowledgment, transient-offline recovery with the same session, no replay after a lost mutation acknowledgment, same-origin lease retention and cross-origin revocation.
+- End-to-end fixture uses the real authenticated HTTP broker, emulated extension worker APIs and real Electron Spotify-shaped DOM. Page timers are disabled in the isolated world; playback and advancing position still verify. The selected tab is the only target, already-open Liked Songs is not reloaded, and changing origin disconnects. The >8-second age is simulated, not a claim of real Chrome background lifecycle QA.
+- 4 Test Lab checks and the existing 8 DOM browser scenarios pass; external-media examples stay unmeasured by the Test Lab page. Existing media DOM checks pass.
+- Bundled-resource validation includes exact worker source match, inactive legacy content polling, Spotify driver parity and the Windows runtime.
+- Real Chrome installation/background suspension, Spotify account/audio and Windows installation remain untested. The managed browser blocks unpacked extensions; no policy bypass. Installer is unsigned and cross-built. No website deployment.
+
 # Caprii 0.7.0 validation
 
 - Same-title/same-performer releases use Spotify search rank when no release was requested; distinct performers remain ambiguous and require clarification.

@@ -38,7 +38,6 @@ function createSpotifyDOMBridge(){
   if(playing(button))return{clicked:false,alreadyPlaying:true,observed:before};
   // A fixed play button is the only mutation. No like/save/shuffle/device/account changes.
   button.scrollIntoView({block:'center'});button.click();
-  await new Promise(r=>setTimeout(r,200));
   return{clicked:true,observed:inspect()};
  }
  return{execute};

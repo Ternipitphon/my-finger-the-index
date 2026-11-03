@@ -1,3 +1,7 @@
+## 1.5.1 / Caprii 0.7.1
+
+เพิ่มแนวทางตรวจสถานะเชื่อมจริง แยก paired/responsive และทดสอบ HTTP broker + worker emulation + Spotify DOM โดยปิด page timers ไม่เพิ่มคะแนนผ่าน native/Spotify จริง รักษา 8 เคส DOM และ 4 external-media IDs เดิม
+
 ## 1.5.0 / Caprii 0.7.0
 
 เพิ่มตัวอย่าง stable IDs สำหรับ YouTube search, Spotify liked/track/playlist แยกจาก 8 เคส DOM เดิม รายงาน externalMedia เป็น not-measured-by-this-page ไม่มีปุ่ม manual pass; เพิ่ม Electron media fixture สำหรับตรวจชื่อเพลง/ศิลปินและเวลาเดิน

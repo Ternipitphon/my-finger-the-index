@@ -3,10 +3,10 @@ const http=require('node:http');
 const {randomBytes,timingSafeEqual}=require('node:crypto');
 const {browserUrl}=require('./agent-browser');
 const identity=require('./extension-identity.json');
-function createChromeBroker({port=47824,token=randomBytes(32).toString('base64url'),extensionId=identity.id,timeoutMs=12000}={}){
+function createChromeBroker({port=47824,token=randomBytes(32).toString('base64url'),extensionId=identity.id,timeoutMs=12000,now=Date.now}={}){
  let server,starting,connection=null;const pending=new Map(),queue=[];
  const cancel=message=>{for(const p of pending.values())p.reject(Error(message));pending.clear();queue.length=0;};
- const status=()=>connection&&Date.now()-connection.last<8000?{connected:true,url:connection.url,title:connection.title,media:connection.media}:{connected:false,paired:!!connection};
+ const status=()=>connection?{connected:true,responsive:now()-connection.last<8000,url:connection.url,title:connection.title,media:connection.media,worker:connection.worker}:{connected:false,paired:!!connection};
  function authorized(req){const got=Buffer.from(req.headers.authorization||''),want=Buffer.from('Bearer '+token);return req.headers['x-caprii-extension']===extensionId&&got.length===want.length&&timingSafeEqual(got,want);}
  async function body(req){let chunks=[],bytes=0;for await(const chunk of req){bytes+=chunk.length;if(bytes>256*1024)throw Error('Request too large');chunks.push(chunk);}return JSON.parse(Buffer.concat(chunks).toString('utf8')||'{}');}
  async function handle(req,res){
@@ -20,11 +20,12 @@ function createChromeBroker({port=47824,token=randomBytes(32).toString('base64ur
    const data=await body(req);
    if(req.url==='/connect'){
     const url=browserUrl(data.url);cancel('เชื่อมต่อแท็บใหม่แล้ว');
-    connection={session:randomBytes(16).toString('hex'),media:data.media===true,url,title:String(data.title||'').slice(0,200),last:Date.now()};
-    return res.end(JSON.stringify({session:connection.session}));
+    connection={session:randomBytes(16).toString('hex'),media:data.media===true,worker:data.transport==='worker',url,title:String(data.title||'').slice(0,200),last:now()};
+    return res.end(JSON.stringify({session:connection.session,transport:connection.worker?'worker':'page'}));
    }
    if(!connection||data.session!==connection.session){res.writeHead(409);return res.end(JSON.stringify({error:'เชื่อมต่อใหม่ก่อน'}));}
-   connection.last=Date.now();
+   connection.last=now();
+   if(req.url==='/ping')return res.end(JSON.stringify({connected:true,url:connection.url,title:connection.title,transport:connection.worker?'worker':'page'}));
    if(req.url==='/location'){const url=browserUrl(data.url);if(new URL(url).origin!==new URL(connection.url).origin)throw Error('เปลี่ยนข้ามเว็บไซต์ ต้องเชื่อมแท็บใหม่');connection.url=url;connection.title=String(data.title||connection.title).slice(0,200);return res.end('{}');}
    if(req.url==='/poll')return res.end(JSON.stringify({command:queue.shift()||null}));
    if(req.url==='/reply'){
@@ -49,8 +50,8 @@ function createChromeBroker({port=47824,token=randomBytes(32).toString('base64ur
   const remember=data=>{if(!data||!Array.isArray(data.elements)||typeof data.generation!=='string')throw Error('ข้อมูลแท็บไม่สมบูรณ์ กรุณาเชื่อมต่อใหม่');last=data;return data;};
   const snapshot=async signal=>{checkLease();return remember(await command('read',{},signal));};
   return{connected:true,
-   spotify:async(args,signal)=>{checkLease();if(!connection?.media)throw Error('รีโหลดส่วนขยาย Caprii 0.7.0 แล้วเชื่อมแท็บ Spotify ใหม่ก่อน');if(new URL(connection.url).origin!=='https://open.spotify.com')throw Error('ต้องเชื่อมแท็บ Spotify ก่อน');return command('spotify',args,signal);},
-   mediaNavigate:async(url,signal)=>{checkLease();if(!connection?.media)throw Error('รีโหลดส่วนขยาย Caprii 0.7.0 แล้วเชื่อมแท็บ Spotify ใหม่ก่อน');if(new URL(connection.url).origin!=='https://open.spotify.com')throw Error('ต้องเชื่อมแท็บ Spotify ก่อน');return command('media-navigate',{url:require('./media-url').spotifyURL(url)},signal);},
+   spotify:async(args,signal)=>{checkLease();if(!connection?.media)throw Error('รีโหลดส่วนขยาย Caprii 0.7.1 แล้วเชื่อมแท็บ Spotify ใหม่ก่อน');if(new URL(connection.url).origin!=='https://open.spotify.com')throw Error('ต้องเชื่อมแท็บ Spotify ก่อน');return command('spotify',args,signal);},
+   mediaNavigate:async(url,signal)=>{checkLease();if(!connection?.media)throw Error('รีโหลดส่วนขยาย Caprii 0.7.1 แล้วเชื่อมแท็บ Spotify ใหม่ก่อน');if(new URL(connection.url).origin!=='https://open.spotify.com')throw Error('ต้องเชื่อมแท็บ Spotify ก่อน');return command('media-navigate',{url:require('./media-url').spotifyURL(url)},signal);},
    description:()=>status(),snapshot,
    navigate:async(url,signal)=>{if(browserUrl(url)!==connection?.url)throw Error('ส่วนขยายควบคุมเฉพาะแท็บที่เลือก ใช้ browser.read หรือเลือกเชื่อมแท็บใหม่');return snapshot(signal);},
    target:a=>{checkLease();if(!last||a.generation!==last.generation)throw Error('อ่านหน้าเว็บใหม่ก่อน');const e=last.elements.find(e=>e.id===a.id);if(!e)throw Error('ไม่พบช่องหรือปุ่ม');return{url:last.url,...e};},

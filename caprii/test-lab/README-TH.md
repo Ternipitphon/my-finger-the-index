@@ -67,3 +67,5 @@ npm run test:browser
 0.6.3: ทดสอบลากปกติและ Ctrl+Alt+M หลังใช้หลายรอบ เปรียบเทียบอาการคู่กัน การอ่านปุ่ม Windows และการลาก native ไม่ถูกรวมเป็นคะแนนผ่าน DOM สคริปต์ companion-smoke ทดสอบ 30 รอบด้วยสถานะปุ่มจำลอง
 
 0.7.0: ตัวอย่าง YouTube และ Spotify อยู่เหนือโจทย์ รายงานแยก externalMedia=not-measured-by-this-page เพราะหน้า Test Lab ไม่เห็น browser ภายนอก รัน npm run test:media-ui เพื่อทดสอบ Spotify-shaped DOM fixture แบบไม่มีบัญชีจริง ไม่ได้พิสูจน์เสียงหรือ Spotify จริง
+
+0.7.1: npm run test:media-transport ใช้ HTTP broker จริง รหัส fixture และ worker จำลองต่อกับ DOM จริงใน Electron ทดสอบการพัก heartbeat เกิน 8 วินาทีด้วยนาฬิกาจำลอง ปิดตัวจับเวลาใน isolated page และตรวจเวลาเพลงเดิน ไม่ใช่การทดสอบบัญชี Spotify/Chrome จริง
