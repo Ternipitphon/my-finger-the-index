@@ -1,10 +1,14 @@
 // Add cases here when Caprii gains a capability; keep stable IDs for regression history.
 (function(root){
- const suite={schemaVersion:1,version:'1.6.2',capriiVersion:'0.7.5',capriiCommit:null,baseCommit:'5b419777431d4bf2dd871077c852ad7709c4eb78',externalMedia:[
+ const suite={schemaVersion:1,version:'1.7.0',capriiVersion:'0.7.6',capriiCommit:null,baseCommit:'c667fb150154b7206285caac6e2e6195124232e2',externalMedia:[
  {id:'youtube-search',prompt:'เปิดyoutubeแล้วก็ค้นหาว่าlimbus',expected:'เปิดหน้าผลค้นหา YouTube คำว่า limbus ใน default browser'},
  {id:'spotify-liked',prompt:'เปิด spotifyแล้วกดเล่นเพลงในliked song',expected:'อ่านแท็บ Spotify ที่ล็อกอินและเชื่อมอยู่ เปิด Liked Songs กดเล่นครั้งเดียว และตรวจเวลาเพลงเดิน'},
  {id:'spotify-track',prompt:'เปิดเพลงชื่อ Harpy Hare ของ Yaelokre ใน Spotify',expected:'ชื่อและศิลปินตรง หากหลายเวอร์ชันให้ถาม ไม่เล่นผลแรกแบบสุ่ม'},
  {id:'spotify-playlist',prompt:'เล่นเพลงใน playlist นี้',expected:'ใช้เพลย์ลิสต์ที่เปิดอยู่ หากระบุไม่ได้ให้ถามชื่อหรือลิงก์ ไม่เลือกเพลย์ลิสต์แรกเอง'}
+,
+ {id:'spotify-reopen',prompt:'ปิดแท็บ Spotify แล้วให้ Caprii เปิด Spotify และเล่นเพลง',expected:'รอแท็บใหม่เชื่อมและโหลดเสร็จ ใช้เอกสารใหม่ ตรวจเวลาและสัญญาณเสียง Chrome แยกกัน'},
+ {id:'spotify-controls',prompt:'หยุดเพลง แล้วข้ามเพลงใน Spotify',expected:'กดปุ่มตัวเล่น Spotify ครั้งเดียว ตรวจเวลาหยุดและเพลงเปลี่ยน ไม่ใช้ media keys ลอย ๆ'},
+ {id:'spotify-auto',prompt:'เปิด Spotify',expected:'เปิดแล้วเล่นเพลงล่าสุดเมื่อเปิดตั้งค่าไว้ ปิดตั้งค่าแล้วเปิดอย่างเดียว ไม่มีเพลงล่าสุดต้องแจ้ง'}
  ],browserConnection:{id:'remember-chrome',prompt:'เปิดโหมดจำ Chrome ปิดแท็บ Spotify แล้วเปิดแท็บ Spotify ใหม่',expected:'เชื่อมแท็บใหม่โดยไม่กรอกรหัสใหม่เมื่อแอปเดิมยังเปิดอยู่ ถอนสิทธิ์แล้วหยุดเชื่อม ไม่สลับแท็บกลางงาน',status:'not-measured-by-this-page'},cases:[
  {id:'read',number:'01',name:'อ่านให้เข้าใจ',category:'อ่านเว็บ',icon:'↗',description:'อ่านข้อความบนหน้า แล้วนำข้อมูลที่อ่านได้มาใช้',prompt:'ร้านแมวอวกาศนี่ส่งของกี่วันอะ กรอกจำนวนวันกับรหัสออเดอร์ในบัตรลงช่องให้ที แล้วตรวจคำตอบให้หน่อย',checks:['กรอกรหัสออเดอร์ถูกต้อง','กรอกจำนวนวันจัดส่งถูกต้อง','กดตรวจคำตอบบนหน้า']},
  {id:'form',number:'02',name:'กรอกให้ครบ',category:'กรอกฟอร์ม',icon:'⌘',description:'ข้อความ อีเมล ประเทศ และช่องติ๊ก ในฟอร์มเดียว',prompt:'ช่องชื่อนั่นใส่แมวบิน เมลเอา meow@example.test ประเทศเอาไทย ติ๊กยอมรับด้วย แล้วส่งให้ที ดูด้วยว่าส่งติดจริงปะ',checks:['ชื่อและอีเมลตรงตามคำสั่ง','เลือกไทยและติ๊กยอมรับ','ส่งฟอร์มเพียงหนึ่งครั้ง']},

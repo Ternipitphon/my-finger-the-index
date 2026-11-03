@@ -6,6 +6,9 @@ export function mediaCommand(text,previous=null){
  if(typeof text!=='string')return null;
  let t=text.trim().replace(/^(?:ช่วย|กรุณา|please)\s*/i,'');
  if(/^(?:อย่า|ห้าม|ไม่ต้อง|do not|don't)\s*/i.test(t)||/^(?:สอน|อธิบาย|ทำไม|ผมบอก|ฉันบอก|how to|why)/i.test(t))return null;
+ const control=/^(?:กด)?(?:หยุด(?:เพลง|เล่น)?|พักเพลง|pause|stop)(?:\s*(?:ใน|บน|on)?\s*(?:spotify|สปอติฟาย))?(?:\s*(?:หน่อย|ครับ|ค่ะ))?$/i.test(t)?'pause':/^(?:กด)?(?:ข้าม(?:เพลง)?|เพลงถัดไป|เพลงต่อไป|next(?: song| track)?)(?:\s*(?:ใน|บน|on)?\s*(?:spotify|สปอติฟาย))?(?:\s*(?:หน่อย|ครับ|ค่ะ))?$/i.test(t)?'next':/^(?:เพลงก่อนหน้า|เพลงก่อน|previous(?: song| track)?)(?:\s*(?:ใน|บน|on)?\s*(?:spotify|สปอติฟาย))?$/i.test(t)?'previous':null;
+ if(control&&(SP.test(t)||previous?.service==='spotify'))return{service:'spotify',action:control,collection:'current'};
+ if(/^(?:เปิด(?:เว็บ)?|open(?:\s+(?:website|url))?)\s*https?:\/\//i.test(t))return null;
  if(previous?.awaiting==='artist'){
   const artist=polite(t.replace(/^(?:ของ|ศิลปิน|by)\s*/i,''));
   const named=/^(?:ของ|ศิลปิน|by)\s*/i.test(t)||(previous.choices||[]).some(c=>(c.artists||[]).some(a=>a.toLowerCase()===artist.toLowerCase()));
@@ -17,7 +20,7 @@ export function mediaCommand(text,previous=null){
   if(link)return{service:'spotify',action:'play',collection:'playlist',url:link};
   if((previous.choices||[]).some(c=>typeof c==='string'&&c.toLowerCase()===name.toLowerCase()))return{service:'spotify',action:'play',collection:'playlist',query:name};
  }
- if(/^(?:เล่นเลย|เปิดเลย|เล่นต่อ|ต่อเลย|เอาเลย|play it|resume)$/i.test(t)&&previous){if(previous.service==='spotify')return previous.action==='search'?{service:'spotify',action:'play',collection:'track',query:previous.query}:{...previous};return{question:'ต้องการเปิดคลิปไหนในผลค้นหา YouTube ครับ?'};}
+ if(/^(?:เล่นเลย|เปิดเลย|เล่นต่อ|ต่อเลย|เอาเลย|play it|resume)$/i.test(t)&&previous){if(previous.service==='spotify')return ['pause','next','previous'].includes(previous.action)?{service:'spotify',action:'play',collection:'current'}:previous.action==='search'?{service:'spotify',action:'play',collection:'track',query:previous.query}:{...previous};return{question:'ต้องการเปิดคลิปไหนในผลค้นหา YouTube ครับ?'};}
  if(!/^(?:เปิด|เล่น|กดเล่น|ค้นหา|หา|ไป|ช่วย|play|open|search|resume)/i.test(t))return null;
  const youtube=YT.test(t),spotify=SP.test(t);
  if(youtube){

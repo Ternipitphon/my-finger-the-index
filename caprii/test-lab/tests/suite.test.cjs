@@ -17,4 +17,4 @@ test('test server serves the lab, rejects writes, and never exposes repository f
  assert.equal((await fetch(base+'/server.mjs')).status,404);assert.equal((await fetch(base+'/../package.json')).status,404);assert.equal((await fetch(base,{method:'POST'})).status,405);
 });
 
-test('external media examples have stable IDs and never claim DOM playback verification',()=>{assert.equal(suite.browserConnection.id,'remember-chrome');assert.equal(suite.browserConnection.status,'not-measured-by-this-page');assert.equal(suite.externalMedia.length,4);assert.equal(new Set(suite.externalMedia.map(x=>x.id)).size,4);for(const e of suite.externalMedia)assert.ok(e.prompt&&e.expected);});
+test('external media examples have stable IDs and never claim DOM playback verification',()=>{assert.equal(suite.browserConnection.id,'remember-chrome');assert.equal(suite.browserConnection.status,'not-measured-by-this-page');assert.equal(suite.externalMedia.length,7);assert.equal(new Set(suite.externalMedia.map(x=>x.id)).size,7);for(const e of suite.externalMedia)assert.ok(e.prompt&&e.expected);});

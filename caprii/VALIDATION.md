@@ -1,3 +1,13 @@
+# Caprii 0.7.6 validation
+
+- 235 application tests, 4 lab checks, 8 browser DOM cases and the media UI/transport fixtures pass.
+- Autoplay is enabled for an explicit plain Spotify-open command and can be disabled in the tray menu. Failed/cancelled opens, other websites and deep links do not autoplay. Only validated public track metadata is remembered locally, with URL tracking parameters removed.
+- Reconnect waits for the new active Spotify document before capturing a browser lease. The media preparation phase permits Spotify-only handoff without interrupting other tasks; remembered browser grants survive tab closure.
+- Spotify pause, next and previous use fixed page controls with result checks. Document IDs reject stale mutations. Locale-prefixed Spotify URLs remain scoped to supported media paths.
+- Chrome tab audio is distinguished from advancing playback position and from physical speaker audibility. Restored already-playing/no-audio state gets one same-track reload; fresh silent intros are not restarted. Muted tabs are diagnosed. Only an exact observed This web browser device option may be selected.
+- Actual Electron DOM fixture closes/reopens a new window, restores a silent advancing clock, recovers the same track, pauses, skips, rejects old document IDs, detects mute and selects an exact local device. Audio flags and Spotify pages are fixtures, not real audio or a real account.
+- Real HTTP broker/worker-emulation regression and 8 local Test Lab DOM cases remain separate from real Chrome/Windows/audio validation. Real Chrome account playback, autoplay permissions, device picker variants and physical output remain untested. No website deployment.
+
 # Caprii 0.7.5 validation
 
 - 217 app tests, 4 local lab checks and 8 DOM browser cases pass.

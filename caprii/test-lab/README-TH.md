@@ -1,3 +1,5 @@
+Caprii 0.7.6: 8 เคส DOM และ 7 ตัวอย่างสื่อภายนอก ใช้ test:media-ui ตรวจ reopen/control/audio fixtures เสียง Chrome และเสียงลำโพงเป็นคนละหลักฐาน
+
 Caprii 0.7.5: test:talk-ui ทดสอบปุ่มคุยเมื่อ DOM click หายและเมื่อแอนิเมชันทำให้ข้อความขึ้นบรรทัดใหม่ ยังต้องตรวจ Windows จริง
 
 Caprii 0.7.4: ตรวจปุ่มคุยด้วย npm run test:talk-ui แยกจากคะแนน DOM เดิม

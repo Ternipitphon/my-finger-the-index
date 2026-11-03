@@ -51,7 +51,8 @@ let chatErrorCode = null; // 'nokey' or 'nourl': what her setup should ask for
 // Ollama's cloud, as last seen: your account ({ name } or { signin }) and the models free with it
 let cloud = { at: 0, account: null, free: [] };
 let emergencyStopReady = false;
-const chromeBroker=require('./chrome-broker').createChromeBroker({isBusy:()=>chats.size>0});
+let spotifyConnecting=false;
+const chromeBroker=require('./chrome-broker').createChromeBroker({isBusy:()=>chats.size>0&&!(spotifyConnecting&&chats.size===1),handoffOrigin:()=>spotifyConnecting?'https://open.spotify.com':null});
 const testLab=require('./test-lab').createTestLab({openExternal:url=>shell.openExternal(url)});
 let automaticActions = false; // Explicit tray opt-in; reset every app launch, never persisted.
 const chats = new Map(); // id -> AbortController of an answer being streamed
@@ -444,6 +445,7 @@ function rebuildTray() {
         { label: t.apiKey, click: () => sendCommand('setupKey') },
       ],
     },
+    {id:'caprii-spotify-auto',label:resolveLang(cfg.lang)==='en'?'Play music automatically when opening Spotify':'เล่นเพลงอัตโนมัติเมื่อเปิด Spotify',type:'checkbox',checked:cfg.spotifyAutoPlay!==false,click:item=>updateConfig({spotifyAutoPlay:item.checked})},
     { id:'caprii-idle-chatter',label:resolveLang(cfg.lang)==='en'?'Idle small talk':'พูดเล่นตอนว่าง',type:'checkbox',checked:cfg.idleChatter===true,click:item=>updateConfig({idleChatter:item.checked}) },
     { label: t.wander, type: 'checkbox', checked: cfg.wander, click: (item) => updateConfig({ wander: item.checked }) },
     { label: t.possess, type: 'checkbox', checked: cfg.possess, click: (item) => updateConfig({ possess: item.checked }) },
@@ -1039,18 +1041,18 @@ function registerIpc() {
     if(e.sender!==overlay?.webContents||!Number.isSafeInteger(request.id))return{ok:false,text:'Invalid media request'};
     if(chats.size)return{ok:false,text:'มีงานอื่นกำลังทำอยู่ รอสักครู่ก่อนเล่นเพลง'};
     const {validateMedia,destination,runSpotify}=require('./media-player');let media;
-    try{media=validateMedia(request.media);}catch(error){return{ok:false,text:error.message};}
+    if(request.autoOpen===true&&config.load().spotifyAutoPlay===false)return{ok:true,text:'เปิด Spotify แล้ว ปิดการเล่นอัตโนมัติไว้'};
+    try{media=validateMedia(request.autoOpen===true?(config.load().spotifyLastTrack||request.media):request.media);}catch(error){return{ok:false,text:error.message};}
     const abort=new AbortController();chats.set(request.id,abort);const signal=AbortSignal.any([abort.signal,AbortSignal.timeout(90000)]);
     try{
-      const status=chromeBroker.status();
-      if(!status.connected||new URL(status.url).origin!=='https://open.spotify.com'){
-        await require('./launch').site(destination(media));
-        return{ok:false,verified:false,code:'connect_spotify',text:status.connected?'แท็บที่เชื่อมอยู่คือ '+new URL(status.url).hostname+' ยังไม่ใช่ Spotify เปิดหน้า Spotify ให้แล้ว ให้เชื่อมแท็บ open.spotify.com แล้วพิมพ์ “เล่นเลย”':'ยังไม่มีแท็บเชื่อมกับ Caprii รอบนี้ เปิดหน้า Spotify ให้แล้ว เข้าสู่ระบบและเชื่อมแท็บ open.spotify.com ก่อน แล้วพิมพ์ “เล่นเลย”'};
-      }
-      if(!status.media)return{ok:false,verified:false,text:'ส่วนขยายที่เชื่อมยังไม่รองรับเล่นเพลง รีโหลดส่วนขยายจากโฟลเดอร์ Caprii 0.7.5 แล้วเชื่อมแท็บ Spotify ใหม่ก่อนครับ'};
-      if(!status.worker)return{ok:false,verified:false,text:'ส่วนขยายยังใช้ตัวส่งคำสั่งแบบเก่า รีโหลดส่วนขยาย Caprii 0.7.5 แล้วเชื่อมแท็บ Spotify ใหม่ครั้งเดียวครับ'};
-      const result=await runSpotify({request:media,browser:chromeBroker.browser(),signal,onProgress:text=>overlay?.webContents.send('chat:delta',{id:request.id,text:text+'\n'})});
-      if(resolveLang(config.load().lang)==='en'&&result.verified)result.text='Spotify shows “'+result.track+'” playing and the playback position is advancing.';
+      const onProgress=text=>overlay?.webContents.send('chat:delta',{id:request.id,text:text+'\n'});
+      spotifyConnecting=true;
+      let browser;
+      try{browser=await require('./spotify-session').connectSpotify({broker:chromeBroker,open:()=>require('./launch').site(destination(media)),signal,alreadyOpened:request.alreadyOpened===true,onProgress});}
+      finally{spotifyConnecting=false;}
+      const result=await runSpotify({request:media,browser,signal,onProgress});
+      if(result.ok&&result.track&&result.trackUrl){try{const trackURL=new URL(result.trackUrl);trackURL.search='';trackURL.hash='';const last=validateMedia({service:'spotify',action:'play',collection:'track',query:result.track,url:trackURL.href,...(result.artists?.[0]?{artist:result.artists[0]}:{})});config.save({spotifyLastTrack:last});}catch{}}
+      if(resolveLang(config.load().lang)==='en'&&result.verified&&media.action==='play')result.text='Spotify playback is advancing for “'+result.track+'”. '+(result.audioVerified?'Chrome reports audio from this tab; speaker output is not verified.':'Audio output could not be verified.');
       return result;
     }catch(error){return{ok:false,verified:false,text:signal.aborted?'หยุดคำสั่งแล้ว ยังไม่ยืนยันการเล่นเพลง':error.message};}
     finally{chats.delete(request.id);}

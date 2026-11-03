@@ -1,3 +1,7 @@
+## 1.7.0 / Caprii 0.7.6
+
+เพิ่ม stable examples spotify-reopen, spotify-controls, spotify-auto แยกจาก 8 เคส DOM และไม่ให้คะแนนผ่านเสียงจริง
+
 ## 1.6.2 / Caprii 0.7.5
 
 เพิ่ม no-DOM Talk click, native/DOM dedup และตรวจตำแหน่งปุ่มจริงระหว่างไล่ข้อความ แยกจากคะแนน DOM
