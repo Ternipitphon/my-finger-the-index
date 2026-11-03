@@ -1,0 +1,41 @@
+{
+  "version": "0.7.6",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.7.6.exe",
+  "bytes": 183771983,
+  "sha256": "DAD59A1DB471DD27F3EA502E307D10A104722D991BFE87817B6F600C5D302D7A",
+  "source_commit": "4213b94c9c432f638d3af6d8f2f53c83d212b12e",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "A5EC300DCC5D8AB18847880A898BE601D73C1F841EB0AE3EE969476AE3B83619"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "FED3CE8A8DF36B069242439B2804DA738B23F5A225C796F128736A2A4DDA995A"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57942863,
+      "sha256": "55AC2FF3CDC3735D7EFCA85252116312DFF719CD92845DD487EFD74021E940E0"
+    }
+  ],
+  "validation": {
+    "application_tests": 235,
+    "lab_unit_tests": 4,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "spotify_reopen": "passed fresh document, one same-track silent restore recovery, pause/next, mute and exact browser device fixture; not a real Spotify account/audio test",
+    "spotify_autoplay": "passed enabled/disabled/cancel/deep-link routing and remembered-tab handoff tests",
+    "talk_native_fallback": "passed simulated no-DOM click, DOM/native dedup, unknown state and outside cancel; real Windows untested",
+    "talk_button": "passed Electron mouse input with moving anchor, idle timeout, delayed status, single flight, dismiss cancellation and visible error; native Windows not tested",
+    "browser_pairing": "passed emulated Chrome lifecycle, optional permissions, persisted local pairing, busy-task handoff and real HTTP broker guards; real Chrome not tested",
+    "drag_fixture": "passed 20 no-DOM cycles and 30 existing cycles; native Windows not tested",
+    "media_transport": "passed real HTTP broker + emulated worker + real DOM with disabled page timers, idle lease, live status, same tab and cross-origin revocation",
+    "real_chrome_background_and_spotify_audio": "not tested",
+    "media_ui": "passed local Spotify DOM fixture; no real Spotify account"
+  }
+}
