@@ -1,11 +1,11 @@
 // Add cases here when Caprii gains a capability; keep stable IDs for regression history.
 (function(root){
- const suite={schemaVersion:1,version:'1.5.2',capriiVersion:'0.7.2',capriiCommit:null,baseCommit:'9304e0f2b832ad28a4a6200c759e10c781f000d8',externalMedia:[
+ const suite={schemaVersion:1,version:'1.6.0',capriiVersion:'0.7.3',capriiCommit:null,baseCommit:'16df7f904dda994e22b9091ec93486c2dd1ad246',externalMedia:[
  {id:'youtube-search',prompt:'เปิดyoutubeแล้วก็ค้นหาว่าlimbus',expected:'เปิดหน้าผลค้นหา YouTube คำว่า limbus ใน default browser'},
  {id:'spotify-liked',prompt:'เปิด spotifyแล้วกดเล่นเพลงในliked song',expected:'อ่านแท็บ Spotify ที่ล็อกอินและเชื่อมอยู่ เปิด Liked Songs กดเล่นครั้งเดียว และตรวจเวลาเพลงเดิน'},
  {id:'spotify-track',prompt:'เปิดเพลงชื่อ Harpy Hare ของ Yaelokre ใน Spotify',expected:'ชื่อและศิลปินตรง หากหลายเวอร์ชันให้ถาม ไม่เล่นผลแรกแบบสุ่ม'},
  {id:'spotify-playlist',prompt:'เล่นเพลงใน playlist นี้',expected:'ใช้เพลย์ลิสต์ที่เปิดอยู่ หากระบุไม่ได้ให้ถามชื่อหรือลิงก์ ไม่เลือกเพลย์ลิสต์แรกเอง'}
- ],cases:[
+ ],browserConnection:{id:'remember-chrome',prompt:'เปิดโหมดจำ Chrome ปิดแท็บ Spotify แล้วเปิดแท็บ Spotify ใหม่',expected:'เชื่อมแท็บใหม่โดยไม่กรอกรหัสใหม่เมื่อแอปเดิมยังเปิดอยู่ ถอนสิทธิ์แล้วหยุดเชื่อม ไม่สลับแท็บกลางงาน',status:'not-measured-by-this-page'},cases:[
  {id:'read',number:'01',name:'อ่านให้เข้าใจ',category:'อ่านเว็บ',icon:'↗',description:'อ่านข้อความบนหน้า แล้วนำข้อมูลที่อ่านได้มาใช้',prompt:'ร้านแมวอวกาศนี่ส่งของกี่วันอะ กรอกจำนวนวันกับรหัสออเดอร์ในบัตรลงช่องให้ที แล้วตรวจคำตอบให้หน่อย',checks:['กรอกรหัสออเดอร์ถูกต้อง','กรอกจำนวนวันจัดส่งถูกต้อง','กดตรวจคำตอบบนหน้า']},
  {id:'form',number:'02',name:'กรอกให้ครบ',category:'กรอกฟอร์ม',icon:'⌘',description:'ข้อความ อีเมล ประเทศ และช่องติ๊ก ในฟอร์มเดียว',prompt:'ช่องชื่อนั่นใส่แมวบิน เมลเอา meow@example.test ประเทศเอาไทย ติ๊กยอมรับด้วย แล้วส่งให้ที ดูด้วยว่าส่งติดจริงปะ',checks:['ชื่อและอีเมลตรงตามคำสั่ง','เลือกไทยและติ๊กยอมรับ','ส่งฟอร์มเพียงหนึ่งครั้ง']},
  {id:'math',number:'03',name:'คิดก่อนค่อยกรอก',category:'คำนวณ',icon:'＋',description:'โจทย์เปลี่ยนได้ ตรวจคำตอบด้วยค่าจริงในช่อง',prompt:'ข้อนี้ช่วยคิดเลขให้ที เอาคำตอบไปหยอดในช่องแล้วส่งเลย อย่าเดาเลขนะ ดูผลด้วยว่าถูกไหม',checks:['คำนวณโจทย์ปัจจุบัน','กรอกคำตอบเป็นตัวเลข','ส่งแล้วพบผลว่าคำตอบถูกต้อง']},

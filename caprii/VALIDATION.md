@@ -1,3 +1,12 @@
+# Caprii 0.7.3 validation
+
+- 217 app tests pass.
+- Browser mode is opt-in with optional http/https origin grants and local-only pairing storage. Single-tab mode remains default. Chrome can reuse the code while the same app process remains open; app restart invalidates it.
+- Tests emulate new active tabs, closed/reopened tabs, Chrome restart local storage, busy tasks, permission revocation, private/privileged tabs, explicit disconnect and stale app credentials. Real HTTP broker rejects automatic handoff with a pending command or app task.
+- No eager injection on tab handoff; consumed commands are never replayed. Fixed packaged drivers and task leases remain enforced.
+- Test Lab retains all 8 DOM cases and 4 media examples; browser reconnect is marked not measured by this page.
+- Actual Chrome permission UI/lifecycle, Windows installation and real Spotify audio remain untested. No website deployment.
+
 # Caprii 0.7.2 validation
 
 - 206 app tests, 4 lab checks and 8 DOM browser cases pass.

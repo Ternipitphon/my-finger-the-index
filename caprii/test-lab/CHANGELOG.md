@@ -1,3 +1,7 @@
+## 1.6.0 / Caprii 0.7.3
+
+เพิ่มแนวทางตรวจโหมดจำ Chrome ปิดแท็บ/เปิดใหม่ ถอนสิทธิ์ และห้ามย้ายแท็บกลางงาน แยกจากคะแนน DOM เดิม
+
 ## 1.5.2 / Caprii 0.7.2
 
 เพิ่ม regression ลากโดยปิดแชตและไม่มี DOM mouse events ใน companion fixture รักษา 8 เคส DOM และ media IDs เดิม การลาก native Windows ไม่ถูกนับผ่านในหน้าเว็บ

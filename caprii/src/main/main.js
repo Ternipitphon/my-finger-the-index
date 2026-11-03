@@ -51,7 +51,7 @@ let chatErrorCode = null; // 'nokey' or 'nourl': what her setup should ask for
 // Ollama's cloud, as last seen: your account ({ name } or { signin }) and the models free with it
 let cloud = { at: 0, account: null, free: [] };
 let emergencyStopReady = false;
-const chromeBroker=require('./chrome-broker').createChromeBroker();
+const chromeBroker=require('./chrome-broker').createChromeBroker({isBusy:()=>chats.size>0});
 const testLab=require('./test-lab').createTestLab({openExternal:url=>shell.openExternal(url)});
 let automaticActions = false; // Explicit tray opt-in; reset every app launch, never persisted.
 const chats = new Map(); // id -> AbortController of an answer being streamed
@@ -1047,8 +1047,8 @@ function registerIpc() {
         await require('./launch').site(destination(media));
         return{ok:false,verified:false,code:'connect_spotify',text:status.connected?'แท็บที่เชื่อมอยู่คือ '+new URL(status.url).hostname+' ยังไม่ใช่ Spotify เปิดหน้า Spotify ให้แล้ว ให้เชื่อมแท็บ open.spotify.com แล้วพิมพ์ “เล่นเลย”':'ยังไม่มีแท็บเชื่อมกับ Caprii รอบนี้ เปิดหน้า Spotify ให้แล้ว เข้าสู่ระบบและเชื่อมแท็บ open.spotify.com ก่อน แล้วพิมพ์ “เล่นเลย”'};
       }
-      if(!status.media)return{ok:false,verified:false,text:'ส่วนขยายที่เชื่อมยังไม่รองรับเล่นเพลง รีโหลดส่วนขยายจากโฟลเดอร์ Caprii 0.7.2 แล้วเชื่อมแท็บ Spotify ใหม่ก่อนครับ'};
-      if(!status.worker)return{ok:false,verified:false,text:'ส่วนขยายยังใช้ตัวส่งคำสั่งแบบเก่า รีโหลดส่วนขยาย Caprii 0.7.2 แล้วเชื่อมแท็บ Spotify ใหม่ครั้งเดียวครับ'};
+      if(!status.media)return{ok:false,verified:false,text:'ส่วนขยายที่เชื่อมยังไม่รองรับเล่นเพลง รีโหลดส่วนขยายจากโฟลเดอร์ Caprii 0.7.3 แล้วเชื่อมแท็บ Spotify ใหม่ก่อนครับ'};
+      if(!status.worker)return{ok:false,verified:false,text:'ส่วนขยายยังใช้ตัวส่งคำสั่งแบบเก่า รีโหลดส่วนขยาย Caprii 0.7.3 แล้วเชื่อมแท็บ Spotify ใหม่ครั้งเดียวครับ'};
       const result=await runSpotify({request:media,browser:chromeBroker.browser(),signal,onProgress:text=>overlay?.webContents.send('chat:delta',{id:request.id,text:text+'\n'})});
       if(resolveLang(config.load().lang)==='en'&&result.verified)result.text='Spotify shows “'+result.track+'” playing and the playback position is advancing.';
       return result;
