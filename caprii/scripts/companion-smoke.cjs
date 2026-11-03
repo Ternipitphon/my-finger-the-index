@@ -57,6 +57,15 @@ app.whenReady().then(async()=>{
   await new Promise(r=>setTimeout(r,20));
  }
  console.log('PASS: 30 consecutive press/drag/release cycles (15 reduced + 15 full animation);  premature DOM pointerup+mouseup ignored while physical button remains pressed; missing DOM release recovered from physical state');
+ // A physical heartbeat delayed until after a completed DOM click must not replay it.
+ await page('fixtureCapri.cancelDrag();fixtureCapri.readMouseState=null;fixtureCapri.pos={x:450,y:650};fixtureCapri.setStance("stand");fixtureCapri.place()');
+ const clicked=await page('fixturePoint()');
+ await page(`fixtureCursor={...${JSON.stringify(clicked)},inside:true,primaryDown:false};fixtureTracker.tick()`);
+ await page(`fixtureCapri.canvas.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,button:0,clientX:${clicked.x},clientY:${clicked.y}}));window.dispatchEvent(new MouseEvent('mouseup',{bubbles:true,button:0}));fixtureCursor={...fixtureCursor,primaryDown:true};fixtureTracker.tick()`);
+ assert.equal(await page('fixtureCapri.pointerHeld'),false,'late native heartbeat must not replay DOM click');
+ await new Promise(r=>setTimeout(r,110));
+ await page('fixtureCursor={...fixtureCursor,primaryDown:false};fixtureTracker.tick()');
+ console.log('PASS: delayed native press heartbeat does not replay a completed DOM click');
  // Closed-chat regression: no DOM press, move, or release events arrive at all.
  await page('fixtureCapri.cancelDrag();fixtureCursor=null;fixtureCapri.readMouseState=async()=>fixtureCursor;void 0');
  for(let round=0;round<20;round++){

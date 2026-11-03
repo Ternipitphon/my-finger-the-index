@@ -1786,8 +1786,10 @@ export class Capri {
       if(!cancelled&&!wasPlacing&&Math.hypot(v.x,v.y)>=THROW_MIN&&!reducedMotion.matches){this.throwHer(v.x,v.y);return;}
       this.setStance('stand');this.onTeleport?.('end');this.drop();
     };
-    this.canvas.addEventListener('pointerdown',e=>begin(e));
-    this.canvas.addEventListener('mousedown',e=>begin(e));
+    let domPressAt=-Infinity,domPressHandled=false;
+    const domDown=e=>{begin(e);if(down){domPressAt=performance.now();domPressHandled=true;}};
+    this.canvas.addEventListener('pointerdown',domDown);
+    this.canvas.addEventListener('mousedown',domDown);
     window.addEventListener('pointermove',move);
     window.addEventListener('mousemove',move);
     const up=e=>{
@@ -1825,7 +1827,9 @@ export class Capri {
     this.samplePointer=(at,allowPress=true)=>{
       const previous=previousPrimary;
       previousPrimary=typeof at.primaryDown==='boolean'?at.primaryDown:null;
-      if(!down&&allowPress&&at.inside===true&&previous===false&&previousPrimary===true){
+      // A helper heartbeat can lag behind a completed DOM click. Never replay it.
+      if(!down&&previousPrimary===false&&performance.now()-domPressAt>96)domPressHandled=false;
+      if(!down&&!domPressHandled&&allowPress&&at.inside===true&&previous===false&&previousPrimary===true){
         begin({button:0,clientX:at.x,clientY:at.y,pointerType:'mouse'});
         if(down)nativeDownSeen=true;
       }
