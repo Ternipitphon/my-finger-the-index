@@ -21,6 +21,7 @@ async function runSpotify({request,browser,signal,onProgress=()=>{},sleep=wait,m
    await go('https://open.spotify.com/search/'+encodeURIComponent(r.query));
    let matches=[];
    for(let i=0;i<6;i++){observed=await inspect();matches=observed.rows.filter(x=>normalize(x.title)===normalize(r.query)&&(!r.artist||x.artists.some(n=>normalize(n)===normalize(r.artist))));matches=matches.filter((x,i,list)=>list.findIndex(y=>y.url===x.url)===i);if(matches.length)break;await sleep(350,signal);}
+   if(matches.length>1&&new Set(matches.map(x=>(x.artists||[]).map(normalize).sort().join('\u0001'))).size===1)matches=[matches[0]]; // same requested song/performers: use Spotify's top exact release
    if(matches.length!==1)return{ok:false,verified:false,text:matches.length?'พบเพลงชื่อนี้หลายรายการ ระบุศิลปินเพิ่มอีกนิดครับ':'ยังไม่พบเพลงชื่อตรงกันในผลค้นหาที่อ่านได้ ยังไม่ได้กดเล่น',clarification:matches.length?'artist':undefined,choices:matches.map(x=>({title:x.title,artists:x.artists})).slice(0,5)};
    expectedTrack=matches[0].url;await go(expectedTrack);
   }else if(r.collection==='playlist'){

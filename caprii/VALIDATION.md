@@ -1,5 +1,6 @@
 # Caprii 0.7.0 validation
 
+- Same-title/same-performer releases use Spotify search rank when no release was requested; distinct performers remain ambiguous and require clarification.
 - 202 application checks include colloquial media parsing, exact reported commands, direct YouTube search URL, Chat media routing/context expiry, Spotify exact track/artist matching, ambiguous playlist refusal, once-only play and progress-based verification, authenticated same-origin location updates and extension navigation scope.
 - Real Electron Spotify-shaped local fixture passes Liked Songs, named song/artist, named playlist, single click, advancing progress, frozen-progress rejection and logged-out gate. HTTPS Spotify-origin pages are intercepted with local fixtures; no real Spotify account, DRM playback or audible output was tested.
 - 4 lab unit/server checks and the existing 8 real browser DOM cases pass. Four stable external-media examples are exported as not-measured-by-this-page, never marked passed by the site.
