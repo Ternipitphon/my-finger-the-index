@@ -731,7 +731,7 @@ function registerIpc() {
     const p = screen.getCursorScreenPoint();
     const b = overlay.getBounds();
     const inside = p.x >= b.x && p.y >= b.y && p.x < b.x + b.width && p.y < b.y + b.height;
-    return { x: p.x - b.x, y: p.y - b.y, inside, display: displayAt(p).id };
+    return { x: p.x - b.x, y: p.y - b.y, inside, display: displayAt(p).id, primaryDown:windowWatch?.primaryDown?.()??null };
   });
   // your screens (their bounds), the one she's on, and where her window is
   ipcMain.handle('screens:list', () => {

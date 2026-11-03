@@ -1,6 +1,6 @@
 {
   "name": "caprii-test-lab",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "private": true,
   "description": "Versioned browser-local regression playground for Caprii",
   "engines": {

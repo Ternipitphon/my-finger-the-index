@@ -11,16 +11,18 @@ const path = require('node:path');
 const readline = require('node:readline');
 const { spawn } = require('node:child_process');
 const { screen } = require('electron');
+const {createMouseButtonState}=require('./mouse-button-state');
 
 // in the installed app it sits next to the app archive (asarUnpack), where PowerShell can read it
 const SCRIPT = path.join(__dirname, 'windows.ps1').replace(`app.asar${path.sep}`, `app.asar.unpacked${path.sep}`);
 
 function startWindowWatch({ overlay, onUpdate }) {
-  if (process.platform !== 'win32') return { stop() {}, refresh() {} };
+  if (process.platform !== 'win32') return { stop() {}, refresh() {}, primaryDown(){return null;} };
 
   let child = null;
   let stopped = false;
   let restarts = 0;
+  const mouseButton=createMouseButtonState();
   let last = null; // the helper's last snapshot: it only speaks when something changes
 
   const handle = overlay.getNativeWindowHandle();
@@ -53,7 +55,9 @@ function startWindowWatch({ overlay, onUpdate }) {
 
     readline.createInterface({ input: child.stdout }).on('line', (line) => {
       try {
-        last = JSON.parse(line);
+        const message=JSON.parse(line);
+        if(message.kind==='mouse-button'){mouseButton.update(message);return;}
+        last = message;
       } catch {
         return;
       }
@@ -62,6 +66,7 @@ function startWindowWatch({ overlay, onUpdate }) {
     child.stderr.on('data', (d) => console.error('[capri] window watch:', String(d).trim()));
     child.on('exit', () => {
       child = null;
+      mouseButton.clear();
       if (!stopped && restarts++ < 3) setTimeout(start, 3000);
     });
   };
@@ -70,10 +75,12 @@ function startWindowWatch({ overlay, onUpdate }) {
   return {
     stop() {
       stopped = true;
+      mouseButton.clear();
       child?.kill();
     },
     // her window moved (another screen, the taskbar in it or not): the same windows, from there
     refresh: send,
+    primaryDown:()=>mouseButton.value(),
   };
 }
 

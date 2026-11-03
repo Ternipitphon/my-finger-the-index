@@ -33,6 +33,30 @@ app.whenReady().then(async()=>{
  await page('fixtureCapri.startPlacement({x:400,y:300});fixtureCapri.dragTo({x:650,y:400})');assert.equal(await page('fixtureCapri.dragging'),true);assert.ok(await page('fixtureCapri.pos.x')>550);
  await page(`fixtureCapri.canvas.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,button:0,clientX:650,clientY:400}))`);assert.equal(await page('fixtureCapri.pointerHeld'),false);
  await page('fixtureCapri.startPlacement({x:400,y:300})');await page(`fixtureCapri.canvas.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,button:2}))`);assert.equal(await page('fixtureCapri.pointerHeld'),false);
+ // A walk that started before the press must not resume over the user's new position.
+ await page(`fixtureCapri.cancelDrag();fixtureCapri.pos={x:450,y:650};fixtureCapri.setStance('stand');fixtureCapri.place();fixtureCapri.readMouseState=async()=>fixtureCursor;fixtureCapri.idleWalk={x:450,to:650,at:performance.now()-500,duration:1000};fixtureCapri.nextMove=0;`);
+ const walkPoint=await page('fixturePoint()');
+ await page(`fixtureCursor={x:${walkPoint.x},y:${walkPoint.y},primaryDown:true};fixtureCapri.canvas.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,button:0,clientX:${walkPoint.x},clientY:${walkPoint.y}}))`);
+ await new Promise(r=>setTimeout(r,100));assert.equal(await page('fixtureCapri.pos.x'),450);assert.equal(await page('fixtureCapri.idleWalk'),null);assert.ok(await page('fixtureCapri.nextMove-performance.now()')>20000);
+ await page('fixtureCapri.cancelDrag();fixtureCursor=null');
+ console.log('PASS: pressing during an idle walk cancels the old walk and postpones autonomous movement');
+ // Repeated physical-button lifecycle: premature DOM up must not cancel a held mouse.
+ await page(`fixtureCapri.cancelDrag();fixtureCapri.readMouseState=async()=>fixtureCursor;fixtureCapri.pos={x:450,y:650};fixtureCapri.setStance('stand');fixtureCapri.place();`);
+ for(let round=0;round<30;round++){
+  if(round===15)await page('fixtureMotion("full")');
+  const start=await page('fixturePoint()');
+  await page(`(()=>{const p=${JSON.stringify(start)};fixtureCursor={x:p.x,y:p.y,primaryDown:true};fixtureCapri.canvas.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,button:0,clientX:p.x,clientY:p.y}));window.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,button:0,pointerType:'mouse'}));window.dispatchEvent(new MouseEvent('mouseup',{bubbles:true,button:0}));})()`);
+  await new Promise(r=>setTimeout(r,85));assert.equal(await page('fixtureCapri.pointerHeld'),true,'premature up at cycle '+round);
+  const before=await page('fixtureCapri.pos.x');const dx=before>500?-45:45;
+  await page(`fixtureCursor={x:${start.x+dx},y:${start.y-5},primaryDown:true};fixtureTracker.tick()`);
+  assert.equal(await page('fixtureCapri.dragging'),true);assert.ok(Math.abs(await page('fixtureCapri.pos.x')-before)>20,'movement at cycle '+round);
+  // No DOM mouseup: a fresh physical release must still finish the gesture.
+  await page('fixtureCursor={...fixtureCursor,primaryDown:false};fixtureTracker.tick()');
+  assert.equal(await page('fixtureCapri.pointerHeld'),false,'physical release at cycle '+round);
+  assert.equal(await page('fixtureCapri.dragging'),false);
+  await new Promise(r=>setTimeout(r,20));
+ }
+ console.log('PASS: 30 consecutive press/drag/release cycles (15 reduced + 15 full animation);  premature DOM pointerup+mouseup ignored while physical button remains pressed; missing DOM release recovered from physical state');
  console.log('PASS mouse-only drag after blur/lost capture, native-cursor-only movement, right-button release isolation, tray pickup/place/cancel; nonfocusable transparent overlay');
  console.log('PASS: actual Capri sprite hit, busy/refusal override, cursor sampler fallback after native movement delivery is lost, release and cancellation (virtual viewport/cursor fixture; not Windows OS input)');
  win.destroy();clearTimeout(timeout);app.exit(0);

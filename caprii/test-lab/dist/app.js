@@ -60,5 +60,6 @@
  $('suite-version').textContent='v'+suite.version;$('target-version').textContent=suite.capriiVersion;$('footer-version').textContent='SUITE '+suite.version+' · CAPRII '+suite.capriiVersion;$('case-count').innerHTML=suite.cases.length+' <small>เคส</small>';$('nav-count').textContent=String(suite.cases.length).padStart(2,'0');
  const launchNote=$('website-open-note');
  if(launchNote){const title=document.createElement('strong');title.textContent='เปิดเว็บแบบเดียวกับ YouTube';const detail=document.createElement('p');detail.textContent='ลองสั่ง Caprii: เปิด Spotify → https://open.spotify.com/ หรือ เปิดเว็บ example.org → https://example.org/ ตรวจหน้าต่างเบราว์เซอร์เริ่มต้นที่เปิดจริง ผลนี้แยกจากคะแนน DOM บนหน้านี้ ถ้าระบุว่าเปิดแอป Spotify จึงใช้ทางเปิดโปรแกรม';launchNote.append(title,detail);}
+ const dragNote=$('drag-lifecycle-note');if(dragNote){dragNote.textContent='ทดสอบตัวละคร 0.6.3 แยกจากคะแนน DOM: กด–ลาก–ปล่อยหลายรอบ รวมหลังใช้ไปสักพัก ต้องลากต่อได้ ปุ่มเมาส์จริงของ Windows ใช้ตรวจการกดค้างเมื่อข้อมูลพร้อม ถ้าย้ายด้วย Ctrl+Alt+M ได้แต่ลากปกติไม่ได้ ให้รายงานสองอาการนี้คู่กัน เว็บนี้ไม่ให้คะแนนผ่านการควบคุมเมาส์ Windows';}
  select(active);renderSummary();
 })();

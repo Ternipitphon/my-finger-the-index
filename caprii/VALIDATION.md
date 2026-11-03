@@ -1,3 +1,12 @@
+# Caprii 0.6.3 validation
+
+- 186 application tests pass. New checks cover fresh/stale/invalid/cleared physical-button samples, separation of button heartbeats from window snapshots, and rejecting delayed cursor replies from an earlier gesture.
+- Real Electron sprite stress fixture passes 30 consecutive hold/move/release cycles (15 reduced, 15 full animation) with simulated primary-button state. Premature DOM pointerup/mouseup does not cancel a held button; physical release without DOM up finishes the gesture. Existing mouse-only, blur/lost capture, placement and cancel cases also pass.
+- Pressing during a running idle walk cancels that walk and postpones autonomous movement; the real sprite fixture verifies this alongside repeated drag cycles.
+- Native Windows code uses read-only GetAsyncKeyState, respects swapped primary buttons and shares the existing PowerShell window helper. No extra helper process, input injection or screen capture is added. The actual Win32/PowerShell path is not executable in this Linux environment; simulated state is not a substitute for Windows-native QA.
+- 3 local lab checks and all 8 real DOM browser cases pass. Native drag checks remain outside the site's score. Packaged resource checks include the unpacked Windows helper and button-state module.
+- Installer is cross-built and unsigned. Actual Windows installation, physical button sampling and long-running mouse operation remain unverified. Website hosting stays local.
+
 # Caprii 0.6.2 validation
 
 - 181 application tests cover direct Spotify/YouTube routing, all shared known-site aliases, arbitrary URL/domain preservation, explicit app/music/multistep separation, unknown-site clarification, canceled launches and OS shell HTTPS delegation. The OS handler is stubbed; this does not prove a real Windows browser opened.

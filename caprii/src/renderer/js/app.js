@@ -228,6 +228,7 @@ async function boot() {
   panel.onTalk = (talking) => talking && capri.perform('talk');
   capri.onMenu = () => host.openMenu();
   capri.onPointerHold=on=>{host.holdCharacter(on);refreshHit();};
+  capri.readMouseState=()=>host.cursor();
 
   // Her guide (guide.js): her welcome on first launch, and "How does it work?" in her menu,
   // where she takes you to things and points at them.
@@ -807,7 +808,7 @@ async function boot() {
     }
   });
 
-  capri.autonomyPaused=()=>!!(chat.open||chat.turn||guide.running||brain.busySessions.length);
+  capri.autonomyPaused=()=>!!(capri.pointerHeld||chat.open||chat.turn||guide.running||brain.busySessions.length);
   let nextIdleTalk=performance.now()+25000+Math.random()*20000;
   setInterval(()=>{
     const now=performance.now();

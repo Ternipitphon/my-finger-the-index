@@ -9,6 +9,6 @@ capri.wander=false;capri.setView(innerWidth,innerHeight,innerHeight-10);capri.po
 reducedMotion.setting='reduced';
 window.fixtureCursor=null;
 window.fixtureTracker=trackDragCursor({capri,cursor:async()=>window.fixtureCursor});
-window.fixtureCapri=capri;
-window.fixturePoint=()=>{for(let y=300;y<490;y+=3)for(let x=260;x<430;x+=3)if(capri.hit(x,y)&&document.elementFromPoint(x,y)===capri.canvas)return{x,y};throw Error('No visible draggable sprite point');};
+window.fixtureCapri=capri;window.fixtureMotion=setting=>{reducedMotion.setting=setting;};
+window.fixturePoint=()=>{const r=capri.canvas.getBoundingClientRect();for(let y=Math.max(1,r.top);y<Math.min(innerHeight-1,r.bottom);y+=3)for(let x=Math.max(1,r.left);x<Math.min(innerWidth-1,r.right);x+=3)if(capri.hit(x,y)&&document.elementFromPoint(x,y)===capri.canvas)return{x:Math.round(x),y:Math.round(y)};throw Error('No visible draggable sprite point');};
 window.fixtureReady=true;

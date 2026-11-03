@@ -24,6 +24,11 @@ public static class CapriWindows {
   public struct RECT { public int Left, Top, Right, Bottom; }
 
   [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc cb, IntPtr lParam);
+  [DllImport("user32.dll")] static extern short GetAsyncKeyState(int key);
+  [DllImport("user32.dll")] static extern int GetSystemMetrics(int index);
+  // Read the logical primary button even on a left-handed Windows mouse layout.
+  public static bool PrimaryDown() { return (GetAsyncKeyState(GetSystemMetrics(23) != 0 ? 2 : 1) & 0x8000) != 0; }
+
   [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hwnd);
   [DllImport("user32.dll")] static extern bool IsIconic(IntPtr hwnd);
   [DllImport("user32.dll")] static extern bool IsZoomed(IntPtr hwnd);
@@ -233,16 +238,26 @@ public static class CapriWindows {
 
 [CapriWindows]::Init()
 $last = ''
+$lastButton = $null
 $tick = 0
 while ($true) {
-  $snap = [CapriWindows]::Snapshot($Self)
-  if ($snap -ne $last) {
-    [Console]::Out.WriteLine($snap)
+  $down = [CapriWindows]::PrimaryDown()
+  if ($down -ne $lastButton -or ($tick % 5 -eq 0)) {
+    $value = if ($down) { 'true' } else { 'false' }
+    [Console]::Out.WriteLine('{"kind":"mouse-button","primaryDown":' + $value + '}')
     [Console]::Out.Flush()
-    $last = $snap
+    $lastButton = $down
   }
-  # stop with Capri, even if she crashed without telling us
+  # Keep the original window scan rate; the cheap button read runs independently.
+  if ($tick % 5 -eq 0) {
+    $snap = [CapriWindows]::Snapshot($Self)
+    if ($snap -ne $last) {
+      [Console]::Out.WriteLine($snap)
+      [Console]::Out.Flush()
+      $last = $snap
+    }
+  }
+  if ($ParentPid -and ($tick % 64 -eq 0) -and -not (Get-Process -Id $ParentPid -ErrorAction SilentlyContinue)) { break }
   $tick++
-  if ($ParentPid -and ($tick % 20 -eq 0) -and -not (Get-Process -Id $ParentPid -ErrorAction SilentlyContinue)) { break }
-  Start-Sleep -Milliseconds 150
+  Start-Sleep -Milliseconds 32
 }

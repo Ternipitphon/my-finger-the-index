@@ -487,6 +487,7 @@ export class Capri {
   }
 
   behave(now) {
+    if(this.pointerHeld&&!this.dragging)return; // a physical hold wins over idle motion before the drag threshold
     if (this.stance === 'fall') {
       this.updateFall(now);
       return;
@@ -1733,7 +1734,7 @@ export class Capri {
   // ---------- pointer ----------
 
   bindPointer() {
-    let down = null, placing = false, pointerType = 'mouse', timeout;
+    let down = null, placing = false, pointerType = 'mouse', timeout, releaseTimer, nativeDownSeen=false;
     this.canvas.addEventListener('contextmenu', e => {
       e.preventDefault();
       if(down){release(true);return;}
@@ -1745,7 +1746,10 @@ export class Capri {
       if(!placement&&!this.hit(e.clientX,e.clientY))return;
       const thrown=this.stance==='fly'||this.stance==='down';
       this.endAct(false);this.busy=false;this.refuseUntil=0;
-      placing=placement;pointerType=e.pointerType||'mouse';
+      this.idleWalk=null;this.pending=null;
+      this.nextMove=Math.max(this.nextMove,performance.now()+30000);
+      placing=placement;pointerType=e.pointerType||'mouse';nativeDownSeen=false;
+      this.dragGeneration=(this.dragGeneration||0)+1;
       down={x:e.clientX,y:e.clientY,pos:{...this.pos},at:placement?SPRITE.head:this.spritePoint(e.clientX,e.clientY)};
       this.track=[{x:e.clientX,y:e.clientY,t:performance.now()}];
       this.pointerHeld=true;this.onPointerHold?.(true);
@@ -1771,7 +1775,8 @@ export class Capri {
     };
     const release = (cancelled=false) => {
       if(!down)return;
-      clearTimeout(timeout);
+      clearTimeout(timeout);clearTimeout(releaseTimer);
+      this.dragGeneration=(this.dragGeneration||0)+1;nativeDownSeen=false;
       const wasDragging=this.dragging,wasPlacing=placing;
       down=null;placing=false;this.dragging=false;this.pointerHeld=false;
       this.onPointerHold?.(false);
@@ -1785,7 +1790,20 @@ export class Capri {
     this.canvas.addEventListener('mousedown',e=>begin(e));
     window.addEventListener('pointermove',move);
     window.addEventListener('mousemove',move);
-    const up=e=>{if(e.button===0)release();};
+    const up=e=>{
+      if(e.button!==0||!down)return;
+      if(pointerType!=='mouse'||typeof this.readMouseState!=='function'){release();return;}
+      const generation=this.dragGeneration;
+      clearTimeout(releaseTimer);
+      // A compatibility pointer-up can arrive while the physical button is held.
+      // Give the read-only Windows sample one tick to observe the transition.
+      releaseTimer=setTimeout(async()=>{
+        let state;try{state=await this.readMouseState();}catch{}
+        if(!down||generation!==this.dragGeneration)return;
+        if(state?.primaryDown===true){nativeDownSeen=true;return;}
+        release();
+      },64);
+    };
     window.addEventListener('pointerup',up);
     window.addEventListener('mouseup',up);
     const cancelPointer=()=>{if(pointerType!=='mouse')release(true);};
@@ -1794,7 +1812,12 @@ export class Capri {
     // This overlay is intentionally nonfocusable; blur is not a mouse release.
     document.addEventListener('visibilitychange',()=>{if(document.hidden)release(true);});
     window.addEventListener('keydown',e=>{if(e.key==='Escape')release(true);});
-    this.dragTo=at=>{if(down)move({clientX:at.x,clientY:at.y});};
+    this.dragTo=at=>{
+      if(!down)return;
+      if(!placing&&at.primaryDown===true)nativeDownSeen=true;
+      move({clientX:at.x,clientY:at.y});
+      if(!placing&&nativeDownSeen&&at.primaryDown===false)release();
+    };
     this.cancelDrag=()=>release(true);
     this.startPlacement=at=>{release(true);begin({button:0,clientX:at.x,clientY:at.y},true);};
   }
