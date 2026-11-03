@@ -1,3 +1,10 @@
+# Caprii 0.7.2 validation
+
+- 206 app tests, 4 lab checks and 8 DOM browser cases pass.
+- Added idle native cursor sampling and fresh primary-button edge recovery when DOM mouse forwarding is absent. Existing held-only sampling and delayed-generation guards remain covered.
+- Companion fixture tests 20 entirely no-DOM press/move/release cycles plus 30 earlier cycles, outside press/held entry and panel exclusions, placement and cancellation. This uses the actual sprite with simulated cursor/button data in Electron; Windows native input and long-running Windows operation remain untested.
+- Local Test Lab keeps its 8 DOM cases and media examples. Native drag is outside its DOM score. No website deployment.
+
 # Caprii 0.7.1 validation
 
 - 205 app checks include the >8-second false-disconnection regression using an injected clock, live popup acknowledgment, transient-offline recovery with the same session, no replay after a lost mutation acknowledgment, same-origin lease retention and cross-origin revocation.

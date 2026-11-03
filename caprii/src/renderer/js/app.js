@@ -183,7 +183,14 @@ async function boot() {
     rearmedAt = now;
     host.rearm();
   }, WATCH_MS);
-  const dragCursor=trackDragCursor({capri,cursor:()=>host.cursor(),onHeld:()=>setInteractive(true)});
+  const dragCursor=trackDragCursor({capri,cursor:()=>host.cursor(),onHeld:()=>setInteractive(true),onSample:at=>{
+    // Native hover must work while chat is closed and the forwarding hook is silent.
+    mouse=at.inside?{x:at.x,y:at.y}:null;
+    refreshHit();hoverChip();
+    const r=panel.rect();
+    const onPanel=r&&at.x>=r.left&&at.x<=r.right&&at.y>=r.top&&at.y<=r.bottom;
+    capri.samplePointer(at,!onPanel&&!onChip());
+  }});
   window.addEventListener('beforeunload',()=>{dragCursor.stop();capri.cancelDrag();});
   window.addEventListener('contextmenu', (e) => {
     e.preventDefault();

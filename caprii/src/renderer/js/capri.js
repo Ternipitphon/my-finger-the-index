@@ -1819,6 +1819,17 @@ export class Capri {
       if(!placing&&nativeDownSeen&&at.primaryDown===false)release();
     };
     this.cancelDrag=()=>release(true);
+    // Recover a missing DOM press only on a fresh physical primary-button edge.
+    // Never pick her up because the user drags in from another application.
+    let previousPrimary=null;
+    this.samplePointer=(at,allowPress=true)=>{
+      const previous=previousPrimary;
+      previousPrimary=typeof at.primaryDown==='boolean'?at.primaryDown:null;
+      if(!down&&allowPress&&at.inside===true&&previous===false&&previousPrimary===true){
+        begin({button:0,clientX:at.x,clientY:at.y,pointerType:'mouse'});
+        if(down)nativeDownSeen=true;
+      }
+    };
     this.startPlacement=at=>{release(true);begin({button:0,clientX:at.x,clientY:at.y},true);};
   }
 

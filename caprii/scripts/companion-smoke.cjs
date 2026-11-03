@@ -57,6 +57,31 @@ app.whenReady().then(async()=>{
   await new Promise(r=>setTimeout(r,20));
  }
  console.log('PASS: 30 consecutive press/drag/release cycles (15 reduced + 15 full animation);  premature DOM pointerup+mouseup ignored while physical button remains pressed; missing DOM release recovered from physical state');
+ // Closed-chat regression: no DOM press, move, or release events arrive at all.
+ await page('fixtureCapri.cancelDrag();fixtureCursor=null;fixtureCapri.readMouseState=async()=>fixtureCursor;void 0');
+ for(let round=0;round<20;round++){
+  await page('fixtureCapri.cancelDrag();fixtureCapri.pos={x:450,y:650};fixtureCapri.setStance("stand");fixtureCapri.place()');
+  const p=await page('fixturePoint()');
+  await page(`fixtureCursor={...${JSON.stringify(p)},inside:true,primaryDown:false};fixtureTracker.tick()`);
+  await page('fixtureCursor={...fixtureCursor,primaryDown:true};fixtureTracker.tick()');
+  assert.equal(await page('fixtureCapri.pointerHeld'),true,'missing DOM press recovered '+round);
+  await page('fixtureCursor={...fixtureCursor,x:fixtureCursor.x+70,y:fixtureCursor.y-15};fixtureTracker.tick()');
+  assert.equal(await page('fixtureCapri.dragging'),true);assert.ok(await page('fixtureCapri.pos.x')>490);
+  await page('fixtureCursor={...fixtureCursor,primaryDown:false};fixtureTracker.tick()');
+  assert.equal(await page('fixtureCapri.pointerHeld'),false);
+ }
+ // A press outside her body, a held mouse entering her body, and chat controls are excluded.
+ await page('fixtureCapri.cancelDrag();fixtureCapri.pos={x:450,y:650};fixtureCapri.setStance("stand");fixtureCapri.place()');
+ const safe=await page('fixturePoint()');
+ await page(`fixtureCursor={x:0,y:0,inside:true,primaryDown:false};fixtureTracker.tick()`);
+ await page('fixtureCursor={...fixtureCursor,primaryDown:true};fixtureTracker.tick()');
+ await page(`fixtureCursor={...${JSON.stringify(safe)},inside:true,primaryDown:true};fixtureTracker.tick()`);
+ assert.equal(await page('fixtureCapri.pointerHeld'),false,'held mouse entering body');
+ await page('fixtureCursor={...fixtureCursor,primaryDown:false};fixtureTracker.tick()');
+ await page('fixtureAllowPress=false;fixtureCursor={...fixtureCursor,primaryDown:true};fixtureTracker.tick()');
+ assert.equal(await page('fixtureCapri.pointerHeld'),false,'chat controls must not start native drag');
+ await page('fixtureAllowPress=true;fixtureCursor=null');
+ console.log('PASS: 20 no-DOM press/move/release cycles with chat closed; outside press, held entry and panel excluded');
  console.log('PASS mouse-only drag after blur/lost capture, native-cursor-only movement, right-button release isolation, tray pickup/place/cancel; nonfocusable transparent overlay');
  console.log('PASS: actual Capri sprite hit, busy/refusal override, cursor sampler fallback after native movement delivery is lost, release and cancellation (virtual viewport/cursor fixture; not Windows OS input)');
  win.destroy();clearTimeout(timeout);app.exit(0);

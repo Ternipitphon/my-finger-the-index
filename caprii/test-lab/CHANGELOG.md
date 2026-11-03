@@ -1,3 +1,7 @@
+## 1.5.2 / Caprii 0.7.2
+
+เพิ่ม regression ลากโดยปิดแชตและไม่มี DOM mouse events ใน companion fixture รักษา 8 เคส DOM และ media IDs เดิม การลาก native Windows ไม่ถูกนับผ่านในหน้าเว็บ
+
 ## 1.5.1 / Caprii 0.7.1
 
 เพิ่มแนวทางตรวจสถานะเชื่อมจริง แยก paired/responsive และทดสอบ HTTP broker + worker emulation + Spotify DOM โดยปิด page timers ไม่เพิ่มคะแนนผ่าน native/Spotify จริง รักษา 8 เคส DOM และ 4 external-media IDs เดิม
