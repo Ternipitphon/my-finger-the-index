@@ -1,0 +1,35 @@
+{
+  "version": "0.6.3",
+  "platform": "Windows 10/11 x64",
+  "installer": "Caprii-Agent-Setup-0.6.3.exe",
+  "bytes": 183745157,
+  "sha256": "34C514EF983046E4693713CDF37802D3C33B294421CF3580DC3F9BA4392BF4F4",
+  "source_commit": "988b19e1b0526bc7c88d38dc8e99b570e34a178e",
+  "parts": [
+    {
+      "name": "Caprii-Setup.part01",
+      "bytes": 62914560,
+      "sha256": "898865827B3880BBF2FCF835728A146A83E251196E13FBAFCF6444150DC686A3"
+    },
+    {
+      "name": "Caprii-Setup.part02",
+      "bytes": 62914560,
+      "sha256": "7252344518D6646F0DC5F4D811E18F4160DD515BC8EB8E1BD8E5AE53F7329F1C"
+    },
+    {
+      "name": "Caprii-Setup.part03",
+      "bytes": 57916037,
+      "sha256": "4E42C74C0FEF3D398F0C140C89FA0ABB8A6B903B2611EBDDFDD1F5F3A02487A1"
+    }
+  ],
+  "validation": {
+    "application_tests": 186,
+    "lab_unit_tests": 3,
+    "lab_browser_cases": 8,
+    "packaged_resource_check": "passed",
+    "real_windows_installation": "not tested",
+    "drag_lifecycle": "passed 30 consecutive sprite cycles with simulated physical-button state, premature DOM releases and missing DOM releases",
+    "native_windows_button_helper": "not tested on Windows; read-only GetAsyncKeyState added to existing helper",
+    "late_cursor": "passed rejection of previous-gesture samples"
+  }
+}
