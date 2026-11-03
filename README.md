@@ -1,11 +1,18 @@
-## Caprii 0.6.1 — คลิกติดแต่ลากไม่ขยับ
+## Caprii 0.6.2 — เปิด Spotify และเว็บอื่นแบบเดียวกับ YouTube
+
+- `เปิด Spotify` / `เปิดสปอติฟาย` / `open Spotify` ส่ง `https://open.spotify.com/` ให้เบราว์เซอร์เริ่มต้นของ Windows โดยตรง ผ่านเส้นทางเดียวกับ YouTube ไม่มีการค้นหาแอปหรือเรียก Agent สำหรับการเปิดเว็บอย่างเดียว
+- บริการเว็บที่รู้จักทั้งหมดใช้รายการเดียวกัน เช่น Gmail, Discord, Netflix, GitHub, ChatGPT รวมทั้ง `เปิดเว็บ example.org` และ URL http/https ที่ระบุเอง คง path, query และ fragment ตามลิงก์จริง
+- `เปิดแอป Spotify` ยังคงเป็นคำสั่งเปิดโปรแกรม ส่วนคำสั่งเล่นเพลง/ค้นหาในเว็บ/หลายขั้นตอนยังใช้เส้นทางตามงานนั้น
+- ถ้าระบุชื่อเว็บที่ไม่รู้จัก จะถามลิงก์หรือโดเมน ไม่เดาเป็นชื่อเว็บ.com การยกเลิกหน้าต่างยืนยันจะไม่รายงานว่าเปิดแล้ว ไม่ต้องเชื่อมแท็บ Chrome เพื่อเปิดเว็บอย่างเดียว
+
+## Caprii 0.6.2 — คลิกติดแต่ลากไม่ขยับ
 
 แก้การลากที่ได้รับ mousemove แต่ไม่มี pointermove รองรับทั้ง MouseEvent และ PointerEvent ไม่ปล่อยตัวละครเพียงเพราะหน้าต่างเสียโฟกัสหรือ mouse pointer capture หลุด และอ่านตำแหน่งเคอร์เซอร์โดยตรงทุกประมาณ 32 ms เฉพาะตอนกำลังจับ ล็อก native click-through ตลอดการจับ ไม่ให้การตรวจ hit/rearm สลับหน้าต่างเป็นคลิกทะลุระหว่างลาก
 
 หากลากโดยตรงยังมีปัญหา: คลิกขวา **ไอคอน Caprii ในถาดระบบข้างนาฬิกา** → **จับย้ายตัวละคร — ขยับเมาส์แล้วคลิกวาง** หรือ **Ctrl+Alt+M** ไม่ต้องกดค้าง คลิกซ้ายเพื่อวางหรือคลิกขวา/Ctrl+Alt+Esc เพื่อยกเลิก เลือกได้เฉพาะหน้าจอที่ตัวละครอยู่ มี timeout 30 วินาทีเพื่อไม่ให้ติดโหมดจับ
 
 
-## Caprii 0.6.1 — ลากตัวละคร ดูจอ และภาษาอังกฤษ
+## Caprii 0.6.2 — ลากตัวละคร ดูจอ และภาษาอังกฤษ
 
 - จับลากตัวละครได้ระหว่างแอนิเมชัน โดยใช้ pointer capture และปล่อยได้เมื่อเมาส์ออกนอกตัวละคร ยกเลิกการปฏิเสธการจับ
 - คลิกขวา → **ดูจอแล้วพูดสิ่งที่เห็น (AI)** เปิด/ปิดได้ แยกจาก **พูดเล่นตอนว่าง** (ปิดเป็นค่าเริ่มต้น) ดูครั้งแรกหลังประมาณ 1 นาที จากนั้นทุก 2–4 นาทีเมื่อผู้ใช้ยังใช้งานและตัวละครว่าง ไม่รบกวนแชต
@@ -15,23 +22,23 @@
 
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.6.1 — ตัวติดตั้ง Windows
+## ดาวน์โหลด Caprii 0.6.2 — ตัวติดตั้ง Windows
 
-[ดาวน์โหลด ZIP ตัวติดตั้ง Caprii 0.6.1](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.6.1-download.zip)
+[ดาวน์โหลด ZIP ตัวติดตั้ง Caprii 0.6.2](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.6.2-download.zip)
 
-รองรับ Windows 10/11 x64 ชุดดาวน์โหลดนี้มีเฉพาะไฟล์ติดตั้งรุ่น 0.6.1 ไม่ต้องดาวน์โหลด ZIP ทั้ง repository หรือเลือกโฟลเดอร์รุ่นเก่า
+รองรับ Windows 10/11 x64 ชุดดาวน์โหลดนี้มีเฉพาะไฟล์ติดตั้งรุ่น 0.6.2 ไม่ต้องดาวน์โหลด ZIP ทั้ง repository หรือเลือกโฟลเดอร์รุ่นเก่า
 
 ### ติดตั้งและเริ่มใช้
 
 1. ดาวน์โหลด ZIP แล้วคลิกขวา **แยกทั้งหมด / Extract All** อย่าเปิดตัวติดตั้งจากใน WinRAR หรือหน้าต่าง ZIP
 2. ปิด Caprii ตัวเก่าจากถาดระบบก่อนติดตั้ง
 3. เข้าโฟลเดอร์ที่แตกแล้ว ดับเบิลคลิก **`INSTALL-CAPRII.cmd`** ให้ไฟล์ `Caprii-Setup.part01`, `part02`, `part03` อยู่ข้างกันครบทั้งสามส่วน
-4. สคริปต์ตรวจ SHA256 ทุกส่วน รวมเป็น **`Caprii-Agent-Setup-0.6.1.exe`** และตรวจ hash ไฟล์รวมก่อนเปิดตัวติดตั้ง
-5. เมื่อติดตั้งแล้ว เปิด **Caprii Agent** จาก Desktop หรือ Start Menu คลิกขวาตัวละครจะเห็น **Caprii 0.6.1**
+4. สคริปต์ตรวจ SHA256 ทุกส่วน รวมเป็น **`Caprii-Agent-Setup-0.6.2.exe`** และตรวจ hash ไฟล์รวมก่อนเปิดตัวติดตั้ง
+5. เมื่อติดตั้งแล้ว เปิด **Caprii Agent** จาก Desktop หรือ Start Menu คลิกขวาตัวละครจะเห็น **Caprii 0.6.2**
 
 ตัวติดตั้งรวม runtime ที่จำเป็นแล้ว ไม่ต้องติดตั้ง Node.js หรือ Python เพิ่ม ไฟล์ `.patch` และ `source-update.zip` จากงานก่อนเป็นไฟล์สำหรับพัฒนา ไม่ใช่ตัวติดตั้งรุ่นนี้
 
-อ่าน [วิธีติดตั้งและ checksum](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.6.1/downloads/Caprii-0.6.1) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.6.1/downloads/Caprii-0.6.1/GUIDE-TH.md)
+อ่าน [วิธีติดตั้งและ checksum](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.6.2/downloads/Caprii-0.6.2) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.6.2/downloads/Caprii-0.6.2/GUIDE-TH.md)
 
 ## คงการแก้บั๊กจาก 0.5.9: คำสั่งฟอร์มต้องใช้เครื่องมือจริง
 
@@ -66,7 +73,7 @@
 
 ตัวอย่าง: แนบรูปแล้วบอก “ดูรูปที่ส่งให้หน่อย รหัสบนภาพเขียนว่าอะไร อย่าไปดูจอแทนนะ”
 
-## ความสามารถในรุ่น 0.6.1
+## ความสามารถในรุ่น 0.6.2
 
 | ส่วนที่ปรับปรุง | สิ่งที่ทำได้ |
 | --- | --- |
@@ -77,7 +84,7 @@
 | หน้าเว็บเปลี่ยน | ปฏิเสธ ID/generation เก่า ช่องที่ถูกแทนที่ ซ่อน หรือเปลี่ยนตัวเลือก เพื่อให้อ่าน DOM ใหม่ก่อนทำต่อ |
 | ทำตามข้อจำกัด | คำสั่งใหม่เคารพ “ห้ามกรอก” และไม่ส่งคำสั่งซ้ำเมื่อผลก่อนหน้ายังไม่แน่ชัด |
 | Test Lab ในแอป | เปิดเว็บทดสอบในเครื่องจากเมนู Caprii ได้เลย ไม่ต้องเปิด server หรือใช้ Node.js แยก |
-| ชุดติดตั้งรุ่นใหม่ | แอปและส่วนขยาย Chrome เป็น 0.6.1 พร้อมแพ็กเกจ part และการตรวจ SHA256 ตามรูปแบบรุ่นก่อน |
+| ชุดติดตั้งรุ่นใหม่ | แอปและส่วนขยาย Chrome เป็น 0.6.2 พร้อมแพ็กเกจ part และการตรวจ SHA256 ตามรูปแบบรุ่นก่อน |
 
 การกรอกผ่าน DOM ใช้ได้กับ browser ของแอปและแท็บ Chrome ที่ผู้ใช้เลือกเชื่อมต่อผ่านส่วนขยาย ไม่ได้อ่านทุกแท็บอัตโนมัติ รักษาระบบอนุญาตและปุ่มหยุดเดิมไว้
 
@@ -103,7 +110,7 @@
 
 ผลผ่านมาจากค่าช่องและเหตุการณ์บนหน้า เว็บยังแยกไม่ได้ว่าผู้ใช้หรือ Caprii เป็นผู้ลงมือ และไม่ยืนยันการบันทึกข้อมูลบน server ไม่มีการ publish เว็บทดสอบออนไลน์
 
-ซอร์สเว็บและแนวทางอัปเดตพร้อม Caprii อยู่ที่ [Test Lab](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.6.1/caprii/test-lab)
+ซอร์สเว็บและแนวทางอัปเดตพร้อม Caprii อยู่ที่ [Test Lab](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.6.2/caprii/test-lab)
 
 ## ความสามารถเดิมที่ยังอยู่
 
@@ -119,21 +126,21 @@ Chromium ใน environment ทดสอบนี้ถูกนโยบาย�
 ทดสอบหน้าต่าง Chat/Panel จริงเพิ่มเติม: แนบรูป, preview ก่อนส่ง, HTTP payload แบบหลายสื่อ, Ctrl+V ผ่าน ClipboardItem API, ส่งเฉพาะรูป, ถอดรูป, และแจ้งเมื่อโมเดลไม่รองรับภาพ รวมทั้งตรวจว่า history ไม่มีพิกเซลรูป
 
 
-- **173 application tests ผ่าน** รวมวงจรเปิด/ปิด server ของ Test Lab และการตรวจเวอร์ชันแอป/lock/ส่วนขยายให้ตรงกัน
+- **181 application tests ผ่าน** รวมวงจรเปิด/ปิด server ของ Test Lab และการตรวจเวอร์ชันแอป/lock/ส่วนขยายให้ตรงกัน
 - **3 Test Lab unit/server checks ผ่าน**
 - **8 เคส browser จริงผ่าน** พร้อมกรณีตอบผิด, readonly keypad, ผลตอบกลับช้า/รีเซ็ต, element เก่า, ห้ามส่ง, ตัวกรอง, รายงาน JSON และขนาดหน้าจอมือถือ
-- ตรวจแพ็กเกจจริง: ASAR เวอร์ชัน 0.6.1, Windows x64 PE, Python ที่รวมไว้, ฟอนต์, ส่วนขยาย/DOM bridge และเปิด Test Lab จาก ASAR ได้
+- ตรวจแพ็กเกจจริง: ASAR เวอร์ชัน 0.6.2, Windows x64 PE, Python ที่รวมไว้, ฟอนต์, ส่วนขยาย/DOM bridge และเปิด Test Lab จาก ASAR ได้
 - ตรวจ archive ของ NSIS ผ่าน และรวม part กลับมาได้ SHA256 ตรงกับ installer
 
 **ยังไม่ได้ลองติดตั้งและควบคุมบน Windows จริง** การ cross-build และการทดสอบบน Linux ไม่ยืนยันว่าการควบคุม Windows หรือทุกเว็บไซต์จะทำงานครบ ตัวติดตั้งยังไม่มีลายเซ็นดิจิทัล การอ่านเว็บจริงขึ้นกับเครือข่าย โควตา และข้อมูลที่เว็บไซต์เปิดให้ใช้
 
-อ่าน [รายละเอียดผลทดสอบ](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.6.1/downloads/Caprii-0.6.1/VALIDATION.md) และ [download manifest](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.6.1/downloads/Caprii-0.6.1/download-manifest.json)
+อ่าน [รายละเอียดผลทดสอบ](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.6.2/downloads/Caprii-0.6.2/VALIDATION.md) และ [download manifest](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.6.2/downloads/Caprii-0.6.2/download-manifest.json)
 
 ## ซอร์สและการพัฒนารุ่นถัดไป
 
-ซอร์สรุ่น 0.6.1 อยู่ที่ [branch caprii-0.6.1](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.6.1) ในโฟลเดอร์ `caprii/` เริ่มด้วย `npm ci` แล้ว `npm test` ส่วน Test Lab ใช้ `npm run test:lab` และ `npm run test:lab-ui` เมื่อมีสภาพแวดล้อม Electron GUI
+ซอร์สรุ่น 0.6.2 อยู่ที่ [branch caprii-0.6.2](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.6.2) ในโฟลเดอร์ `caprii/` เริ่มด้วย `npm ci` แล้ว `npm test` ส่วน Test Lab ใช้ `npm run test:lab` และ `npm run test:lab-ui` เมื่อมีสภาพแวดล้อม Electron GUI
 
-เมื่อเพิ่มความสามารถ ให้ปรับเวอร์ชัน ชุดทดสอบเว็บ และคู่มือไปด้วย พร้อมสร้างตัวติดตั้งและตรวจ hash ตาม [ขั้นตอนออกเวอร์ชัน](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.6.1/RELEASE-WORKFLOW-TH.md) ซอร์สหรือแพตช์อย่างเดียวไม่ใช่ตัวติดตั้งพร้อมใช้
+เมื่อเพิ่มความสามารถ ให้ปรับเวอร์ชัน ชุดทดสอบเว็บ และคู่มือไปด้วย พร้อมสร้างตัวติดตั้งและตรวจ hash ตาม [ขั้นตอนออกเวอร์ชัน](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.6.2/RELEASE-WORKFLOW-TH.md) ซอร์สหรือแพตช์อย่างเดียวไม่ใช่ตัวติดตั้งพร้อมใช้
 
 ## ชุดทดสอบและรุ่นก่อน
 

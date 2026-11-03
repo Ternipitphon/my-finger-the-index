@@ -1,6 +1,6 @@
 import { browserTaskIntent } from './browser-task-intent.js';
 import { reachIntent } from './reach-intent.js';
-import { siteCommand, actionCommand, refusedCommand, resolveTaskCommand } from './command-intent.js';
+import { WEBSITE_URLS, siteCommand, actionCommand, refusedCommand, resolveTaskCommand } from './command-intent.js';
 import { screenIntent } from './screen-intent.js';
 // Talking to her: you type in her panel, and a model (setup.js picks which) answers as her, in
 // writing. The replies are AI-generated, and the panel says so on every chat.
@@ -137,15 +137,7 @@ const MEMO_ASK = /^\s*(?:capri,?\s+|stp,?\s+|please,?\s+)?(?:souviens[- ]toi(?: 
 const MEMORIES_MAX = 30;
 // sites asked for by name ("open youtube") when no app on the PC goes by it: the address is hers, not
 // the model's, so it opens right away like an app you named
-const SITES = {
-  youtube: 'https://www.youtube.com', google: 'https://www.google.com', gmail: 'https://mail.google.com',
-  twitch: 'https://www.twitch.tv', netflix: 'https://www.netflix.com', reddit: 'https://www.reddit.com',
-  twitter: 'https://x.com', instagram: 'https://www.instagram.com', tiktok: 'https://www.tiktok.com',
-  facebook: 'https://www.facebook.com', github: 'https://github.com', chatgpt: 'https://chatgpt.com',
-  wikipedia: 'https://www.wikipedia.org', linkedin: 'https://www.linkedin.com', pinterest: 'https://www.pinterest.com',
-  crunchyroll: 'https://www.crunchyroll.com', outlook: 'https://outlook.live.com', whatsapp: 'https://web.whatsapp.com',
-  discord: 'https://discord.com/app', soundcloud: 'https://soundcloud.com', deezer: 'https://www.deezer.com',
-};
+const SITES = WEBSITE_URLS;
 // a browser named with a site ("open youtube on chrome"): the site, in the browser you use
 const BROWSER = /chrome|edge|firefox|opera|brave|vivaldi|duckduckgo|browser/i;
 // local models this small mostly talk nonsense ("llama3.2:1b", "qwen2.5:0.5b"…)
@@ -306,9 +298,10 @@ export class Chat {
     // line about it comes under her answer (Claude Code, answering her chat, does things its own way)
     const website = siteCommand(text);
     if (website) {
+      if(website.question){this.panel.stream(this.brain.lang==='en'?'Please provide the website URL or domain so I can open the correct site.':website.question,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
       try {
         const opened = await this.host.openSite(website.url);
-        if (this.turn === id) this.panel.stream(opened ? `ส่งคำขอเปิด ${website.name} ในเบราว์เซอร์แล้ว` : `ยังไม่ได้เปิด ${website.name} — ถูกยกเลิกหรือเปิดไม่สำเร็จ`, { done: true });
+        if (this.turn === id) this.panel.stream(this.brain.lang==='en'?(opened?`Sent ${website.name} to your default browser.`:`${website.name} was not opened — canceled or failed.`):(opened ? `ส่งคำขอเปิด ${website.name} ในเบราว์เซอร์แล้ว` : `ยังไม่ได้เปิด ${website.name} — ถูกยกเลิกหรือเปิดไม่สำเร็จ`), { done: true });
       } catch {
         if (this.turn === id) this.panel.stream('เปิดเว็บไซต์ไม่สำเร็จ กรุณาตรวจข้อความผิดพลาด', { done: true });
       } finally { if (this.turn === id) { this.turn = 0; this.panel.setChatBusy(false); } }

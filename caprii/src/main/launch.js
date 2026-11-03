@@ -285,7 +285,7 @@ async function roblox(query) {
 function siteUrl(address) {
   try {
     const url = new URL(/^https?:\/\//i.test(address) ? address : `https://${address}`);
-    return ['http:', 'https:'].includes(url.protocol) && url.hostname.includes('.') ? url : null;
+    return ['http:', 'https:'].includes(url.protocol) && url.hostname.includes('.') && !url.username && !url.password ? url : null;
   } catch {
     return null;
   }

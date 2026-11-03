@@ -1,3 +1,9 @@
+# Caprii 0.6.2 validation
+
+- 181 application tests cover direct Spotify/YouTube routing, all shared known-site aliases, arbitrary URL/domain preservation, explicit app/music/multistep separation, unknown-site clarification, canceled launches and OS shell HTTPS delegation. The OS handler is stubbed; this does not prove a real Windows browser opened.
+- 3 Test Lab checks and all 8 real DOM browser cases are retained; informational external-browser examples are checked separately and never count as a DOM pass.
+- Packaged resource validation checks versions, Windows x64 PE, bundled runtime/fonts/extension and local Test Lab from ASAR. Actual Windows installation and default-browser launch remain untested here. Installer is cross-built and unsigned. Website hosting is not deployed.
+
 # Caprii 0.6.1 validation
 
 - 173 application tests pass, including native click-through lock during drag/rearm, release/reload state, cursor sampling without DOM move events, no concurrent cursor requests and discarded late samples after release/stop.

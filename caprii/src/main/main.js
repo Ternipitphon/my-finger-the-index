@@ -1039,7 +1039,9 @@ function registerIpc() {
   ipcMain.handle('apps:site', async (_e, address) => {
     if (_e.sender !== overlay?.webContents) return false;
     try {
-      const url = require('./agent-browser').browserUrl(String(address));
+      const parsed=launch.siteUrl(String(address));
+      if(!parsed)return false;
+      const url=parsed.href;
       if(automaticActions)return await launch.site(url);
       const answer = await dialog.showMessageBox(overlay, { type: 'question', message: 'เปิดเว็บไซต์ในเบราว์เซอร์?', detail: url,
         buttons: ['ยกเลิก', 'เปิดเว็บไซต์'], defaultId: 0, cancelId: 0 });

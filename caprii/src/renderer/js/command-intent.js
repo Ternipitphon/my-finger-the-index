@@ -1,19 +1,40 @@
-function normalized(text) { return text.trim().replace(/^(?:ผม|ฉัน|เรา)?(?:อยากให้|ต้องการให้)(?:คุณ|เธอ|แคปรี่|caprii?)?\s*/i, '').replace(/^(?:ช่วย|กรุณา)\s*/, ''); }
-const siteAliases = [
-  { names: /youtube|ยูทู[ปบ]/i, name: 'YouTube', url: 'https://www.youtube.com/' },
-  { names: /google|กูเกิล|กูเกิ้ล/i, name: 'Google', url: 'https://www.google.com/' },
-  { names: /facebook|เฟซบุ๊ก|เฟสบุ๊ค/i, name: 'Facebook', url: 'https://www.facebook.com/' },
-];
+function normalized(text) { return text.trim().replace(/^(?:ผม|ฉัน|เรา)?(?:อยากให้|ต้องการให้)(?:คุณ|เธอ|แคปรี่|caprii?)?\s*/i, '').replace(/^(?:ช่วย|กรุณา|please)\s*/i, ''); }
+// Canonical web destinations, shared by direct commands and the older chat actions.
+export const WEBSITE_URLS = {
+ youtube:'https://www.youtube.com/', google:'https://www.google.com/', facebook:'https://www.facebook.com/',
+ spotify:'https://open.spotify.com/', gmail:'https://mail.google.com/', twitch:'https://www.twitch.tv/',
+ netflix:'https://www.netflix.com/', reddit:'https://www.reddit.com/', twitter:'https://x.com/', x:'https://x.com/',
+ instagram:'https://www.instagram.com/', tiktok:'https://www.tiktok.com/', github:'https://github.com/',
+ chatgpt:'https://chatgpt.com/', wikipedia:'https://www.wikipedia.org/', linkedin:'https://www.linkedin.com/',
+ pinterest:'https://www.pinterest.com/', crunchyroll:'https://www.crunchyroll.com/', outlook:'https://outlook.live.com/',
+ whatsapp:'https://web.whatsapp.com/', discord:'https://discord.com/app', soundcloud:'https://soundcloud.com/',
+ deezer:'https://www.deezer.com/', gemini:'https://gemini.google.com/', claude:'https://claude.ai/',
+ notion:'https://www.notion.so/', canva:'https://www.canva.com/', drive:'https://drive.google.com/',
+ 'google drive':'https://drive.google.com/', 'google maps':'https://maps.google.com/', maps:'https://maps.google.com/'
+};
+const WEB_PREFIX=/^(?:(?:เว็บ(?:ไซต์)?|เว็ป(?:ไซต์)?)\s*|(?:the\s+)?(?:website|web site|site)\s+)/i;
+const aliases={ยูทูป:'youtube',ยูทูบ:'youtube',กูเกิล:'google',กูเกิ้ล:'google',เฟซบุ๊ก:'facebook',เฟสบุ๊ค:'facebook',เฟซบุ๊ค:'facebook',สปอติฟาย:'spotify',สปอติฟายด์:'spotify',สปอติฟาย์:'spotify',สปอติฟายน์:'spotify',สปอติไฟ:'spotify',เน็ตฟลิกซ์:'netflix',เน็ตฟลิก:'netflix',ดิสคอร์ด:'discord',ทวิตเตอร์:'twitter',อินสตาแกรม:'instagram',ติ๊กต็อก:'tiktok',ติ๊กต๊อก:'tiktok',จีเมล:'gmail'};
+function addressUrl(target){
+ try{const explicit=/^[a-z][a-z0-9+.-]*:/i.test(target);const url=new URL(explicit?target:'https://'+target);if(!['http:','https:'].includes(url.protocol)||url.username||url.password||!url.hostname.includes('.')||/[\s\\]/.test(target))return null;return url;}catch{return null;}
+}
 export function siteCommand(text) {
-  if (typeof text !== 'string') return null;
-  const command = normalized(text);
-  const match = /^(?:เปิด|เข้า(?:เว็บ(?:ไซต์)?)?|ไปที่|open|visit)\s*(.+?)(?:\s*(?:ให้หน่อย|หน่อย|ให้ที|ที|ด้วย|ครับ|ค่ะ|นะ))?[.!\s]*$/i.exec(command);
-  if (!match || /แล้ว|จากนั้น|ค้นหา|search|and\s/i.test(match[1])) return null;
-  const target=match[1].replace(/^(?:เว็บ(?:ไซต์)?|the\s+website)\s*/i,'');
-  const site=siteAliases.find(s=>s.names.test(target));
-  if(site && target.replace(site.names,'').replace(/(?:ให้หน่อย|หน่อย|ให้ที|ที|ด้วย|ครับ|ค่ะ|นะ|\s)/g,'')==='')return {name:site.name,url:site.url};
-  try { const url=new URL(target); if(url.protocol==='https:'&&!url.username&&!url.password)return{name:url.hostname,url:url.href}; } catch {}
-  return null;
+ if(typeof text!=='string')return null;
+ const command=normalized(text);
+ const match=/^(?:เปิด|เข้า(?:เว็บ(?:ไซต์)?)?|ไปที่|open|visit)\s*(.+)$/i.exec(command);
+ if(!match)return null;
+ let target=match[1].trim();
+ const explicitWeb=WEB_PREFIX.test(target)||/^เข้าเว็บ/i.test(command);
+ target=target.replace(WEB_PREFIX,'').trim();
+ // A supplied URL is preserved; friendly suffixes are removed only outside its address.
+ const address=addressUrl(target)||addressUrl(target.replace(/\s+(?:ให้หน่อย|หน่อย|ให้ที|ที|ด้วย|ครับ|ค่ะ|นะ|please)[.!]*$/i,''));
+ if(address)return{name:address.hostname,url:address.href};
+ if(/แล้ว|จากนั้น|ค้นหา|\bsearch\b|\band\b/i.test(target))return null;
+ if(!explicitWeb&&(/^(?:(?:แอป(?:พลิเคชัน)?|แอพ|โปรแกรม)\s*|(?:desktop\s+)?app(?:lication)?\s+)/i.test(target)||/\b(?:desktop\s+)?app(?:lication)?$|แบบแอ[ปพ]|ในแอ[ปพ]/i.test(target)))return null;
+ const name=target.replace(/(?:ในเว็บ|บนเว็บ|แบบเว็บ|ในเบราว์เซอร์|บนเบราว์เซอร์|\s+in (?:the )?(?:web )?browser)\s*/i,'').replace(/(?:ให้หน่อย|หน่อย|ให้ที|ที|ด้วย|ครับ|ค่ะ|นะ|please|[.!?\s])+$/gi,'').trim().toLowerCase();
+ const key=aliases[name]||name;
+ if(WEBSITE_URLS[key])return{name:key==='spotify'?'Spotify':key==='youtube'?'YouTube':name,url:WEBSITE_URLS[key]};
+ if(explicitWeb)return{question:'ขอลิงก์หรือโดเมนของเว็บไซต์ที่ต้องการเปิด เช่น https://example.com เพื่อเปิดในเบราว์เซอร์ให้ตรงเว็บ'};
+ return null;
 }
 export function refusedCommand(text) { return typeof text === 'string' && /^(?:(?:ช่วย|กรุณา)\s*)?(?:(?:อย่า|ห้าม|ไม่ต้อง|ไม่)\s*(?:เปิด|เข้า|คลิก|กด|ลาก|พิมพ์|กรอก|ดู|มอง|ทำ|แก้|คำนวณ|ตอบ)|(?:do not|don't)\s+(?:open|click|drag|type|fill|look|solve|calculate))/i.test(normalized(text)); }
 export function actionCommand(text) {

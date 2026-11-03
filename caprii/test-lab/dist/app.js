@@ -58,5 +58,7 @@
  $('export').addEventListener('click',()=>{const text=JSON.stringify(report(),null,2);$('report-text').value=text;$('report-dialog').showModal();const blob=new Blob([text],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='caprii-test-lab-'+suite.capriiVersion+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
  $('close-report').addEventListener('click',()=>$('report-dialog').close());
  $('suite-version').textContent='v'+suite.version;$('target-version').textContent=suite.capriiVersion;$('footer-version').textContent='SUITE '+suite.version+' · CAPRII '+suite.capriiVersion;$('case-count').innerHTML=suite.cases.length+' <small>เคส</small>';$('nav-count').textContent=String(suite.cases.length).padStart(2,'0');
+ const launchNote=$('website-open-note');
+ if(launchNote){const title=document.createElement('strong');title.textContent='เปิดเว็บแบบเดียวกับ YouTube';const detail=document.createElement('p');detail.textContent='ลองสั่ง Caprii: เปิด Spotify → https://open.spotify.com/ หรือ เปิดเว็บ example.org → https://example.org/ ตรวจหน้าต่างเบราว์เซอร์เริ่มต้นที่เปิดจริง ผลนี้แยกจากคะแนน DOM บนหน้านี้ ถ้าระบุว่าเปิดแอป Spotify จึงใช้ทางเปิดโปรแกรม';launchNote.append(title,detail);}
  select(active);renderSummary();
 })();
