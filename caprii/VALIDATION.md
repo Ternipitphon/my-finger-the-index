@@ -1,3 +1,11 @@
+# Caprii 0.7.0 validation
+
+- 202 application checks include colloquial media parsing, exact reported commands, direct YouTube search URL, Chat media routing/context expiry, Spotify exact track/artist matching, ambiguous playlist refusal, once-only play and progress-based verification, authenticated same-origin location updates and extension navigation scope.
+- Real Electron Spotify-shaped local fixture passes Liked Songs, named song/artist, named playlist, single click, advancing progress, frozen-progress rejection and logged-out gate. HTTPS Spotify-origin pages are intercepted with local fixtures; no real Spotify account, DRM playback or audible output was tested.
+- 4 lab unit/server checks and the existing 8 real browser DOM cases pass. Four stable external-media examples are exported as not-measured-by-this-page, never marked passed by the site.
+- Packaged resource checks include matching Spotify DOM drivers in ASAR/extension and the media controller. Real unpacked Chrome extension integration remains blocked by managed browser policy. Windows installation and real Spotify/YouTube operation remain untested.
+- No website hosting deployment. Cross-built unsigned installer. Spotify login, account playback rights and browser autoplay permission are prerequisites; errors/unknown progress must not become a success claim.
+
 # Caprii 0.6.3 validation
 
 - 186 application tests pass. New checks cover fresh/stale/invalid/cleared physical-button samples, separation of button heartbeats from window snapshots, and rejecting delayed cursor replies from an earlier gesture.

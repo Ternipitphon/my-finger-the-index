@@ -1035,6 +1035,25 @@ function registerIpc() {
   });
   ipcMain.handle('apps:launch', (_e, item) => launch.launch(item).then(() => ({ ok: true }), (err) => ({ ok: false, error: err.message })));
   ipcMain.handle('apps:media', (_e, action) => launch.media(action));
+  ipcMain.handle('media:run',async(e,request={})=>{
+    if(e.sender!==overlay?.webContents||!Number.isSafeInteger(request.id))return{ok:false,text:'Invalid media request'};
+    if(chats.size)return{ok:false,text:'มีงานอื่นกำลังทำอยู่ รอสักครู่ก่อนเล่นเพลง'};
+    const {validateMedia,destination,runSpotify}=require('./media-player');let media;
+    try{media=validateMedia(request.media);}catch(error){return{ok:false,text:error.message};}
+    const abort=new AbortController();chats.set(request.id,abort);const signal=AbortSignal.any([abort.signal,AbortSignal.timeout(90000)]);
+    try{
+      const status=chromeBroker.status();
+      if(!status.connected||new URL(status.url).origin!=='https://open.spotify.com'){
+        await require('./launch').site(destination(media));
+        return{ok:false,verified:false,code:'connect_spotify',text:'เปิดหน้า Spotify ให้แล้ว แต่ยังไม่ได้เล่นเพลง เข้าสู่ระบบและเชื่อมแท็บ Spotify ผ่านส่วนขยาย Caprii ก่อน แล้วพิมพ์ “เล่นเลย” หรือคำสั่งเดิม'};
+      }
+      if(!status.media)return{ok:false,verified:false,text:'ส่วนขยายที่เชื่อมยังไม่รองรับเล่นเพลง รีโหลดส่วนขยายจากโฟลเดอร์ Caprii 0.7.0 แล้วเชื่อมแท็บ Spotify ใหม่ก่อนครับ'};
+      const result=await runSpotify({request:media,browser:chromeBroker.browser(),signal,onProgress:text=>overlay?.webContents.send('chat:delta',{id:request.id,text:text+'\n'})});
+      if(resolveLang(config.load().lang)==='en'&&result.verified)result.text='Spotify shows “'+result.track+'” playing and the playback position is advancing.';
+      return result;
+    }catch(error){return{ok:false,verified:false,text:signal.aborted?'หยุดคำสั่งแล้ว ยังไม่ยืนยันการเล่นเพลง':error.message};}
+    finally{chats.delete(request.id);}
+  });
   ipcMain.handle('apps:music', (_e, query) => launch.music(query).catch(() => false));
   ipcMain.handle('apps:site', async (_e, address) => {
     if (_e.sender !== overlay?.webContents) return false;

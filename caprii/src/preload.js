@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('host', {
   listSounds: () => ipcRenderer.invoke('sounds:list'),
   hooksStatus: () => ipcRenderer.invoke('hooks:status'),
   demoWindow: (open) => ipcRenderer.invoke('demo:window', Boolean(open)),
+  mediaRun: request=>ipcRenderer.invoke('media:run',request),
   openMenu: () => ipcRenderer.send('menu:open'),
   installHooks: () => ipcRenderer.invoke('hooks:install'),
   claudeFound: () => ipcRenderer.invoke('claude:found'),

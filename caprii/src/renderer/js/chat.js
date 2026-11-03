@@ -1,3 +1,4 @@
+import {mediaCommand} from './media-command.js';
 import { browserTaskIntent } from './browser-task-intent.js';
 import { reachIntent } from './reach-intent.js';
 import { WEBSITE_URLS, siteCommand, actionCommand, refusedCommand, resolveTaskCommand } from './command-intent.js';
@@ -284,7 +285,7 @@ export class Chat {
 
   async send(text) {
     if (this.turn || !this.open) return;
-    if(this.attachment)return this.sendImage(text);
+    if(this.attachment){this.lastMedia=null;return this.sendImage(text);}
     const id = Date.now();
     this.turn = id;
     this.answer = '';
@@ -296,6 +297,24 @@ export class Chat {
     this.onMessage?.();
     // what you asked for plainly happens right away (the music, the volume, an app you named): her
     // line about it comes under her answer (Claude Code, answering her chat, does things its own way)
+    const media=mediaCommand(text,this.lastMedia||null);
+    if(!media||media.question)this.lastMedia=null;
+    if(media){
+      try{
+        if(media.question){this.panel.stream(media.question,{done:true});return;}
+        this.lastMedia=media;
+        if(media.action==='search'){
+          const opened=await this.host.openSite(media.url);
+          this.panel.stream(opened?(this.brain.lang==='en'?`Sent search results for “${media.query}” to your browser.`:`ส่งคำขอเปิดผลค้นหา “${media.query}” ใน ${media.service==='youtube'?'YouTube':'Spotify'} แล้ว`):'ยังไม่ได้เปิดผลค้นหา — ถูกยกเลิกหรือเปิดไม่สำเร็จ',{done:true});
+        }else{
+          const result=await this.host.mediaRun({id,media});
+          if(result.clarification)this.lastMedia={...media,awaiting:result.clarification,choices:result.choices||[]};
+          if(this.turn===id)this.panel.stream(result.text+(result.choices?.length?'\n'+result.choices.map(x=>typeof x==='string'?x:x.title+(x.artists?.length?' — '+x.artists.join(', '):'')).join('\n'):''),{done:true});
+        }
+      }catch(error){if(this.turn===id)this.panel.stream('คำสั่งสื่อยังไม่สำเร็จ: '+error.message,{done:true});}
+      finally{if(this.turn===id){this.turn=0;this.panel.setChatBusy(false);}}
+      return;
+    }
     const website = siteCommand(text);
     if (website) {
       if(website.question){this.panel.stream(this.brain.lang==='en'?'Please provide the website URL or domain so I can open the correct site.':website.question,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}

@@ -65,3 +65,5 @@ npm run test:browser
 0.6.2: ตัวอย่างเปิดเว็บ Spotify และ example.org อยู่เหนือโจทย์เดิม ต้องตรวจหน้าต่างเบราว์เซอร์จริง ไม่มีปุ่มกดผ่านเองและไม่ให้คะแนน OS launch จาก DOM Test Lab
 
 0.6.3: ทดสอบลากปกติและ Ctrl+Alt+M หลังใช้หลายรอบ เปรียบเทียบอาการคู่กัน การอ่านปุ่ม Windows และการลาก native ไม่ถูกรวมเป็นคะแนนผ่าน DOM สคริปต์ companion-smoke ทดสอบ 30 รอบด้วยสถานะปุ่มจำลอง
+
+0.7.0: ตัวอย่าง YouTube และ Spotify อยู่เหนือโจทย์ รายงานแยก externalMedia=not-measured-by-this-page เพราะหน้า Test Lab ไม่เห็น browser ภายนอก รัน npm run test:media-ui เพื่อทดสอบ Spotify-shaped DOM fixture แบบไม่มีบัญชีจริง ไม่ได้พิสูจน์เสียงหรือ Spotify จริง
