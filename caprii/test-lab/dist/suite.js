@@ -1,6 +1,6 @@
 // Add cases here when Caprii gains a capability; keep stable IDs for regression history.
 (function(root){
- const suite={schemaVersion:1,version:'1.6.1',capriiVersion:'0.7.4',capriiCommit:null,baseCommit:'2620a940b6aaee59d93cb698ab0064c5bba2291e',externalMedia:[
+ const suite={schemaVersion:1,version:'1.6.2',capriiVersion:'0.7.5',capriiCommit:null,baseCommit:'5b419777431d4bf2dd871077c852ad7709c4eb78',externalMedia:[
  {id:'youtube-search',prompt:'เปิดyoutubeแล้วก็ค้นหาว่าlimbus',expected:'เปิดหน้าผลค้นหา YouTube คำว่า limbus ใน default browser'},
  {id:'spotify-liked',prompt:'เปิด spotifyแล้วกดเล่นเพลงในliked song',expected:'อ่านแท็บ Spotify ที่ล็อกอินและเชื่อมอยู่ เปิด Liked Songs กดเล่นครั้งเดียว และตรวจเวลาเพลงเดิน'},
  {id:'spotify-track',prompt:'เปิดเพลงชื่อ Harpy Hare ของ Yaelokre ใน Spotify',expected:'ชื่อและศิลปินตรง หากหลายเวอร์ชันให้ถาม ไม่เล่นผลแรกแบบสุ่ม'},

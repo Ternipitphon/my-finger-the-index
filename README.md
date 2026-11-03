@@ -1,22 +1,28 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.7.4 — ตัวติดตั้ง Windows
+## ดาวน์โหลด Caprii 0.7.5 — ตัวติดตั้ง Windows
 
-[ดาวน์โหลด ZIP ตัวติดตั้ง Caprii 0.7.4](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.7.4-download.zip)
+[ดาวน์โหลด ZIP ตัวติดตั้ง Caprii 0.7.5](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.7.5-download.zip)
 
-รองรับ Windows 10/11 x64 ชุดดาวน์โหลดนี้มีเฉพาะไฟล์ติดตั้งรุ่น 0.7.4 ไม่ต้องดาวน์โหลด ZIP ทั้ง repository หรือเลือกโฟลเดอร์รุ่นเก่า
+รองรับ Windows 10/11 x64 ชุดดาวน์โหลดนี้มีเฉพาะไฟล์ติดตั้งรุ่น 0.7.5 ไม่ต้องดาวน์โหลด ZIP ทั้ง repository หรือเลือกโฟลเดอร์รุ่นเก่า
 
 ### ติดตั้งและเริ่มใช้
 
 1. ดาวน์โหลด ZIP แล้วคลิกขวา **แยกทั้งหมด / Extract All** อย่าเปิดตัวติดตั้งจากใน WinRAR หรือหน้าต่าง ZIP
 2. ปิด Caprii ตัวเก่าจากถาดระบบก่อนติดตั้ง
 3. เข้าโฟลเดอร์ที่แตกแล้ว ดับเบิลคลิก **`INSTALL-CAPRII.cmd`** ให้ไฟล์ `Caprii-Setup.part01`, `part02`, `part03` อยู่ข้างกันครบทั้งสามส่วน
-4. สคริปต์ตรวจ SHA256 ทุกส่วน รวมเป็น **`Caprii-Agent-Setup-0.7.4.exe`** และตรวจ hash ไฟล์รวมก่อนเปิดตัวติดตั้ง
-5. เมื่อติดตั้งแล้ว เปิด **Caprii Agent** จาก Desktop หรือ Start Menu คลิกขวาตัวละครจะเห็น **Caprii 0.7.4**
+4. สคริปต์ตรวจ SHA256 ทุกส่วน รวมเป็น **`Caprii-Agent-Setup-0.7.5.exe`** และตรวจ hash ไฟล์รวมก่อนเปิดตัวติดตั้ง
+5. เมื่อติดตั้งแล้ว เปิด **Caprii Agent** จาก Desktop หรือ Start Menu คลิกขวาตัวละครจะเห็น **Caprii 0.7.5**
 
 ตัวติดตั้งรวม runtime ที่จำเป็นแล้ว ไม่ต้องติดตั้ง Node.js หรือ Python เพิ่ม ไฟล์ `.patch` และ `source-update.zip` จากงานก่อนเป็นไฟล์สำหรับพัฒนา ไม่ใช่ตัวติดตั้งรุ่นนี้
 
-อ่าน [วิธีติดตั้งและ checksum](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.7.4/downloads/Caprii-0.7.4) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.7.4/downloads/Caprii-0.7.4/GUIDE-TH.md)
+อ่าน [วิธีติดตั้งและ checksum](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.7.5/downloads/Caprii-0.7.5) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.7.5/downloads/Caprii-0.7.5/GUIDE-TH.md)
+
+## Caprii 0.7.5 — ปุ่มคุยอยู่นิ่ง ไม่ตอบสนอง
+
+เพิ่มทางสำรองเฉพาะปุ่ม “คุยกับฉัน” ตอนว่าง โดยอ่านขอบการกด–ปล่อยปุ่มเมาส์หลักจาก Windows helper เดิม แม้ไม่มี DOM mouse events ก็เรียกเปิดแชตได้ ต้องกดและปล่อยบนปุ่มเดิม ไม่กดติดจากการลากผ่าน ไม่ทำงานแทนปุ่มอนุญาต/ส่งข้อมูล และกันการเปิดซ้ำจาก native + DOM หรือคลิกที่มาช้าบนปุ่มเก่า
+
+หยุดแอนิเมชันไล่ข้อความระหว่างกด เพราะการขึ้นบรรทัดใหม่ทำให้ตัวปุ่มขยับภายในกล่องได้ พร้อมแก้การปลดล็อกพื้นที่คลิกเมื่อไม่มี DOM mouseup ใช้เมนูคลิกขวา → คุย เป็นทางสำรองได้ตามเดิม
 
 ## Caprii 0.7.4 — ปุ่มคุยกับฉัน
 
@@ -163,7 +169,7 @@ Spotify ใช้การควบคุม Web Player ไม่ใช้รห
 
 ผลผ่านมาจากค่าช่องและเหตุการณ์บนหน้า เว็บยังแยกไม่ได้ว่าผู้ใช้หรือ Caprii เป็นผู้ลงมือ และไม่ยืนยันการบันทึกข้อมูลบน server ไม่มีการ publish เว็บทดสอบออนไลน์
 
-ซอร์สเว็บและแนวทางอัปเดตพร้อม Caprii อยู่ที่ [Test Lab](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.7.4/caprii/test-lab)
+ซอร์สเว็บและแนวทางอัปเดตพร้อม Caprii อยู่ที่ [Test Lab](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.7.5/caprii/test-lab)
 
 ## ความสามารถเดิมที่ยังอยู่
 
@@ -182,18 +188,18 @@ Chromium ใน environment ทดสอบนี้ถูกนโยบาย�
 - **217 application tests ผ่าน** รวมวงจรเปิด/ปิด server ของ Test Lab และการตรวจเวอร์ชันแอป/lock/ส่วนขยายให้ตรงกัน
 - **4 Test Lab unit/server checks ผ่าน**
 - **8 เคส browser จริงผ่าน** พร้อมกรณีตอบผิด, readonly keypad, ผลตอบกลับช้า/รีเซ็ต, element เก่า, ห้ามส่ง, ตัวกรอง, รายงาน JSON และขนาดหน้าจอมือถือ
-- ตรวจแพ็กเกจจริง: ASAR เวอร์ชัน 0.7.4, Windows x64 PE, Python ที่รวมไว้, ฟอนต์, ส่วนขยาย/DOM bridge และเปิด Test Lab จาก ASAR ได้
+- ตรวจแพ็กเกจจริง: ASAR เวอร์ชัน 0.7.5, Windows x64 PE, Python ที่รวมไว้, ฟอนต์, ส่วนขยาย/DOM bridge และเปิด Test Lab จาก ASAR ได้
 - ตรวจ archive ของ NSIS ผ่าน และรวม part กลับมาได้ SHA256 ตรงกับ installer
 
 **ยังไม่ได้ลองติดตั้งและควบคุมบน Windows จริง** การ cross-build และการทดสอบบน Linux ไม่ยืนยันว่าการควบคุม Windows หรือทุกเว็บไซต์จะทำงานครบ ตัวติดตั้งยังไม่มีลายเซ็นดิจิทัล การอ่านเว็บจริงขึ้นกับเครือข่าย โควตา และข้อมูลที่เว็บไซต์เปิดให้ใช้
 
-อ่าน [รายละเอียดผลทดสอบ](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.7.4/downloads/Caprii-0.7.4/VALIDATION.md) และ [download manifest](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.7.4/downloads/Caprii-0.7.4/download-manifest.json)
+อ่าน [รายละเอียดผลทดสอบ](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.7.5/downloads/Caprii-0.7.5/VALIDATION.md) และ [download manifest](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.7.5/downloads/Caprii-0.7.5/download-manifest.json)
 
 ## ซอร์สและการพัฒนารุ่นถัดไป
 
-ซอร์สรุ่น 0.7.4 อยู่ที่ [branch caprii-0.7.4](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.7.4) ในโฟลเดอร์ `caprii/` เริ่มด้วย `npm ci` แล้ว `npm test` ส่วน Test Lab ใช้ `npm run test:lab` และ `npm run test:lab-ui` เมื่อมีสภาพแวดล้อม Electron GUI
+ซอร์สรุ่น 0.7.5 อยู่ที่ [branch caprii-0.7.5](https://github.com/Ternipitphon/my-finger-the-index/tree/caprii-0.7.5) ในโฟลเดอร์ `caprii/` เริ่มด้วย `npm ci` แล้ว `npm test` ส่วน Test Lab ใช้ `npm run test:lab` และ `npm run test:lab-ui` เมื่อมีสภาพแวดล้อม Electron GUI
 
-เมื่อเพิ่มความสามารถ ให้ปรับเวอร์ชัน ชุดทดสอบเว็บ และคู่มือไปด้วย พร้อมสร้างตัวติดตั้งและตรวจ hash ตาม [ขั้นตอนออกเวอร์ชัน](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.7.4/RELEASE-WORKFLOW-TH.md) ซอร์สหรือแพตช์อย่างเดียวไม่ใช่ตัวติดตั้งพร้อมใช้
+เมื่อเพิ่มความสามารถ ให้ปรับเวอร์ชัน ชุดทดสอบเว็บ และคู่มือไปด้วย พร้อมสร้างตัวติดตั้งและตรวจ hash ตาม [ขั้นตอนออกเวอร์ชัน](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.7.5/RELEASE-WORKFLOW-TH.md) ซอร์สหรือแพตช์อย่างเดียวไม่ใช่ตัวติดตั้งพร้อมใช้
 
 ## ชุดทดสอบและรุ่นก่อน
 

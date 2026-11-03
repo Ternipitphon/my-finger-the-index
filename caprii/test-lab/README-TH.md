@@ -1,3 +1,5 @@
+Caprii 0.7.5: test:talk-ui ทดสอบปุ่มคุยเมื่อ DOM click หายและเมื่อแอนิเมชันทำให้ข้อความขึ้นบรรทัดใหม่ ยังต้องตรวจ Windows จริง
+
 Caprii 0.7.4: ตรวจปุ่มคุยด้วย npm run test:talk-ui แยกจากคะแนน DOM เดิม
 
 Caprii 0.7.3 / suite 1.6.0: browserConnection แยกจาก 8 เคส DOM โหมดจำ Chrome ต้องอนุญาตเว็บไซต์ใน popup ก่อน

@@ -1,3 +1,12 @@
+# Caprii 0.7.5 validation
+
+- 217 app tests, 4 local lab checks and 8 DOM browser cases pass.
+- Renderer periodically reasserts native hit reception while the cursor is on the panel, even if its cached hit state is already true. Actual Windows delivery remains unverified.
+- Actual Panel/Chat fixture tests no DOM press/move/release events: native samples on the idle Talk button open exactly one chat. Unknown button state never fabricates a release; outside press/entry or outside release cancels activation.
+- Combined DOM/native delivery activates once; late clicks on detached buttons are ignored. The fallback is scoped to the idle Talk action, never permission or submission controls.
+- Real Electron mouse regression also verifies the actual button coordinates remain fixed while text would wrap and the idle timer expires. Existing delayed-status, cancellation, visible error and chat form checks remain.
+- Real Windows physical sampling/input delivery remains untested; native samples are simulated in the fixture. Local Test Lab retains 8 DOM cases and separate desktop test scope. No website deployment.
+
 # Caprii 0.7.4 validation
 
 - Actual Panel/Chat Talk-button regression uses Electron mouse down/up on a nonfocusable transparent window. A moving anchor and expired idle timeout do not remove the pressed target. Loading appears before delayed AI status; repeated opening is coalesced; the final chat form is usable.

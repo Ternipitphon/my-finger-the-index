@@ -183,12 +183,15 @@ async function boot() {
     rearmedAt = now;
     host.rearm();
   }, WATCH_MS);
+  let panelReassertedAt=-Infinity;
   const dragCursor=trackDragCursor({capri,cursor:()=>host.cursor(),onHeld:()=>setInteractive(true),onSample:at=>{
     // Native hover must work while chat is closed and the forwarding hook is silent.
     mouse=at.inside?{x:at.x,y:at.y}:null;
     refreshHit();hoverChip();
     const r=panel.rect();
     const onPanel=r&&at.x>=r.left&&at.x<=r.right&&at.y>=r.top&&at.y<=r.bottom;
+    // Repair native click-through even when the renderer's cached hit state is already true.
+    if(onPanel&&performance.now()-panelReassertedAt>250){panelReassertedAt=performance.now();host.setInteractive(true);}
     panel.samplePointer(at);
     capri.samplePointer(at,!onPanel&&!panel.interactionHeld&&!onChip());
   }});

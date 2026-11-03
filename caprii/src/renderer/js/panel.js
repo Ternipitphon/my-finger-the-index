@@ -59,11 +59,13 @@ export class Panel {
     this.tickerTimer = null;
     this.missed = null; // a Claude message that came while you were chatting with her, shown after
     this.interactionHeld=false;
-    const press=e=>{
-      if(e.button!==0||this.interactionHeld)return;
-      clearTimeout(this.releaseInteractionTimer);clearTimeout(this.hideTimer);this.hideTimer=null;
+    this.beginInteraction=()=>{
+      if(this.interactionHeld)return;
+      clearTimeout(this.releaseInteractionTimer);this.releaseInteractionTimer=null;
+      clearTimeout(this.hideTimer);this.hideTimer=null;
       this.interactionHeld=true;this.nativePressSeen=false;this.pressAt=performance.now();this.onPointerHold?.(true);
     };
+    const press=e=>{if(e.button===0)this.beginInteraction();};
     panel.addEventListener('pointerdown',press);
     panel.addEventListener('mousedown',press);
     panel.addEventListener('click',()=>this.releaseInteraction(0),true);
@@ -115,9 +117,11 @@ export class Panel {
 
   releaseInteraction(delay=80){
     if(!this.interactionHeld)return;
+    if(this.releaseInteractionTimer&&delay!==0)return;
     clearTimeout(this.releaseInteractionTimer);
     // Keep the target still through the click which follows mouseup.
     this.releaseInteractionTimer=setTimeout(()=>{
+      this.releaseInteractionTimer=null;
       if(!this.interactionHeld)return;
       this.interactionHeld=false;this.onPointerHold?.(false);this.place();
       if(this.current?.hold&&!this.hideTimer)this.hideTimer=setTimeout(()=>this.hide(),Math.max(1000,this.current.hold-(performance.now()-this.current.at)));
@@ -125,9 +129,33 @@ export class Panel {
   }
 
   samplePointer(at){
-    if(!this.interactionHeld)return;
-    if(at.primaryDown===true)this.nativePressSeen=true;
-    if(at.primaryDown===false&&(this.nativePressSeen||performance.now()-this.pressAt>500))this.releaseInteraction();
+    const previous=this.previousPrimary;
+    this.previousPrimary=typeof at.primaryDown==='boolean'?at.primaryDown:null;
+    // Only the local idle Talk action gets a native fallback. Never permission/submit buttons.
+    const talk=this.visible&&this.current?.kind==='idle'&&this.actions.querySelector('[data-id="talk"]');
+    const hits=button=>{
+      if(!at.inside||!button?.isConnected||button.disabled)return false;
+      const r=button.getBoundingClientRect();
+      return at.x>=r.left&&at.x<=r.right&&at.y>=r.top&&at.y<=r.bottom&&button.contains(document.elementFromPoint(at.x,at.y));
+    };
+    if(previous===false&&at.primaryDown===true&&hits(talk)&&performance.now()-(this.lastTalkClick??-Infinity)>250){
+      this.talkGesture={button:talk,message:this.current,handled:false,released:false};
+      this.beginInteraction();
+    }
+    const gesture=this.talkGesture;
+    if(gesture&&!gesture.released&&at.primaryDown===false){
+      gesture.released=true;
+      const valid=hits(gesture.button)&&this.current===gesture.message&&this.visible;
+      setTimeout(()=>{
+        if(valid&&!gesture.handled&&this.current===gesture.message&&gesture.button.isConnected&&this.visible)gesture.button.click();
+        if(this.talkGesture===gesture)this.talkGesture=null;
+        this.releaseInteraction(0);
+      },40);
+    }
+    if(this.interactionHeld){
+      if(at.primaryDown===true)this.nativePressSeen=true;
+      if(at.primaryDown===false&&(this.nativePressSeen||performance.now()-this.pressAt>500))this.releaseInteraction();
+    }
   }
 
   // Message: { kind, line, tag, quote, reply, summary, log: [{verb, target, error}], actions, guide,
@@ -291,6 +319,7 @@ export class Panel {
   }
 
   renderActions(actions = [], onAction = null) {
+    const message=this.current;
     this.actions.replaceChildren(...actions.map(({ id, label, primary }) => {
       const button = document.createElement('button');
       button.type = 'button';
@@ -299,6 +328,11 @@ export class Panel {
       button.textContent = label;
       button.addEventListener('click', (e) => {
         e.stopPropagation(); // a click on the panel itself closes it
+        if(!button.isConnected||this.current!==message)return;
+        if(id==='talk'){
+          this.lastTalkClick=performance.now();
+          if(this.talkGesture?.message===message)this.talkGesture.handled=true;
+        }
         if (onAction) onAction(id);
         else this.onAction?.(id);
       });
@@ -550,6 +584,7 @@ export class Panel {
     let done = 0;
     this.onTalk?.(true);
     const step = () => {
+      if(this.interactionHeld)return;
       done = Math.min(chars.length, done + 2);
       const head = chars.slice(0, done).join('');
       let tail = '';

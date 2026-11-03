@@ -1047,8 +1047,8 @@ function registerIpc() {
         await require('./launch').site(destination(media));
         return{ok:false,verified:false,code:'connect_spotify',text:status.connected?'แท็บที่เชื่อมอยู่คือ '+new URL(status.url).hostname+' ยังไม่ใช่ Spotify เปิดหน้า Spotify ให้แล้ว ให้เชื่อมแท็บ open.spotify.com แล้วพิมพ์ “เล่นเลย”':'ยังไม่มีแท็บเชื่อมกับ Caprii รอบนี้ เปิดหน้า Spotify ให้แล้ว เข้าสู่ระบบและเชื่อมแท็บ open.spotify.com ก่อน แล้วพิมพ์ “เล่นเลย”'};
       }
-      if(!status.media)return{ok:false,verified:false,text:'ส่วนขยายที่เชื่อมยังไม่รองรับเล่นเพลง รีโหลดส่วนขยายจากโฟลเดอร์ Caprii 0.7.4 แล้วเชื่อมแท็บ Spotify ใหม่ก่อนครับ'};
-      if(!status.worker)return{ok:false,verified:false,text:'ส่วนขยายยังใช้ตัวส่งคำสั่งแบบเก่า รีโหลดส่วนขยาย Caprii 0.7.4 แล้วเชื่อมแท็บ Spotify ใหม่ครั้งเดียวครับ'};
+      if(!status.media)return{ok:false,verified:false,text:'ส่วนขยายที่เชื่อมยังไม่รองรับเล่นเพลง รีโหลดส่วนขยายจากโฟลเดอร์ Caprii 0.7.5 แล้วเชื่อมแท็บ Spotify ใหม่ก่อนครับ'};
+      if(!status.worker)return{ok:false,verified:false,text:'ส่วนขยายยังใช้ตัวส่งคำสั่งแบบเก่า รีโหลดส่วนขยาย Caprii 0.7.5 แล้วเชื่อมแท็บ Spotify ใหม่ครั้งเดียวครับ'};
       const result=await runSpotify({request:media,browser:chromeBroker.browser(),signal,onProgress:text=>overlay?.webContents.send('chat:delta',{id:request.id,text:text+'\n'})});
       if(resolveLang(config.load().lang)==='en'&&result.verified)result.text='Spotify shows “'+result.track+'” playing and the playback position is advancing.';
       return result;

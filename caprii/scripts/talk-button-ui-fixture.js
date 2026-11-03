@@ -9,3 +9,5 @@ window.fixturePanel=panel;window.fixtureChat=chat;
 window.resolveStatus=()=>finish({ok:true,provider:'custom',model:'fixture'});window.rejectStatus=()=>fail(Error('fixture status offline'));
 window.offer=()=>{panel.setAnchor({x:450,y:400,top:320},{w:1000,h:800});panel.say({kind:'idle',line:'ตอนนี้ยังไม่มีงาน ขอพักแถวนี้นะ',actions:[{id:'talk',label:'คุยกับฉัน'}],onAction:()=>chat.start(),hold:2000});};
 window.offer();window.fixtureReady=true;
+
+window.pointerEvents=[];for(const type of ['pointerdown','pointerup','mousedown','mouseup','click'])document.addEventListener(type,e=>pointerEvents.push({type,x:e.clientX,y:e.clientY,target:e.target.className,id:e.target.dataset.id}),true);

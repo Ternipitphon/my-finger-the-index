@@ -1,3 +1,7 @@
+## 1.6.2 / Caprii 0.7.5
+
+เพิ่ม no-DOM Talk click, native/DOM dedup และตรวจตำแหน่งปุ่มจริงระหว่างไล่ข้อความ แยกจากคะแนน DOM
+
 ## 1.6.1 / Caprii 0.7.4
 
 เพิ่ม Electron regression ปุ่มคุยตอนว่าง แยกจาก 8 เคส DOM และโหมดจำ Chrome เดิม
