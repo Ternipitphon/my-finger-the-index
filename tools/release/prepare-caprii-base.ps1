@@ -12,7 +12,8 @@ function Get-PinnedFile($Name, $Sha256, $Bytes) {
     return $file
 }
 $installer = Get-PinnedFile 'CapriSetup-1.2.2.exe' 'f7752a4b4354bbff95f1e6c60163891d5e37d2ad9f10acf2f7c9e6e4465cb2ed' 70262784
-$voice = Get-PinnedFile 'capri-en-v1.zip' '0bae63a24f3541dd8945de7ff16f04d250e45f941f9fface358a0ed76ebe71e4' 12522081
+$english = Get-PinnedFile 'capri-en-v1.zip' '0bae63a24f3541dd8945de7ff16f04d250e45f941f9fface358a0ed76ebe71e4' 12522081
+$voice = Get-PinnedFile 'capri-test-voices.zip' '0782f9298e874a66a8628ebc7b5bd84b7dbb6c2a0f7c3cde63a2284c9469b8e7' 13182121
 Add-Type -AssemblyName System.Reflection.Metadata
 Add-Type -AssemblyName System.IO.Compression
 $stream = [IO.File]::OpenRead($installer)
@@ -51,5 +52,5 @@ try {
 $voiceFolder = Join-Path $folder 'voice'
 Expand-Archive -LiteralPath $voice -DestinationPath $voiceFolder -Force
 if (-not (Test-Path -LiteralPath (Join-Path $voiceFolder 'voice-profile.json') -PathType Leaf)) { throw 'Voice profile is missing from the original pack' }
-@{schemaVersion=1; repository='CapriChooms/CapriCore'; tag='v1.2.2'; installerSha256='f7752a4b4354bbff95f1e6c60163891d5e37d2ad9f10acf2f7c9e6e4465cb2ed'; voiceSha256='0bae63a24f3541dd8945de7ff16f04d250e45f941f9fface358a0ed76ebe71e4'; cameraSha256=(Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()} | ConvertTo-Json | Set-Content (Join-Path $folder 'provenance.json')
+@{schemaVersion=1; repository='CapriChooms/CapriCore'; tag='v1.2.2'; installerSha256='f7752a4b4354bbff95f1e6c60163891d5e37d2ad9f10acf2f7c9e6e4465cb2ed'; voiceSha256='0782f9298e874a66a8628ebc7b5bd84b7dbb6c2a0f7c3cde63a2284c9469b8e7'; cameraSha256=(Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()} | ConvertTo-Json | Set-Content (Join-Path $folder 'provenance.json')
 Write-Host 'Verified original camera and English voice pack; original installer was not executed.'

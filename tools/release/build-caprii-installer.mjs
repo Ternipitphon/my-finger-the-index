@@ -8,6 +8,8 @@ import { root, writeJsonAtomic } from '../../packages/runtime/src/index.mjs';
 import { exportSource } from './source-export.mjs';
 import { exportVoicePack } from './voice-pack-export.mjs';
 import { fileHash } from '../../packages/installer/src/download.mjs';
+import { copyRussianVoicePack } from '../../packages/installer/src/voice-pack.mjs';
+import russianVoice from '../../config/qwen-ru-voice.json' with { type: 'json' };
 import { parseVersion, REPOSITORY } from '../../packages/updater/src/releases.mjs';
 
 if (process.platform !== 'win32') throw new Error('Build the installer on Windows.');
@@ -31,6 +33,7 @@ const voice = exportVoicePack({
   source: path.join(base, 'voice'),
   destination: path.join(folder, 'voice-pack'),
 });
+copyRussianVoicePack(path.join(base, 'voice/russian'), path.join(voice.directory, 'russian'));
 const result = spawnSync(
   'powershell.exe',
   [
@@ -57,7 +60,8 @@ if (result.error || result.status !== 0)
   throw new Error(result.error?.message || result.stdout + '\n' + result.stderr);
 const executable = path.join(folder, `CapriSetup-${version}.exe`);
 if (!existsSync(executable)) throw new Error('Installer output missing.');
-const voiceFile = `${voice.manifest.id}.zip`;
+const voiceFile = 'capri-test-voices.zip';
+copyFileSync(path.join(base, 'capri-en-v1.zip'), path.join(folder, 'capri-en-v1.zip'));
 copyFileSync(path.join(folder, 'voice.zip'), path.join(folder, voiceFile));
 writeJsonAtomic(path.join(folder, 'BUILD_MANIFEST.json'), {
   schemaVersion: 1,
@@ -73,6 +77,15 @@ writeJsonAtomic(path.join(folder, 'BUILD_MANIFEST.json'), {
     bytes: statSync(path.join(folder, voiceFile)).size,
     sha256: await fileHash(path.join(folder, voiceFile)),
     files: voice.manifest.files,
+    russianTestVoice: {
+      repository: russianVoice.model,
+      revision: russianVoice.revision,
+      files: russianVoice.pack.files.map(({ file, bytes, sha256 }) => ({
+        path: 'russian/' + file,
+        bytes,
+        sha256,
+      })),
+    },
   },
   originalNativeResources: provenance,
   signature: 'unsigned release build',
