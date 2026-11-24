@@ -1,0 +1,31 @@
+{
+  "base": {
+    "repository": "https://github.com/CapriChooms/CapriCore",
+    "tag": "v1.2.2",
+    "commit": "828f27243df3d1b9669cbe1a5d16633b68c1108a"
+  },
+  "status": "source integration, not a Windows release",
+  "added": [
+    "Persisted short/balanced/detailed response length in Conversation settings",
+    "Prompt guidance respects explicit detail requests and preserves structured output"
+  ],
+  "preserved": [
+    "Original Capri personality and assets",
+    "Existing language selection including Thai and English",
+    "Native Windows Spotify integration",
+    "Existing screen observation, image attachments and permission controls"
+  ],
+  "not_added": [
+    "Old Chrome Spotify controller",
+    "Old avatar dragging code",
+    "Thai system speech backend (requires separate implementation and Windows validation)"
+  ],
+  "validation": [
+    "Response-length persistence, invalid input, corrupt settings and symlink checks passed",
+    "JavaScript syntax checks passed for edited executable modules"
+  ],
+  "limitations": [
+    "Windows GUI, live model responses, native Spotify and speech have not been tested in this integration environment"
+  ],
+  "license": "GPL-3.0-only; retain upstream LICENSE and third-party notices"
+}
