@@ -1,6 +1,6 @@
 # CapriCore 1.2.2 + Caprii integration
 
-[ดาวน์โหลดตัวติดตั้ง Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v1.2.2-caprii.1)
+[ดาวน์โหลดตัวติดตั้ง Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v1.2.2-caprii.2)
 
 This is an integration preview based on [CapriChooms/CapriCore v1.2.2](https://github.com/CapriChooms/CapriCore/releases/tag/v1.2.2). It is not an official CapriChooms release.
 
