@@ -1,6 +1,20 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.7.6 — ตัวติดตั้ง Windows
+## ดาวน์โหลด CapriCore 1.2.2 + Caprii — รุ่นผสมสำหรับ Windows
+
+[ดาวน์โหลดตัวติดตั้ง Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v1.2.2-caprii.2/CapriSetup-1.2.2.exe)
+
+[หน้าดาวน์โหลดและ checksum](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v1.2.2-caprii.2) · [ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v1.2.2-caprii.2/Capri-1.2.2-source.zip)
+
+ใช้ **CapriChooms/CapriCore v1.2.2 เป็นฐาน** เพิ่มการเลือกคำตอบสั้น / พอดี / ละเอียด พร้อมจำค่าและยกเลิกการแก้ไขได้ เก็บบุคลิก ภาพตัวละคร ระบบดูจอ สิทธิ์เข้าถึง และ Spotify ผ่านแอป Windows ของต้นฉบับไว้ รุ่นนี้เป็น integration preview ของโครงการนี้ ไม่ใช่รุ่นทางการของ CapriChooms
+
+รองรับ Windows x64 เปิดไฟล์ `CapriSetup-1.2.2.exe` แล้วทำตามตัวติดตั้ง โมเดลและเสียงเสริมดาวน์โหลดระหว่างตั้งค่า เลือกภาษาไทยหรืออังกฤษในตั้งค่าได้ ยังไม่ได้เพิ่มเสียงอ่านไทยแบบ local ในรุ่นผสมนี้ Spotify ใช้แอป Windows ไม่ต้องติดตั้งส่วนขยาย Chrome ของรุ่น 0.7.x
+
+เป็นตัวติดตั้งใหม่ เก็บรุ่นเก่าและข้อมูลส่วนตัวไว้ก่อนทดลองรุ่นผสม ซอร์สและใบอนุญาต GPL-3.0-only พร้อมเครดิตต้นฉบับอยู่ในชุดดาวน์โหลด สิทธิ์ตัวละครและไฟล์ของบุคคลที่สามแยกตามประกาศเดิม
+
+---
+
+## ดาวน์โหลดรุ่นเดิม Caprii 0.7.6 — ตัวติดตั้ง Windows
 
 [ดาวน์โหลด ZIP ตัวติดตั้ง Caprii 0.7.6](https://github.com/Ternipitphon/my-finger-the-index/archive/refs/heads/caprii-0.7.6-download.zip)
 
