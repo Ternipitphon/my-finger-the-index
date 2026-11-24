@@ -5,6 +5,6 @@ Original character, artwork, model/voice engines, native Spotify, desktop contro
 Adds a persisted Short / Balanced / Detailed reply preference in Conversation settings, including Thai labels, preview and discard support.
 Uses this fork's GitHub updates; the upstream mirror cannot overwrite the integration.
 
-Download CapriSetup-1.2.2.exe to install. This is a separate integration preview, not an official CapriChooms release. The installer is unsigned. Optional AI models and voices are downloaded during setup; Thai local speech synthesis is not added in this build.
+Download CapriSetup-1.2.2.exe to install. This is a separate integration preview, not an official CapriChooms release. The installer is unsigned. The original English voice pack and unchanged original camera are included; optional AI models and additional voices are downloaded during setup; Thai local speech synthesis is not added in this build.
 Source and checksums are included. Project code remains GPL-3.0-only. Original copyright, LICENSE and third-party notices are retained; character, voice and third-party asset rights are separate.
 Automated checks do not verify your Spotify account, speakers, microphone or GPU. Keep your existing installation and private data until you have tried this build.

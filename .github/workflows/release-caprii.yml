@@ -23,6 +23,9 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.11'
+      - name: Verify original camera and voice resources
+        shell: pwsh
+        run: ./tools/release/prepare-caprii-base.ps1
       - run: npm ci
       - name: Restore the pinned Windows desktop runtime
         run: >-
@@ -36,7 +39,7 @@ jobs:
       - run: node tools/verify/verify-settings-lifecycle.mjs
       - run: npm run verify:installer -- --locales=en,th
       - name: Build the original Windows installer with the integration
-        run: npm run release:installer
+        run: node tools/release/build-caprii-installer.mjs
       - name: Prepare matching source and checksums
         shell: pwsh
         run: |
@@ -48,6 +51,7 @@ jobs:
           New-Item -ItemType Directory -Force $staging | Out-Null
           Copy-Item (Join-Path $build.FullName 'CapriSetup-1.2.2.exe') $staging
           Copy-Item (Join-Path $build.FullName 'BUILD_MANIFEST.json') $staging
+          Copy-Item (Join-Path $build.FullName 'capri-en-v1.zip') $staging
           Compress-Archive -Path (Join-Path $source.destination '*') -DestinationPath (Join-Path $staging 'Capri-1.2.2-source.zip')
           Get-ChildItem $staging -File | ForEach-Object { $hash = Get-FileHash $_.FullName -Algorithm SHA256; "$($hash.Hash.ToLower())  $($_.Name)" } | Set-Content (Join-Path $staging 'SHA256SUMS.txt')
       - name: Publish only after verification and build succeed
@@ -60,5 +64,5 @@ jobs:
           $tag = 'v1.2.2-caprii.1'
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) { throw 'Release already exists; do not replace published binaries' }
-          gh release create $tag --target $env:GITHUB_SHA --title 'Capri 1.2.2 + Caprii' --notes-file docs/caprii-release-notes.txt --prerelease release/publish/CapriSetup-1.2.2.exe release/publish/Capri-1.2.2-source.zip release/publish/BUILD_MANIFEST.json release/publish/SHA256SUMS.txt
+          gh release create $tag --target $env:GITHUB_SHA --title 'Capri 1.2.2 + Caprii' --notes-file docs/caprii-release-notes.txt --prerelease release/publish/CapriSetup-1.2.2.exe release/publish/Capri-1.2.2-source.zip release/publish/BUILD_MANIFEST.json release/publish/SHA256SUMS.txt release/publish/capri-en-v1.zip
           if ($LASTEXITCODE -ne 0) { throw 'Release publishing failed' }
