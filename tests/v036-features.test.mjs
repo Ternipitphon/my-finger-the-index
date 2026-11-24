@@ -185,7 +185,7 @@ test('closing during GitHub access validation cancels without saving a credentia
 });
 test('public release failures are distinguished from GitHub rate limits and never quote response bodies', async () => {
   for (const [status, headers, expected] of [
-    [404, {}, /public CapriChooms\/CapriCore releases/],
+    [404, {}, /public Ternipitphon\/my-finger-the-index releases/],
     [403, { 'x-ratelimit-remaining': '4999' }, /Public Capri updates do not require a token/],
     [403, { 'x-ratelimit-remaining': '0' }, /limited/],
     [429, {}, /limited/],
@@ -215,13 +215,13 @@ test('strict GitHub access verification rejects invalid tokens and inaccessible 
     [
       404,
       'github_pat_' + 'a'.repeat(30),
-      /public CapriChooms\/CapriCore releases/,
+      /public Ternipitphon\/my-finger-the-index releases/,
       'repository_not_visible',
     ],
     [
       404,
       'ghp_' + 'a'.repeat(30),
-      /public CapriChooms\/CapriCore releases/,
+      /public Ternipitphon\/my-finger-the-index releases/,
       'repository_not_visible',
     ],
   ]) {

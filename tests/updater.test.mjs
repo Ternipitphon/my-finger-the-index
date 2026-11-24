@@ -199,7 +199,7 @@ test('GitHub metadata is bounded and tokens never follow asset redirects', async
   assert.equal(items.length, 1);
   await assert.rejects(
     listReleases({ fetchImpl: async () => new Response('', { status: 404 }) }),
-    new RegExp('public ' + REPOSITORY.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' releases'),
+    new RegExp('public ' + REPOSITORY + ' releases'),
   );
 });
 
