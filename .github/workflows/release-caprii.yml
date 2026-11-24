@@ -31,6 +31,7 @@ jobs:
       - run: npm test
       - run: npm run format:check
       - run: npm run release:check
+      - run: node tools/verify/verify-response-length.mjs
       - run: npm run verify:languages
       - run: node tools/verify/verify-settings-lifecycle.mjs
       - run: npm run verify:installer -- --locales=en,th
