@@ -1,0 +1,22 @@
+'use strict';
+const fs=require('node:fs/promises'),path=require('node:path'),{randomUUID}=require('node:crypto');
+const {runProcess}=require('./agent-process'),{text,number}=require('./agent-registry');
+function createUIAutomation({desktop,platform=process.platform,run=runProcess,now=Date.now}){
+ let snapshot=null;
+ async function call(request,signal){if(platform!=='win32')throw Error('UI Automation ใช้ได้บน Windows เท่านั้น');const helper=await fs.readFile(path.join(__dirname,'agent-uia.ps1'),'utf8');const r=await run('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',helper],{input:JSON.stringify(request),signal,timeoutMs:10000});if(!r.passed)throw Error('Windows UI Automation: '+r.stderr.slice(0,400));return JSON.parse(r.stdout.replace(/^\uFEFF/,'').trim());}
+ async function window(handle,signal){const state=await desktop.state({kind:'state'},signal);const w=state.windows.find(w=>String(w.handle)===String(handle));if(!w)throw Error('ไม่พบหน้าต่างนี้แล้ว อ่านรายชื่อหน้าต่างใหม่');return w;}
+ function target(a){if(!snapshot||a.generation!==snapshot.generation||now()-snapshot.at>30000)throw Error('อ่าน uia.read ใหม่ก่อน ใช้ข้อมูลปุ่มที่หมดอายุไม่ได้');const e=snapshot.elements.find(e=>e.id===a.id);if(!e)throw Error('ไม่พบช่องหรือปุ่มในผลอ่านล่าสุด');return e;}
+ return {target,async read(handle,signal){const w=await window(handle,signal);const r=await call({kind:'read',window:w},signal);snapshot={...r,window:w,generation:randomUUID(),at:now()};return snapshot;},async act(a,signal){const e=target(a),old=snapshot.window,w=await window(old.handle,signal);if(w.processId!==old.processId||w.processStart!==old.processStart||w.title!==old.title)throw Error('หน้าต่างเปลี่ยนแล้ว กรุณาอ่านใหม่');const r=await call({kind:a.kind,window:w,element:e,value:a.value},signal);const before=snapshot.elements.map(e=>e.name).join('\n');snapshot=null;return {...r,windowHandle:String(w.handle),before};}};
+}
+function registerUIAutomation(tools,uia){
+ tools.add('uia.read',{description:{handle:'observed Windows handle',purpose:'Read visible Windows accessibility controls and supported Value/Invoke patterns. No mouse needed. Password values are excluded; games may expose no controls.'},validate:a=>text(a.handle,'window handle',18),run:async(a,c)=>{await c.permission({tool:a.tool,handle:a.handle,note:'ส่งชื่อและค่าช่องที่ไม่ใช่รหัสผ่านของหน้าต่างนี้ให้ AI'});return uia.read(a.handle,c.signal);}});
+ tools.add('uia.expect',{description:{handle:'observed window handle',contains:'new exact text expected after action',purpose:'Verify fresh accessibility text. For submit, old preexisting text does not count.'},validate:a=>{text(a.handle,'handle',18);text(a.contains,'expected text',1000);},run:async(a,c)=>{await c.permission({tool:a.tool,handle:a.handle,note:'อ่านหน้าต่างเพื่อตรวจผล'});const r=await uia.read(a.handle,c.signal);return{passed:r.elements.some(e=>e.name.includes(a.contains))&&!c.uiaBaseline?.includes(a.contains),observed:r};}});
+ for(const kind of ['type','invoke','verify'])tools.add('uia.'+kind,{description:{id:'integer from last uia.read',generation:'snapshot generation',...(kind!=='invoke'?{value:'exact field text'}:{}),intent:'submit only when asked to submit',purpose:kind==='verify'?'Read actual ValuePattern value, exact comparison; no submission proof':'Use Windows accessibility pattern directly. Read again after action; never fall back to mouse silently.'},validate:a=>{number(a.id,'control ID',0,199);text(a.generation,'generation',40);if(kind!=='invoke')text(a.value,'value',2000);},run:async(a,c)=>{
+  const target=uia.target(a);if(kind==='type'){if(c.intentRequirements?.noInput)throw Error('คำสั่งนี้ไม่ให้กรอก');require('./agent-math').allowMathText(c,a.value);}
+  if(kind==='invoke'&&c.intentRequirements?.noInput&&(a.intent==='answer_key'||/^[0-9()+\-×÷*/.]$/.test(target.name)))throw Error('คำสั่งนี้ไม่ให้กรอก');
+  if(kind==='invoke'&&c.intentRequirements?.noSubmit&&(a.intent==='submit'||/ส่ง|submit|confirm|ยืนยัน/i.test(target.name)))throw Error('คำสั่งนี้ไม่ให้กดส่ง');
+  if(kind==='invoke'&&c.mathTask&&!c.mathEvidence?.allowed?.length)throw Error('ตรวจคำตอบคณิตศาสตร์ก่อนกดปุ่ม');
+  await c.permission({tool:a.tool,target,value:a.value,note:kind==='verify'?'อ่านค่าช่องเพื่อตรวจผล':'ใช้ช่องหรือปุ่ม Windows โดยตรง ตรวจเป้าหมายก่อนอนุญาต'});const result=await uia.act({...a,kind},c.signal);if(kind==='invoke')c.uiaBaseline=result.before;return result;
+ }});return tools;
+}
+module.exports={createUIAutomation,registerUIAutomation};

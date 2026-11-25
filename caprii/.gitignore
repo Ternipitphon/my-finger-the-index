@@ -1,0 +1,17 @@
+node_modules/
+dist/
+out/
+*.log
+.DS_Store
+Thumbs.db
+
+# local debug captures
+captures/
+
+# Reproducible, checksum-verified Windows runtime
+vendor-runtime/
+__pycache__/
+*.pyc
+
+# Also exclude a linked dependency directory used by isolated cloud builds.
+node_modules

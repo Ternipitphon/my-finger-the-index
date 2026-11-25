@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/Panniantong/agent-reach",
+  "commit": "21f0ead1dfc9d0fc8262f28adbfbff93219b998e",
+  "version": "1.6.0",
+  "license": "MIT",
+  "integration": "Public read/search/subtitles only. No setup/login/cookie import/updates or paid transcription."
+}
