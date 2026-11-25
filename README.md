@@ -2,11 +2,13 @@
 
 ## ดาวน์โหลด CapriCore 1.2.2 + Caprii — รุ่นผสมสำหรับ Windows
 
-[ดาวน์โหลดตัวติดตั้ง Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v1.2.2-caprii.2/CapriSetup-1.2.2.exe)
+[ดาวน์โหลดตัวติดตั้ง Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v1.2.2-caprii.3/CapriSetup-1.2.2.exe)
 
-[หน้าดาวน์โหลดและ checksum](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v1.2.2-caprii.2) · [ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v1.2.2-caprii.2/Capri-1.2.2-source.zip)
+[หน้าดาวน์โหลดและ checksum](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v1.2.2-caprii.3) · [ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v1.2.2-caprii.3/Capri-1.2.2-source.zip)
 
 ใช้ **CapriChooms/CapriCore v1.2.2 เป็นฐาน** เพิ่มการเลือกคำตอบสั้น / พอดี / ละเอียด พร้อมจำค่าและยกเลิกการแก้ไขได้ เก็บบุคลิก ภาพตัวละคร ระบบดูจอ สิทธิ์เข้าถึง และ Spotify ผ่านแอป Windows ของต้นฉบับไว้ รุ่นนี้เป็น integration preview ของโครงการนี้ ไม่ใช่รุ่นทางการของ CapriChooms
+
+**แก้การติดตั้งแบบออนไลน์บนเครื่องที่ตรวจ RAM ใช้งานได้ 7.3 GiB:** ไม่บังคับผ่านเกณฑ์ RAM ของโมเดล local และไม่เรียกตั้งค่าโมเดล local ในการติดตั้งแบบ API ส่วนการตรวจ RAM ของโหมด local ยังคงเดิม
 
 รองรับ Windows x64 เปิดไฟล์ `CapriSetup-1.2.2.exe` แล้วทำตามตัวติดตั้ง โมเดลและเสียงเสริมดาวน์โหลดระหว่างตั้งค่า เลือกภาษาไทยหรืออังกฤษในตั้งค่าได้ ยังไม่ได้เพิ่มเสียงอ่านไทยแบบ local ในรุ่นผสมนี้ Spotify ใช้แอป Windows ไม่ต้องติดตั้งส่วนขยาย Chrome ของรุ่น 0.7.x
 
