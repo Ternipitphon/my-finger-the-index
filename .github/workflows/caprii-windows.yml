@@ -40,7 +40,7 @@ jobs:
         run: >-
           node -e "require('./src/main/agent-reach').createReach().status(AbortSignal.timeout(15000)).then(r=>console.log(JSON.stringify(r))).catch(e=>{console.error(e.message);process.exitCode=1})"
       - name: Build the original Windows installer
-        run: npx --no-install electron-builder --win --x64 --publish never -c.win.signAndEditExecutable=false
+        run: npx --no-install electron-builder --win --x64 --publish never '--config.win.signAndEditExecutable=false'
       - name: Export only tracked source and matching provenance
         run: node scripts/export-release.cjs
       - name: Prepare release files and checksums
