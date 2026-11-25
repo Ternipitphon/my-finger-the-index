@@ -635,12 +635,15 @@ export async function install(
           gatewayPort: await findFreePort(base.gatewayPort, reserved),
           ollamaPort: await findFreePort(base.ollamaPort, reserved),
         });
-        await node('packages/runtime/bin/capri.mjs', [
-          'setup',
-          '--profile=' + plan.profile,
-          '--yes',
-          '--replace',
-        ]);
+        // Local setup probes RAM again. API-only installs retain the defaults
+        // without selecting or provisioning a local language model.
+        if (plan.inferenceMode !== 'api')
+          await node('packages/runtime/bin/capri.mjs', [
+            'setup',
+            '--profile=' + plan.profile,
+            '--yes',
+            '--replace',
+          ]);
         const voice = readJson(path.join(root, 'config/companion-voice.json'));
         voice.port = await findFreePort(voice.port, reserved);
         writeJsonAtomic(path.join(root, 'config/companion-voice.json'), voice);

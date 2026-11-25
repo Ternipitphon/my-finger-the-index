@@ -972,146 +972,170 @@ test(
   },
 );
 
-test(
-  'a fresh install runs its real postinstall without a preinstalled runtime and configures only a verified owned runtime',
-  { skip: process.platform !== 'win32' },
-  async () => {
-    const target = path.join(folder(), 'новая установка'),
-      events = [];
-    const llama = path.join(target, '.runtime', spec.artifacts.llama.directory, 'llama-server.exe');
-    const inherited = process.env.CAPRI_LLAMA_PATH;
-    process.env.CAPRI_LLAMA_PATH = path.join(target, 'inherited-missing.exe');
-    let postinstallPassed = false,
-      downloaded = false,
-      embeddingPrepared = false;
-    try {
-      await install(request(target), {
-        sourceRoot: root,
-        nodeExecutable: process.execPath,
-        free: () => 1024 ** 4,
-        hardware,
-        register: false,
-        emit: (event) => events.push(event),
-        download: async (artifact) => {
-          if (artifact.sha256 === spec.artifacts.electron.sha256)
-            return path.join(target, 'electron-fixture.zip');
-          if (artifact.sha256 === spec.artifacts.uv.sha256)
-            return path.join(target, 'uv-fixture.zip');
-          assert.equal(artifact.sha256, spec.artifacts.llama.sha256);
-          assert.ok(postinstallPassed);
-          downloaded = true;
-          return path.join(target, 'fixture-archive.zip');
-        },
-        execute: async (file, args, options) => {
-          if (args.includes('ci')) {
-            assert.equal(existsSync(llama), false);
-            assert.equal(options.env.CAPRI_LLAMA_PATH, undefined);
-            // Exercise the actual pinned compatibility patcher, not a mocked
-            // lifecycle exit. Only its reviewed dependency files are needed.
-            const patches = json(path.join(root, 'integrations/openclaw-compat/patches.json'));
-            for (const name of ['package.json', ...patches.patches.map((patch) => patch.file)]) {
-              const destination = path.join(target, 'node_modules/openclaw', name);
-              mkdirSync(path.dirname(destination), { recursive: true });
-              copyFileSync(path.join(root, 'node_modules/openclaw', name), destination);
-            }
-            const security = json(path.join(root, 'config/dependency-security-patches.json'));
-            for (const name of new Set(
-              security.targets.flatMap((target) => [target.packageFile, target.file]),
-            )) {
-              const destination = path.join(target, name);
-              mkdirSync(path.dirname(destination), { recursive: true });
-              copyFileSync(path.join(root, name), destination);
-            }
-            writeJsonAtomic(path.join(target, 'node_modules/electron/package.json'), {
-              name: 'electron',
-              version: spec.artifacts.electron.version,
-            });
-            const result = spawnSync(
-              process.execPath,
-              ['packages/runtime/bin/patch-openclaw.mjs'],
-              {
-                cwd: target,
-                env: options.env,
-                encoding: 'utf8',
-                windowsHide: true,
-                timeout: 10000,
-              },
-            );
-            assert.equal(result.status, 0, result.stderr);
-            // Even a stray invalid runtime override must not affect this
-            // source-only installation hook.
-            const standalone = spawnSync(
-              process.execPath,
-              ['packages/runtime/bin/patch-openclaw.mjs'],
-              {
-                cwd: target,
-                env: { ...options.env, CAPRI_LLAMA_PATH: path.join(target, 'missing.exe') },
-                encoding: 'utf8',
-                windowsHide: true,
-                timeout: 10000,
-              },
-            );
-            assert.equal(standalone.status, 0, standalone.stderr);
-            postinstallPassed = true;
-          } else if (args.some((arg) => arg.endsWith('archive.ps1'))) {
-            if (args[args.indexOf('-Destination') + 1] === path.join(target, '.runtime/uv')) {
-              const uv = path.join(target, '.runtime/uv/uv.exe');
-              mkdirSync(path.dirname(uv), { recursive: true });
-              writeFileSync(uv, 'owned UV fixture');
-              return;
-            }
-            if (
-              args[args.indexOf('-Destination') + 1] ===
-              path.join(target, 'node_modules/electron/dist')
-            ) {
-              extractElectronFixture(target);
-              return;
-            }
-            assert.ok(downloaded);
-            assert.equal(options.env.CAPRI_LLAMA_PATH, undefined);
-            const staged = args[args.indexOf('-Destination') + 1];
-            mkdirSync(staged, { recursive: true });
-            for (const name of LLAMA_VULKAN_FILES)
-              writeFileSync(path.join(staged, name), 'owned backend fixture');
-          } else if (args.includes('setup')) {
-            assert.equal(options.env.CAPRI_LLAMA_PATH, llama);
-            assert.equal(
-              json(path.join(target, '.runtime/installer/llama.json')).executableSha256,
-              await fileHash(llama),
-            );
-            writeJsonAtomic(path.join(target, 'config/core.local.json'), {
-              model: 'capri-qwen3.5:2b',
-              resourceProfile: 'balanced',
-            });
-          } else if (args.includes('models')) {
-            assert.deepEqual(args.slice(args.indexOf('models') + 1), ['--embedding-only']);
-            assert.equal(options.env.CAPRI_LLAMA_PATH, llama);
-            writeJsonAtomic(path.join(target, 'data/model-inventory.json'), {
-              models: [{ name: json(path.join(target, 'config/core.json')).embeddingModel }],
-            });
-            embeddingPrepared = true;
-          }
-        },
-      });
-      assert.ok(postinstallPassed && downloaded);
-      assert.equal(embeddingPrepared, true);
-      assert.ok(electronBundleReady(path.join(target, 'node_modules/electron')));
-      assert.equal(
-        readFileSync(path.join(target, 'node_modules/electron/path.txt'), 'utf8'),
-        'electron.exe',
+for (const inferenceMode of ['local', 'api'])
+  test(
+    `fresh ${inferenceMode} installation configures verified runtimes and skips unneeded local model setup`,
+    { skip: process.platform !== 'win32' },
+    async () => {
+      const target = path.join(folder(), 'новая установка'),
+        events = [];
+      const llama = path.join(
+        target,
+        '.runtime',
+        spec.artifacts.llama.directory,
+        'llama-server.exe',
       );
-      const completed = events
-        .filter((event) => event.type === 'stage-complete')
-        .map((event) => event.step);
-      assert.ok(completed.indexOf('dependencies') < completed.indexOf('ollama'));
-      assert.ok(completed.indexOf('ollama') < completed.indexOf('configuration'));
-      assert.equal(json(path.join(target, '.runtime/installer/state.json')).status, 'complete');
-    } finally {
-      if (inherited === undefined) delete process.env.CAPRI_LLAMA_PATH;
-      else process.env.CAPRI_LLAMA_PATH = inherited;
-    }
-  },
-);
+      const inherited = process.env.CAPRI_LLAMA_PATH;
+      process.env.CAPRI_LLAMA_PATH = path.join(target, 'inherited-missing.exe');
+      let postinstallPassed = false,
+        downloaded = false,
+        embeddingPrepared = false,
+        localSetupCalls = 0;
+      try {
+        await install(
+          { ...request(target), inferenceMode },
+          {
+            sourceRoot: root,
+            nodeExecutable: process.execPath,
+            free: () => 1024 ** 4,
+            hardware:
+              inferenceMode === 'api'
+                ? { ...hardware, ramBytes: 7.3 * 2 ** 30, gpus: [] }
+                : hardware,
+            register: false,
+            emit: (event) => events.push(event),
+            download: async (artifact) => {
+              if (artifact.sha256 === spec.artifacts.electron.sha256)
+                return path.join(target, 'electron-fixture.zip');
+              if (artifact.sha256 === spec.artifacts.uv.sha256)
+                return path.join(target, 'uv-fixture.zip');
+              assert.equal(artifact.sha256, spec.artifacts.llama.sha256);
+              assert.ok(postinstallPassed);
+              downloaded = true;
+              return path.join(target, 'fixture-archive.zip');
+            },
+            execute: async (file, args, options) => {
+              if (args.includes('ci')) {
+                assert.equal(existsSync(llama), false);
+                assert.equal(options.env.CAPRI_LLAMA_PATH, undefined);
+                // Exercise the actual pinned compatibility patcher, not a mocked
+                // lifecycle exit. Only its reviewed dependency files are needed.
+                const patches = json(path.join(root, 'integrations/openclaw-compat/patches.json'));
+                for (const name of [
+                  'package.json',
+                  ...patches.patches.map((patch) => patch.file),
+                ]) {
+                  const destination = path.join(target, 'node_modules/openclaw', name);
+                  mkdirSync(path.dirname(destination), { recursive: true });
+                  copyFileSync(path.join(root, 'node_modules/openclaw', name), destination);
+                }
+                const security = json(path.join(root, 'config/dependency-security-patches.json'));
+                for (const name of new Set(
+                  security.targets.flatMap((target) => [target.packageFile, target.file]),
+                )) {
+                  const destination = path.join(target, name);
+                  mkdirSync(path.dirname(destination), { recursive: true });
+                  copyFileSync(path.join(root, name), destination);
+                }
+                writeJsonAtomic(path.join(target, 'node_modules/electron/package.json'), {
+                  name: 'electron',
+                  version: spec.artifacts.electron.version,
+                });
+                const result = spawnSync(
+                  process.execPath,
+                  ['packages/runtime/bin/patch-openclaw.mjs'],
+                  {
+                    cwd: target,
+                    env: options.env,
+                    encoding: 'utf8',
+                    windowsHide: true,
+                    timeout: 10000,
+                  },
+                );
+                assert.equal(result.status, 0, result.stderr);
+                // Even a stray invalid runtime override must not affect this
+                // source-only installation hook.
+                const standalone = spawnSync(
+                  process.execPath,
+                  ['packages/runtime/bin/patch-openclaw.mjs'],
+                  {
+                    cwd: target,
+                    env: { ...options.env, CAPRI_LLAMA_PATH: path.join(target, 'missing.exe') },
+                    encoding: 'utf8',
+                    windowsHide: true,
+                    timeout: 10000,
+                  },
+                );
+                assert.equal(standalone.status, 0, standalone.stderr);
+                postinstallPassed = true;
+              } else if (args.some((arg) => arg.endsWith('archive.ps1'))) {
+                if (args[args.indexOf('-Destination') + 1] === path.join(target, '.runtime/uv')) {
+                  const uv = path.join(target, '.runtime/uv/uv.exe');
+                  mkdirSync(path.dirname(uv), { recursive: true });
+                  writeFileSync(uv, 'owned UV fixture');
+                  return;
+                }
+                if (
+                  args[args.indexOf('-Destination') + 1] ===
+                  path.join(target, 'node_modules/electron/dist')
+                ) {
+                  extractElectronFixture(target);
+                  return;
+                }
+                assert.ok(downloaded);
+                assert.equal(options.env.CAPRI_LLAMA_PATH, undefined);
+                const staged = args[args.indexOf('-Destination') + 1];
+                mkdirSync(staged, { recursive: true });
+                for (const name of LLAMA_VULKAN_FILES)
+                  writeFileSync(path.join(staged, name), 'owned backend fixture');
+              } else if (args.includes('setup')) {
+                localSetupCalls++;
+                assert.equal(inferenceMode, 'local', 'API must not enter local model setup');
+                assert.equal(options.env.CAPRI_LLAMA_PATH, llama);
+                assert.equal(
+                  json(path.join(target, '.runtime/installer/llama.json')).executableSha256,
+                  await fileHash(llama),
+                );
+                writeJsonAtomic(path.join(target, 'config/core.local.json'), {
+                  model: 'capri-qwen3.5:2b',
+                  resourceProfile: 'balanced',
+                });
+              } else if (args.includes('models')) {
+                assert.deepEqual(args.slice(args.indexOf('models') + 1), ['--embedding-only']);
+                assert.equal(options.env.CAPRI_LLAMA_PATH, llama);
+                writeJsonAtomic(path.join(target, 'data/model-inventory.json'), {
+                  models: [{ name: json(path.join(target, 'config/core.json')).embeddingModel }],
+                });
+                embeddingPrepared = true;
+              }
+            },
+          },
+        );
+        assert.ok(postinstallPassed && downloaded);
+        assert.equal(localSetupCalls, inferenceMode === 'api' ? 0 : 1);
+        if (inferenceMode === 'api')
+          assert.equal(
+            json(path.join(target, 'data/desktop/inference-api.json')).setupRequired,
+            true,
+          );
+        assert.equal(embeddingPrepared, true);
+        assert.ok(electronBundleReady(path.join(target, 'node_modules/electron')));
+        assert.equal(
+          readFileSync(path.join(target, 'node_modules/electron/path.txt'), 'utf8'),
+          'electron.exe',
+        );
+        const completed = events
+          .filter((event) => event.type === 'stage-complete')
+          .map((event) => event.step);
+        assert.ok(completed.indexOf('dependencies') < completed.indexOf('ollama'));
+        assert.ok(completed.indexOf('ollama') < completed.indexOf('configuration'));
+        assert.equal(json(path.join(target, '.runtime/installer/state.json')).status, 'complete');
+      } finally {
+        if (inherited === undefined) delete process.env.CAPRI_LLAMA_PATH;
+        else process.env.CAPRI_LLAMA_PATH = inherited;
+      }
+    },
+  );
 
 test('upgrade applies the newly selected model before downloading it and preserves ports and context', async () => {
   await transactionFixture({ selectedProfile: 'quality' });
@@ -1195,18 +1219,23 @@ test('installer accepts BETA model choices with finite disk estimates and enforc
   }
 });
 
-test('API selection ignores a local model profile and its RAM and disk requirements', () => {
+test('API selection works with 7.3 GiB usable RAM while local models remain protected', () => {
   const input = { ...request(folder()), profile: 'quality', downloadModels: true };
   const context = {
     sourceRoot: root,
     version: '0.4.6',
-    hardware: { ...hardware, ramBytes: 8 * 2 ** 30, gpus: [] },
+    hardware: {
+      ...hardware,
+      ramBytes: 7.3 * 2 ** 30,
+      gpus: [{ name: 'AMD Radeon(TM) Graphics', memoryKind: 'shared' }],
+    },
     freeBytes: 8 * 2 ** 30,
   };
   assert.throws(() => validateRequest(input, context), /RAM/);
   const plan = validateRequest({ ...input, inferenceMode: 'api' }, context);
   assert.equal(plan.downloadModels, false);
   assert.equal(plan.profile, 'minimal');
+  assert.throws(() => validateRequest({ ...input, profile: 'minimal' }, context), /8 GiB RAM/);
   assert.throws(() => validateRequest({ ...input, inferenceMode: null }, context), /source/);
 });
 

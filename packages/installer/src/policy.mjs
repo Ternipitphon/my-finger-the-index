@@ -123,13 +123,16 @@ export function validateRequest(input, { sourceRoot, version, hardware, freeByte
     throw new Error('Invalid language model catalog');
   const modelSource = inferenceMode === 'api' ? 'catalog' : requestedSource;
   const modelSetupRequired = modelSource === 'huggingface';
-  const profile = installerModelProfile(
-    inferenceMode === 'api' || modelSetupRequired ? 'minimal' : input.profile,
+  // API mode needs only a catalog identifier for planning; it does not run a
+  // local language model and must not inherit its hardware admission checks.
+  const profile =
     inferenceMode === 'api'
-      ? hardware
-      : installerLanguageHardware(target, hardware, languageDevice),
-    target,
-  );
+      ? MODEL_CHOICES.find((item) => item.id === 'minimal')
+      : installerModelProfile(
+          modelSetupRequired ? 'minimal' : input.profile,
+          installerLanguageHardware(target, hardware, languageDevice),
+          target,
+        );
   for (const key of ['recognition', 'downloadModels', 'desktopShortcut', 'startMenuShortcut'])
     if (typeof input[key] !== 'boolean') throw new Error('Invalid installer option: ' + key);
   if (input.router !== undefined && typeof input.router !== 'boolean')
