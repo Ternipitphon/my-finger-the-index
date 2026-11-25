@@ -8,8 +8,17 @@ app.whenReady().then(async()=>{
  win=new BrowserWindow({show:true,transparent:true,frame:false,focusable:false,width:1000,height:800,webPreferences:{sandbox:true,contextIsolation:true,backgroundThrottling:false}});
  await win.loadURL('capri://app/src/renderer/index.html');win.webContents.debugger.attach('1.3');await win.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride',{width:1000,height:800,deviceScaleFactor:1,mobile:false});const page=c=>win.webContents.executeJavaScript(c),wait=ms=>new Promise(r=>setTimeout(r,ms));
  for(let i=0;i<100&&!await page('!!window.fixtureReady');i++)await wait(10);
- await page('offer()');await wait(230);
- const p=await page(`(()=>{const r=document.querySelector('[data-id="talk"]').getBoundingClientRect();return{x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};})()`);
+ const waitForTalk=async()=>{
+  let previous=null,stable=0;
+  for(let i=0;i<120;i++){
+   const point=await page(`(()=>{const b=document.querySelector('[data-id="talk"]');if(!b||b.disabled||!fixturePanel.visible)return null;const r=b.getBoundingClientRect(),x=Math.round(r.x+r.width/2),y=Math.round(r.y+r.height/2);return b.contains(document.elementFromPoint(x,y))?{x,y}:null;})()`);
+   if(point&&previous&&point.x===previous.x&&point.y===previous.y){if(++stable>=3)return point;}else stable=0;
+   previous=point;await wait(16);
+  }
+  throw Error('Talk button did not settle at an actual clickable point');
+ };
+ await page('offer()');await waitForTalk();
+ const p=await waitForTalk();
  win.webContents.sendInputEvent({type:'mouseMove',...p});win.webContents.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...p});await wait(25);
  assert.equal(await page('fixturePanel.interactionHeld'),true);
  const old=await page('fixturePanel.rect().x');await page('fixturePanel.setAnchor({x:800,y:650,top:500},{w:1000,h:800})');assert.equal(await page('fixturePanel.rect().x'),old);
@@ -24,7 +33,7 @@ app.whenReady().then(async()=>{
  // A rejected status request produces a visible diagnostic instead of an unhandled promise.
  await page('offer();document.querySelector("[data-id=talk]").click();rejectStatus();void 0');await wait(30);assert.equal(await page('fixtureChat.open'),false);assert.equal(await page('fixturePanel.visible'),true);assert.match(await page('fixturePanel.quote.textContent'),/fixture status offline/);
  // Native Windows-style samples recover when absolutely no DOM input events arrive.
- await wait(270);await page('fixturePanel.hide();offer()');await wait(230);
+ await wait(270);await page('fixturePanel.hide();offer()');await waitForTalk();
  const nativePoint=await page(`(()=>{const r=document.querySelector('[data-id=talk]').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2,inside:true};})()`);
  const beforeNative=await page('statusCalls');
  await page(`fixturePanel.samplePointer({...${JSON.stringify(nativePoint)},primaryDown:false});fixturePanel.samplePointer({...${JSON.stringify(nativePoint)},primaryDown:true})`);
@@ -35,13 +44,13 @@ app.whenReady().then(async()=>{
  assert.equal(await page('statusCalls'),beforeNative+1,'no-DOM physical click opens chat');
  await page('resolveStatus();void 0');await wait(30);assert.equal(await page('fixtureChat.open'),true);
  // Mixed native and DOM delivery must activate once; a late click on a detached button is ignored.
- await wait(270);await page('fixturePanel.hide();offer()');await wait(230);
+ await wait(270);await page('fixturePanel.hide();offer()');await waitForTalk();
  const mix=await page(`(()=>{const b=document.querySelector('[data-id=talk]');window.oldTalkButton=b;const r=b.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2,inside:true};})()`);
  const beforeMix=await page('statusCalls');
  await page(`fixturePanel.samplePointer({...${JSON.stringify(mix)},primaryDown:false});fixturePanel.samplePointer({...${JSON.stringify(mix)},primaryDown:true});oldTalkButton.click();fixturePanel.samplePointer({...${JSON.stringify(mix)},primaryDown:false});oldTalkButton.click();void 0`);
  await wait(90);assert.equal(await page('statusCalls'),beforeMix+1);await page('resolveStatus();void 0');await wait(30);
  // Pressing outside then entering, or releasing outside, must not activate Talk.
- await wait(270);await page('fixturePanel.hide();offer()');await wait(230);
+ await wait(270);await page('fixturePanel.hide();offer()');await waitForTalk();
  const safe=await page(`(()=>{const r=document.querySelector('[data-id=talk]').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2,inside:true};})()`);
  const beforeCancel=await page('statusCalls');
  await page(`fixturePanel.samplePointer({x:0,y:0,inside:true,primaryDown:false});fixturePanel.samplePointer({x:0,y:0,inside:true,primaryDown:true});fixturePanel.samplePointer({...${JSON.stringify(safe)},primaryDown:true});fixturePanel.samplePointer({...${JSON.stringify(safe)},primaryDown:false})`);
