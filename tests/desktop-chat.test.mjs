@@ -2394,3 +2394,79 @@ test('journal size bound also accounts for the actual formatted file on disk', (
   assert.equal(restored.warning, null);
   assert.equal(restored.snapshot().length, journal.snapshot().length);
 });
+
+test('Thai Gemini greetings bypass tool routing, preserve errors and leave commands on their normal route', async () => {
+  const direct = [],
+    gateway = [],
+    events = [];
+  const service = client({
+    externalInference: true,
+    interfaceState: () => ({ languages: { conversation: 'th' } }),
+    directRemoteGreeting: async (payload, signal) => {
+      signal.throwIfAborted();
+      direct.push(payload);
+      assert.equal(payload.tools, undefined);
+      assert.equal(payload.messages.length, 2);
+      assert.match(payload.messages[0].content, /Test persona/);
+      return response('สวัสดีค่ะ');
+    },
+    fetchImpl: async (_url, options) => {
+      gateway.push(JSON.parse(options.body));
+      return response('คำตอบทั่วไป');
+    },
+  });
+  await service.send({ id: randomUUID(), text: 'สวัสดี' }, (e) => events.push(e));
+  assert.equal(events.at(-1).type, 'turn.completed');
+  assert.equal(events.at(-1).assistant.text, 'สวัสดีค่ะ');
+  assert.equal(direct.length, 1);
+  assert.equal(gateway.length, 0);
+  await service.send({ id: randomUUID(), text: 'Tell me about forest ecology' }, (e) =>
+    events.push(e),
+  );
+  assert.equal(direct.length, 1);
+  assert.equal(gateway.length, 1);
+});
+
+test('a slow external greeting uses its provider allowance once and remains cancellable', async () => {
+  for (const cancel of [false, true]) {
+    const events = [];
+    let calls = 0;
+    const service = client({
+      externalInference: true,
+      firstTextTimeoutMs: 10,
+      timeoutMs: 200,
+      prepareModel: async () => ({ conversationBudget: { firstTextTimeoutMs: 120 } }),
+      directRemoteGreeting: async (_payload, signal) => {
+        calls++;
+        if (cancel) setTimeout(() => service.cancel(), 10);
+        await new Promise((resolve) => setTimeout(resolve, 40));
+        signal.throwIfAborted();
+        return response('สวัสดีค่ะ');
+      },
+      fetchImpl: () => assert.fail('Greeting must not enter the gateway'),
+    });
+    await service.send({ id: randomUUID(), text: 'สวัสดีครับ' }, (e) => events.push(e));
+    assert.equal(calls, 1);
+    assert.equal(
+      events.some((e) => e.type === 'turn.completed'),
+      !cancel,
+    );
+  }
+});
+
+test('a direct remote greeting reports an HTTP failure once without leaking provider bodies', async () => {
+  let calls = 0;
+  const events = [];
+  const service = client({
+    externalInference: true,
+    directRemoteGreeting: async () => {
+      calls++;
+      return new Response('private-provider-canary', { status: 503 });
+    },
+    fetchImpl: () => assert.fail('A failed greeting must not be replayed through the gateway'),
+  });
+  await service.send({ id: randomUUID(), text: 'สวัสดี' }, (event) => events.push(event));
+  assert.equal(calls, 1);
+  assert.equal(events.at(-1).type, 'turn.failed');
+  assert.doesNotMatch(JSON.stringify(events), /private-provider-canary/);
+});

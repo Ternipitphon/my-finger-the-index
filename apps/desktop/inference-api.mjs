@@ -45,6 +45,12 @@ export function openRouterFreeReplyTimeoutMs(config) {
     return 60000;
 }
 
+/** Bounded first-visible-text allowance for providers with delayed streams. */
+export function remoteReplyTimeoutMs(config) {
+  if (new URL(config.baseUrl).origin === 'https://generativelanguage.googleapis.com') return 120000;
+  return openRouterFreeReplyTimeoutMs(config);
+}
+
 const API_FAILURE_CODES = new Set([
   'CAPRI_API_NETWORK_ERROR',
   'CAPRI_API_PROVIDER_ERROR',

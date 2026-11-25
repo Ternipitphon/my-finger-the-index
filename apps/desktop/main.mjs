@@ -2,7 +2,7 @@ import { validateResponseLength } from '../../packages/runtime/src/response-leng
 import {
   InferenceApi,
   apiSettings,
-  openRouterFreeReplyTimeoutMs,
+  remoteReplyTimeoutMs,
   readApiSettings,
 } from './inference-api.mjs';
 import { CapriCore } from '../../packages/core/src/index.mjs';
@@ -1392,6 +1392,18 @@ async function initializeDesktop() {
       temporalContext: skillEnabled('capri.timers') ? temporal?.context() : '',
     }),
     requestRouter,
+    directRemoteGreeting:
+      !verification &&
+      rt.remote.enabled &&
+      new URL(rt.remote.baseUrl).origin === 'https://generativelanguage.googleapis.com'
+        ? (payload, signal) =>
+            inferenceApi.localFetch(rt.inferenceUrl + '/v1/chat/completions', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
+              body: JSON.stringify({ ...payload, max_tokens: 256 }),
+              signal,
+            })
+        : null,
     directLocalDialogue:
       !verification && !npuDialogue && !rt.remote.enabled
         ? (payload, signal) =>
@@ -1494,7 +1506,7 @@ async function initializeDesktop() {
           await mutedVoiceResidency.release();
           signal.throwIfAborted();
           if (rt.remote.enabled) {
-            const firstTextTimeoutMs = openRouterFreeReplyTimeoutMs(rt.remote);
+            const firstTextTimeoutMs = remoteReplyTimeoutMs(rt.remote);
             return {
               remote: true,
               ...(firstTextTimeoutMs && {

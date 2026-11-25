@@ -17,6 +17,7 @@ import {
   InferenceApi,
   apiSettings,
   openRouterFreeReplyTimeoutMs,
+  remoteReplyTimeoutMs,
   readApiSettings,
 } from '../apps/desktop/inference-api.mjs';
 import { spotifyPlanner } from '../apps/desktop/spotify-planner.mjs';
@@ -2199,5 +2200,28 @@ test('Lemonade-style HTTP profiles can save and run keyless, with no model tool 
       },
     }),
     /valid API key/,
+  );
+});
+
+test('Gemini reply allowance is bounded and does not change unrelated providers', () => {
+  const google = {
+    baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    model: 'models/gemini-4-hydrogen',
+  };
+  assert.equal(remoteReplyTimeoutMs(google), 120000);
+  assert.equal(
+    remoteReplyTimeoutMs({ baseUrl: 'https://openrouter.ai/api/v1', model: 'vendor/model:free' }),
+    60000,
+  );
+  assert.equal(
+    remoteReplyTimeoutMs({ baseUrl: 'https://openrouter.ai/api/v1', model: 'vendor/paid' }),
+    undefined,
+  );
+  assert.equal(
+    remoteReplyTimeoutMs({
+      ...google,
+      baseUrl: 'https://generativelanguage.googleapis.com.example.org/v1',
+    }),
+    undefined,
   );
 });

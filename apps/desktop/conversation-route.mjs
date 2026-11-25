@@ -5,6 +5,9 @@ export function conversationOnly(text, routing) {
   if (typeof text !== 'string' || text.length > 100) return false;
   const greeting = text.normalize('NFKC').trim().toLowerCase().replace(/\s+/gu, ' ');
   return (
+    /^(?:สวัสดี|หวัดดี|ฮัลโหล)(?:\s*(?:ครับ|ค่ะ|คะ|จ้า))?(?:[,! ]*(?:capri|caprii|คาปรี|คาปรี่|แคปรี|แคปรี่))?(?:\s*(?:ครับ|ค่ะ|คะ|จ้า))?[?!.]*$/iu.test(
+      greeting,
+    ) ||
     /^(?:how are you(?: doing)?|how(?:['’]s| is) it going|как (?:дела|ты|жизнь)|comment (?:vas-tu|ça va)|¿?cómo estás|wie geht(?:['’]s| es dir))\s*[?!.]*$/u.test(
       greeting,
     ) ||

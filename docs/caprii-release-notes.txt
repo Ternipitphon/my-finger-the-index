@@ -2,6 +2,7 @@ CapriCore v1.2.2 + Caprii integration (Windows x64)
 
 Based on CapriChooms/CapriCore v1.2.2, commit 828f27243df3d1b9669cbe1a5d16633b68c1108a.
 Original character, artwork, model/voice engines, native Spotify, desktop controls and permissions are retained.
+Recognizes Thai greetings and sends simple Gemini greetings directly through the authenticated API proxy without the agent tool loop. Allows a bounded 120-second first-visible-text window for the official Google endpoint, preserves cancellation and the overall deadline, and does not automatically replay paid requests. Other providers and explicit action routes retain their existing behavior.
 Fixes API-only installation on PCs reporting 7.3 GiB usable RAM: skips local language-model RAM checks and first-install local model setup. Local model RAM admission checks remain enforced.
 Adds a persisted Short / Balanced / Detailed reply preference in Conversation settings, including Thai labels, preview and discard support.
 Uses this fork's GitHub updates; the upstream mirror cannot overwrite the integration.

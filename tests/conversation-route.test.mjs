@@ -11,6 +11,10 @@ import { settings } from '../packages/runtime/src/index.mjs';
 test('social route restricts greetings without swallowing commands or ambiguous follow-ups', () => {
   for (const text of [
     'Hello.',
+    'สวัสดี',
+    'สวัสดีครับ',
+    'สวัสดี Capri ค่ะ',
+    'หวัดดีคาปรี่',
     'How are you doing?',
     'Как дела?',
     'Comment vas-tu ?',
@@ -29,6 +33,9 @@ test('social route restricts greetings without swallowing commands or ambiguous 
     assert.equal(conversationOnly(text), true, text);
   for (const text of [
     'Hello, open Firefox',
+    'สวัสดี เปิด Spotify ให้หน่อย',
+    'สวัสดีครับ ลบไฟล์นี้',
+    'สวัสดี แล้วตั้งเวลา 5 นาที',
     'How are you? Open Firefox.',
     'Как дела у таймера?',
     'Привет, Капри! Как твои дела? Открой браузер.',

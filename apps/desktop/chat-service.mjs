@@ -403,6 +403,7 @@ export class ChatService {
     computerIntent = null,
     npuDialogue = null,
     directLocalDialogue = null,
+    directRemoteGreeting = null,
     commitNpuDialogue = null,
     localCalculation = null,
     localMusic = null,
@@ -445,6 +446,7 @@ export class ChatService {
       computerIntent,
       npuDialogue,
       directLocalDialogue,
+      directRemoteGreeting,
       commitNpuDialogue,
       localCalculation,
       localMusic,
@@ -655,7 +657,8 @@ export class ChatService {
       !input.mode && input.internet !== true && companionDialogueQuestion(input.text);
     const codeReview = !input.mode && input.internet !== true && suppliedCodeReview(input.text);
     const thinking = input.thinking === true && !input.mode;
-    const directSmallTalk = smallTalk && !thinking ? this.directLocalDialogue : null;
+    const directSmallTalk =
+      smallTalk && !thinking ? (this.directRemoteGreeting ?? this.directLocalDialogue) : null;
     const planningWithThinking = input.thinking === true && input.mode !== 'coding';
     const turnTimeoutMs =
       input.mode === 'coding'
