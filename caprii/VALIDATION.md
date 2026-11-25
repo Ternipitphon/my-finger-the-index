@@ -1,3 +1,9 @@
+# Caprii 0.8.0 validation
+
+Primary source is Caprii 0.7.6 at 6899749c0c1e5ad33de58e05cb5420320443962d. Character assets and the main renderer are preserved. New checks cover structured Gemini actions, format-only fallback, bounded task cancellation, repeated no-progress cycles, duplicate-submit blocking and explicit short waits before acknowledgment checks.
+
+A live Gemini Flash Lite run used the actual math tool for 18 * 7 and obtained a verified 126. It did not use browser, desktop or user-file tools. Standard fixture checks and local Test Lab passed; the Windows release pipeline must also pass Electron, talk-button, DOM and Lab UI checks before publishing. These checks do not prove live Spotify-account playback, arbitrary Windows input or every model's accuracy. The Lab keeps DOM observations separate from agent contracts and retains unknown actor attribution.
+
 # Caprii 0.7.6 validation
 
 - 235 application tests, 4 lab checks, 8 browser DOM cases and the media UI/transport fixtures pass.

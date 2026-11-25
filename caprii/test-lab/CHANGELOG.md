@@ -1,3 +1,9 @@
+# Changelog
+
+## 1.8.0 / Caprii 0.8.0
+
+ใช้ Caprii 0.7.6 commit 6899749c0c1e5ad33de58e05cb5420320443962d เป็นฐาน อัปเดตสัญญาการทดสอบ agent: JSON planning, หยุดเมื่อไม่คืบหน้า, ส่งเพียงครั้งเดียวแล้วตรวจเลขรับเรื่อง รักษาเคส DOM และ media IDs เดิม ข้อมูล agent ในรายงานไม่ถูกนับเป็นผลผ่าน DOM และไม่อ้างว่ารู้ผู้กระทำ
+
 ## 1.7.0 / Caprii 0.7.6
 
 เพิ่ม stable examples spotify-reopen, spotify-controls, spotify-auto แยกจาก 8 เคส DOM และไม่ให้คะแนนผ่านเสียงจริง

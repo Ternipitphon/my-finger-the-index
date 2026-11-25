@@ -90,14 +90,21 @@ function warm(id, model) {
 }
 
 // OpenAI-style streaming (server-sent events): onDelta(piece) as it comes, resolves with all of it.
-async function openaiChat(p, { model, messages }, onDelta, signal) {
+async function openaiChat(p, { model, messages, jsonMode = false }, onDelta, signal) {
   const res = await fetch(`${p.url}/chat/completions`, {
     method: 'POST',
     headers: headers(p.key),
-    body: JSON.stringify({ model, messages, stream: true, max_tokens: 4096 }),
+    body: JSON.stringify({ model, messages, stream: true, max_tokens: 4096, ...(jsonMode ? { response_format:{type:'json_object'} } : {}) }),
     signal,
   });
-  if (!res.ok) throw await failure(res, p.key);
+  if (!res.ok) {
+    const error = await failure(res, p.key);
+    // Only an explicit unsupported-format rejection may retry as legacy text.
+    // A busy, timed-out or partially streamed action is never replayed here.
+    if (jsonMode && res.status === 400 && /response[_ ]format|json_object|structured.{0,20}(?:output|schema)/i.test(error.message))
+      return openaiChat(p, { model, messages, jsonMode:false }, onDelta, signal);
+    throw error;
+  }
   const decoder = new TextDecoder();
   let buffer = '', text = '', done = false;
   const line = (value) => {
@@ -210,7 +217,7 @@ function restoreClaude(saved) {
 
 const isChatSession = (id) => Boolean(id) && id === claudeSession;
 
-async function chat(id, cfg, { model, messages }, onDelta, signal) {
+async function chat(id, cfg, { model, messages, jsonMode = false }, onDelta, signal) {
   const p = endpoint(id, cfg);
   if (p.kind === 'ollama') {
     const localMessages = messages.map(message => !Array.isArray(message.content) ? message : {
@@ -222,7 +229,7 @@ async function chat(id, cfg, { model, messages }, onDelta, signal) {
   }
   // Claude Code keeps its own memory of the conversation: only her persona and your last message go
   if (p.kind === 'claude') return claudeChat(cfg, messages.at(-1).content, messages[0].content, onDelta, signal);
-  return openaiChat(p, { model, messages }, onDelta, signal);
+  return openaiChat(p, { model, messages, jsonMode:id === 'gemini' && jsonMode === true }, onDelta, signal);
 }
 
 // Whether her answers stay on this PC: a server on this machine (and with Ollama, not a cloud model).
@@ -234,4 +241,8 @@ function isLocal(id, cfg, model) {
   return Boolean(PROVIDERS[id].local);
 }
 
-module.exports = { isLocal, PROVIDERS, CLAUDE_MODES, models, warm, chat, resetClaude, isChatSession, claudeMemory, restoreClaude };
+function isTaskActionRequest(messages, agent) {
+  return agent === true && messages.some(message => message.role === 'system' && typeof message.content === 'string' && message.content.includes('Reply ONLY with one JSON object each turn'));
+}
+
+module.exports = { isTaskActionRequest, isLocal, PROVIDERS, CLAUDE_MODES, models, warm, chat, resetClaude, isChatSession, claudeMemory, restoreClaude };

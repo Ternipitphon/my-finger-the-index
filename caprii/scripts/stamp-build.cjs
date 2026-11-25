@@ -1,0 +1,10 @@
+'use strict';
+const fs=require('node:fs');const path=require('node:path');
+const commit=process.env.GITHUB_SHA;
+if(!/^[a-f0-9]{40}$/.test(commit||''))throw Error('A full GITHUB_SHA is required for release provenance');
+const root=path.join(__dirname,'..'),file=path.join(root,'test-lab/dist/suite.js');
+const text=fs.readFileSync(file,'utf8');
+if(!/capriiCommit:(?:null|'[a-f0-9]{40}')/.test(text))throw Error('Missing lab commit field');
+fs.writeFileSync(file,text.replace(/capriiCommit:(?:null|'[a-f0-9]{40}')/,`capriiCommit:'${commit}'`));
+fs.writeFileSync(path.join(root,'BUILD-INFO.json'),JSON.stringify({version:require('../package.json').version,commit,base:'Caprii 0.7.6',baseCommit:'6899749c0c1e5ad33de58e05cb5420320443962d'},null,2)+'\n');
+console.log('Stamped app source and Test Lab release commit.');

@@ -1,6 +1,7 @@
 'use strict';
 function toolRequest(text){return typeof text==='string'&&!/^(?:ช่วย|กรุณา)?\s*(?:สอน|อธิบาย|สร้าง|ออกแบบ|ยกตัวอย่าง|เขียน(?:โค้ด|โปรแกรม|เว็บ))|ตัวอย่างคำสั่ง|คืออะไร|วิธี(?:การ)?กรอก|how to/i.test(text)&&(/(?:อ่าน|ตรวจ|บอกค่า|ค่าปัจจุบัน).*?(?:แท็บ|หน้าเว็บ|เบราว์เซอร์)|(?:ช่องชื่อ|ในช่อง|ลงช่อง|ใส่ชื่อ|^กรอก|ฟอร์ม|ติ๊ก.*ยอมรับ).*(?:ใส่|กรอก|พิมพ์|ติ๊ก|เลือก|หยอด|เติม)/i.test(text));}
 function taskResultText(result,lang='th'){
+ if(result.reason==='no-progress')return lang==='en'?'Stopped because repeated steps produced no observable progress. Completion is not verified.'+(result.delivery?.submitDelivered?' A submission was already sent; inspect its acknowledgment before sending again.':''):'หยุดเพราะทำขั้นตอนเดิมซ้ำโดยผลที่ตรวจได้ไม่เปลี่ยน ยังไม่ยืนยันว่างานเสร็จ'+(result.delivery?.submitDelivered?' — มีคำสั่งส่งไปแล้ว ต้องตรวจการตอบรับก่อนส่งซ้ำ':'');
  if(lang==='en'){
   const error=[...(result.audit||[])].reverse().find(e=>e.error)?.error;
   if(!result.verified)return "Task completion is not verified. "+(result.delivery?.inputDelivered?"Input was sent. ":"No confirmed input. ")+(result.delivery?.submitDelivered?"Submission was sent, but acknowledgment is not verified.":"No confirmed submission.")+(error?" Error: "+error:"");

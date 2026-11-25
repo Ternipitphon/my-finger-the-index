@@ -632,7 +632,7 @@ async function chatWithFallback(cfg, messages, send, signal, {agent=false}={}) {
   const { text, model } = await require('./chat-runner').runChat({
     models: require('./model-profiles').fallbackModels({provider:cfg.provider,selected,models:chatModels||[]}), signal, onDelta: send, timeoutMs:cfg.modelProfile==='quality'?60000:30000,
     request: async (model, onDelta, signal) => {
-      const text=await require('./thai-language').thaiResponse({messages,lang:resolveLang(cfg.lang),request:async fixed=>{if(++requests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}});
+      const text=await require('./thai-language').thaiResponse({messages,lang:resolveLang(cfg.lang),request:async fixed=>{if(++requests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed,jsonMode:llm.isTaskActionRequest(fixed, agent)},()=>{},signal);}});
       onDelta(text);return text;
     },
   });

@@ -1,0 +1,12 @@
+Caprii 0.8.0 — original desktop with improved task execution
+
+Primary base: Caprii 0.7.6, commit 6899749c0c1e5ad33de58e05cb5420320443962d.
+Original character assets, desktop interface, Thai/English speech, Chrome pairing and existing media controls are retained. CapriCore's installer, local-model runtime and artwork are not included.
+
+Adds structured Gemini action JSON with runtime validation, bounded waiting before inspecting asynchronous results, duplicate-submit prevention while receipt verification is pending, repeated no-progress detection and a five-minute whole-task deadline. Existing permission prompts and cancellation remain enforced. Regular conversation is not forced into JSON. Explicit unsupported JSON formatting may fall back to the legacy request once; partially streamed actions are not replayed by this feature.
+
+Test Lab 1.8.0 keeps the existing DOM cases and records agent contracts separately without awarding automatic DOM passes or identifying whether a human or AI acted. It runs locally only.
+
+A live read-only Gemini Flash Lite check executed 18 * 7 through the actual calculator tool and verified 126. It did not use browser, desktop or user-file tools. Desktop/account playback still depends on your Windows and Spotify/Chrome environment; no live Spotify-account claim is made.
+
+Download Caprii-Agent-Setup-0.8.0.exe and close the running Caprii before installing over its original location. Keep your existing configuration; CapriCore 1.2.2 is a separate application and its encrypted API settings are not automatically imported. Matching source, build commit and SHA-256 checksums are included. The installer is unsigned. Preserve the original PolyForm Noncommercial notice and separate third-party rights notices.

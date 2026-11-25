@@ -125,3 +125,33 @@ test('verifying a different field cannot erase a failed edit',async t=>{
  const r=await runProjectAgent({root,goal:'คำนวณกรอกคำตอบ',tools:createAgentTools({browser}),allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions.shift())});assert.equal(r.verified,false);
 });
 test('a no-solution solver result cannot be followed by an invented answer in the summary',async t=>{const root=await fixture(t);const actions=[{tool:'math.solve',numbers:[7,6,3,4],target:82},{tool:'finish',summary:'คำตอบเดาที่ไม่ได้ตรวจ: invented-expression'}];const r=await runProjectAgent({root,goal:'ดูจอแล้วหาคำตอบ',allowProjectFiles:false,signal:AbortSignal.timeout(1000),approve:async()=>true,ask:async()=>JSON.stringify(actions.shift())});assert.equal(r.verified,false);assert.match(r.summary,/ไม่พบคำตอบ/);assert.doesNotMatch(r.summary,/invented-expression/);});
+
+test('an unresponsive planner respects the whole-task deadline without waiting for a promise to settle',async t=>{
+ const root=await fixture(t);const keepAlive=setTimeout(()=>{},1000);t.after(()=>clearTimeout(keepAlive));
+ await assert.rejects(runProjectAgent({root,goal:'read',timeoutMs:30,signal:new AbortController().signal,ask:()=>new Promise(()=>{}),approve:()=>true}),{code:'task-timeout'});
+});
+test('a planner repeatedly rereading an unchanged page stops before exhausting forty model turns',async t=>{
+ const root=await fixture(t);const {ToolRegistry}=require('../src/main/agent-registry');const tools=new ToolRegistry();let calls=0;
+ tools.add('browser.read',{description:{purpose:'read'},validate:()=>{},run:async()=>({generation:String(calls),text:'same',elements:[]})});
+ const result=await runProjectAgent({root,goal:'อ่านหน้าเว็บอย่างเดียว',allowProjectFiles:false,tools,signal:AbortSignal.timeout(2000),approve:()=>true,ask:async()=>{calls++;return JSON.stringify({tool:'browser.read'});}});
+ assert.equal(result.verified,false);assert.equal(result.reason,'no-progress');assert.equal(calls,6);
+});
+test('a duplicate submission waits for a receipt and does not reach the browser a second time',async t=>{
+ const root=await fixture(t);const {ToolRegistry}=require('../src/main/agent-registry');const tools=new ToolRegistry();let clicks=0;
+ const observation={generation:'same',elements:[{id:1,label:'ส่งข้อมูล'}]};
+ tools.add('browser.read',{description:{purpose:'read'},validate:()=>{},run:async()=>observation});
+ tools.add('browser.click',{description:{purpose:'click'},validate:()=>{},run:async(_a,c)=>{clicks++;c.submitBaseline=observation;return{submitDelivered:true,observed:observation};}});
+ tools.add('browser.expect',{description:{purpose:'verify'},validate:()=>{},run:async()=>({passed:true,observed:observation})});
+ const actions=[{tool:'browser.read'},{tool:'browser.click',id:1,intent:'submit'},{tool:'browser.click',id:1,intent:'submit'},{tool:'browser.expect',contains:'รับข้อมูลแล้ว'},{tool:'finish',summary:'ตรวจแล้ว'}];
+ const result=await runProjectAgent({root,goal:'กดส่งข้อมูล',allowProjectFiles:false,tools,signal:AbortSignal.timeout(2000),approve:()=>true,ask:async()=>JSON.stringify(actions.shift())});
+ assert.equal(clicks,1);assert.equal(result.delivery.submitDelivered,true);assert.ok(result.audit.some(e=>e.status==='blocked'));assert.equal(result.verified,true);
+});
+
+test('an agent can wait for asynchronous acknowledgment without sending again',async t=>{
+ const root=await fixture(t);const {ToolRegistry}=require('../src/main/agent-registry');const tools=new ToolRegistry();let submitted=0,ready=false;
+ tools.add('browser.click',{description:{purpose:'submit'},validate:()=>{},run:async(_a,c)=>{submitted++;c.submitBaseline={};const timer=setTimeout(()=>{ready=true;},10);t.after(()=>clearTimeout(timer));return{submitDelivered:true};}});
+ tools.add('browser.expect',{description:{purpose:'verify'},validate:()=>{},run:async()=>({passed:ready})});
+ const actions=[{tool:'browser.click',intent:'submit'},{tool:'task.wait',milliseconds:25},{tool:'browser.expect',contains:'รับข้อมูลแล้ว'},{tool:'finish',summary:'ตรวจผลแล้ว'}];
+ const result=await runProjectAgent({root,goal:'กดส่งแล้วรอผล',allowProjectFiles:false,tools,signal:AbortSignal.timeout(2000),approve:()=>true,ask:async()=>JSON.stringify(actions.shift())});
+ assert.equal(result.verified,true);assert.equal(submitted,1);assert.ok(!result.checks.some(e=>e.tool==='task.wait'));
+});
