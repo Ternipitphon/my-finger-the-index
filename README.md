@@ -1,6 +1,22 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด CapriCore 1.2.2 + Caprii — รุ่นผสมสำหรับ Windows
+## ดาวน์โหลด Caprii 0.8.0 — รุ่นหลักจาก Caprii ตัวเดิม
+
+[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.0 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.0/Caprii-Agent-Setup-0.8.0.exe)
+
+[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.0/Caprii-0.8.0-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.0) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.0/caprii/CAPRII-TH.md)
+
+ใช้ **Caprii 0.7.6 ของเราเป็นฐานหลัก** เก็บตัวละคร หน้าตา การลาก ปุ่มคุย ภาษาไทย/อังกฤษ การเชื่อม Chrome และคำสั่งเพลงเดิม เพิ่มการสั่งเครื่องมือผ่าน Gemini แบบมีโครงสร้าง ตรวจคำสั่งก่อนทำงาน รอผลที่มาช้า หยุดเมื่อทำวนซ้ำโดยไม่คืบหน้า และป้องกันกดส่งซ้ำระหว่างรอหลักฐานจากเว็บ จำกัดงานหนึ่งรอบไม่เกิน 5 นาที พร้อมหยุดยกเลิกได้
+
+รองรับ Windows 10/11 x64 ปิด Caprii ที่ถาดระบบก่อนเปิดตัวติดตั้ง แล้วเปิด **Caprii Agent** จาก Desktop ไม่ต้องติดตั้ง Node.js หรือ Python เพิ่ม ตัวติดตั้งยังไม่มีลายเซ็นดิจิทัล ให้ตรวจ SHA-256 กับหน้าดาวน์โหลดได้
+
+การควบคุม Spotify ใช้ส่วนขยาย Chrome เดิม อัปเดตส่วนขยายจากโฟลเดอร์ `browser-extension` ของรุ่นนี้แล้วเชื่อมกับ Caprii การเล่นเพลงขึ้นกับการเข้าสู่ระบบ อุปกรณ์เสียง และสิทธิ์เล่นอัตโนมัติของ Chrome ระบบไม่ยืนยันเสียงลำโพงจากสถานะเล่นเพียงอย่างเดียว
+
+**CapriCore 1.2.2 เป็นอีกแอปหนึ่ง** คีย์ API ที่บันทึกแบบเข้ารหัสใน CapriCore จะไม่ย้ายมารุ่นนี้อัตโนมัติ ตั้งค่า Gemini ใน Caprii อีกครั้งหากยังไม่มีคีย์เดิม ซอร์สรุ่นนี้คงใบอนุญาต PolyForm Noncommercial และเครดิตเดิม ไม่ได้นำซอร์ส GPL ของ CapriCore มารวม
+
+---
+
+## รุ่นทดลองก่อนหน้า: CapriCore 1.2.2 + Caprii สำหรับ Windows
 
 [ดาวน์โหลดตัวติดตั้ง Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v1.2.2-caprii.4/CapriSetup-1.2.2.exe)
 
