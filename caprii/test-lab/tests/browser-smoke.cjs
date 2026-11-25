@@ -44,5 +44,5 @@ app.whenReady().then(async()=>{
  await win.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride',{width:390,height:900,deviceScaleFactor:1,mobile:true});await page('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
  const dimensions=await page('({scroll:document.documentElement.scrollWidth,client:document.documentElement.clientWidth,viewport:innerWidth})');assert.ok(dimensions.scroll<=dimensions.client,JSON.stringify(dimensions));
  assert.deepEqual(errors,[]);console.log('PASS: 8 real DOM cases, wrong-answer rejection, readonly keypad, delayed receipt/reset isolation, stale IDs, no-submit failure, filters, JSON report, mobile layout');
- win.destroy();await new Promise(r=>server.close(r));clearTimeout(deadline);app.exit(0);
+ win.destroy();await new Promise(r=>{server.close(r);server.closeAllConnections();});clearTimeout(deadline);app.exit(0);
 }).catch(err=>{console.error(err);clearTimeout(deadline);app.exit(1);});
