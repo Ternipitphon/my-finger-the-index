@@ -39,7 +39,7 @@ FunctionEnd
 Section "Install"
   SetShellVarContext current
   SetOutPath "$INSTDIR"
-  File /r "${PROJECT_DIR}/dist/win-unpacked/*"
+  File /r "${PROJECT_DIR}\dist\win-unpacked\*"
   FileOpen $0 "$INSTDIR\caprii-install-marker.txt" w
   FileWrite $0 "${APP_ID}"
   FileClose $0
