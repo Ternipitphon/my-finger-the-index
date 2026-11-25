@@ -50,7 +50,9 @@ app.whenReady().then(async()=>{
  const clicked=await browser.interact({kind:'click',id:key.id,generation:observed.generation},AbortSignal.timeout(2000));observed=clicked.observed;
  checked=await browser.verifyField({id:observed.elements.find(e=>e.readOnly).id,generation:observed.generation,value:'2'},AbortSignal.timeout(2000));assert.equal(checked.passed,true);observed=checked.observed;
  const rejected=observed.elements.find(e=>e.label==='ช่องไม่รับข้อความ');
- await assert.rejects(browser.interact({kind:'type',id:rejected.id,generation:observed.generation,value:'15'},AbortSignal.timeout(2000)),/ไม่เก็บข้อความ/);
+ await assert.rejects(browser.interact({kind:'type',id:rejected.id,generation:observed.generation,value:'15'},AbortSignal.timeout(2000)),/ไม่เก็บ(?:ข้อความ|ค่าที่กรอก)/);
+ observed=await browser.snapshot(AbortSignal.timeout(2000));
+ assert.equal(observed.elements.find(e=>e.label==='ช่องไม่รับข้อความ').value,'');
  assert.equal(observed.elements.find(e=>e.type==='password').value,undefined);
  console.log('PASS: actual DOM field readback, wrong-value detection, readonly keypad fallback, rejected edits, and password-value redaction');
  await assert.rejects(browser.navigate(`http://127.0.0.1:${server.address().port}/redirect`,AbortSignal.timeout(5000)));
