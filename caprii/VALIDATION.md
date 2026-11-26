@@ -1,3 +1,7 @@
+# Caprii 0.8.3 validation
+
+Normal personality menu selection and reconstruction, nonmutation of user/image/tool messages, and exclusion of legacy roleplay with Focus off are covered by new tests. Existing Windows UI, DOM, media transport and Lab checks remain required. Persona prompts guide model style; they are not a guarantee of every generated response.
+
 # Caprii 0.8.2 validation
 
 Controlled-player tests cover late hydration beyond the old wait, live-track priority over cache, empty-player cache fallback, no invented collection, cancellation, and natural-language resume commands. Existing speaker-output and live Spotify-account verification limits remain. Windows checks run before publishing.

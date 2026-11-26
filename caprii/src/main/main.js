@@ -406,7 +406,7 @@ function rebuildTray() {
       {label:'API อาจมีค่าใช้จ่าย/โควตา แยกจาก Gemini บนเว็บ',enabled:false},
     ]},
     require('./response-style').responseLengthMenu(cfg.responseLength,value=>updateConfig({responseLength:value}),resolveLang(cfg.lang)),
-    {label:resolveLang(cfg.lang)==='en'?'Playful Rebecca-inspired personality':'บุคลิกกวน ๆ แบบรีเบคก้า',type:'checkbox',checked:cfg.rebeccaPersonality!==false,click:item=>updateConfig({rebeccaPersonality:item.checked})},
+    require('./personality').personalityMenu(cfg.rebeccaPersonality,value=>updateConfig({rebeccaPersonality:value}),resolveLang(cfg.lang)),
     {label:'โฟกัสงาน: ตอบตามข้อเท็จจริงและความยาก',type:'checkbox',checked:cfg.assistantFocus!==false,click:item=>updateConfig({assistantFocus:item.checked})},
     {
       label: t.chatModel,

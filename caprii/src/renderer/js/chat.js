@@ -913,21 +913,21 @@ export class Chat {
       'ตอบจากสิ่งที่เห็นในรูปจริง ยึดความยาวที่เลือกในตั้งค่า อ่านข้อความที่ชัดเจนได้ บอกข้อจำกัดหากภาพไม่ชัด อย่าใช้คำแซวกลบเนื้อหาหรือแกล้งอ้างว่าลงมือแล้ว',
       'Never repeat passwords, bank details, private messages or addresses from the image. If private data is visible, ask the user to hide it before sharing another image.',
       ...this.personal(),
-      ...(this.bond ? [this.bond.persona()] : []),
-      ...[this.bond?.moodLine()].filter(Boolean),
+      ...(this.characterMode!==false&&this.bond ? [this.bond.persona()] : []),
+      ...(this.characterMode!==false?[this.bond?.moodLine()].filter(Boolean):[]),
       lang.last,
       'Regardless of mood: be respectful, never blame or insult the user. Write quantities with Arabic numerals. Never invent a numerical answer; if tools or evidence are missing, say what is missing.',
     ].join('\n');
   }
 
-  characterStyle(){return this.characterMode!==false?'บุคลิกได้แรงบันดาลใจจากรีเบคก้า: พูดตรง มั่นใจ ขี้แซวแบบเป็นมิตร ห่วงผู้ใช้ แซวสถานการณ์ได้ แต่ไม่ด่าหรือดูถูกผู้ใช้ และไม่ยอมให้บุคลิกแทนที่ข้อเท็จจริงหรือคำสั่งห้ามส่ง':'ตอบชัดเจนและเป็นมิตรตามปกติ';}
+  characterStyle(){return this.characterMode!==false?'บุคลิกได้แรงบันดาลใจจากรีเบคก้า: พูดตรง มั่นใจ ขี้แซวแบบเป็นมิตร ห่วงผู้ใช้ แซวสถานการณ์ได้ แต่ไม่ด่าหรือดูถูกผู้ใช้ และไม่ยอมให้บุคลิกแทนที่ข้อเท็จจริงหรือคำสั่งห้ามส่ง':'นิสัยปกติ: สุภาพ เป็นกันเอง ใจเย็น ตอบเป็นธรรมชาติ ไม่ประชด ไม่บังคับเล่นมุก ไม่สวมบทบาทตัวละคร และยึดข้อเท็จจริง';}
 
   // Who she is, how she talks, and what's going on right now.
   persona() {
     const assistant = ASSISTANT_NAMES[this.brain.assistant] || 'Claude Code';
     const watching = this.brain.watching; // else Claude Code isn't part of her life here
     const lang = IN_LANGUAGE[this.brain.lang] || IN_LANGUAGE.en;
-    if(this.focusedAssistant!==false)return[
+    if(this.focusedAssistant!==false||this.characterMode===false)return[
       'คุณคือ Caprii ผู้ช่วย AI บนเดสก์ท็อป ไม่ใช่บุคคลจริง',
       this.characterStyle(),
       'ตอบคำถามล่าสุดตรงประเด็น แยกสิ่งที่รู้ ข้อสันนิษฐาน และสิ่งที่ยังไม่ทราบ ไม่ปนงานเก่าที่ไม่เกี่ยวข้อง',
@@ -953,7 +953,7 @@ export class Chat {
       ...(this.agent ? [] : ['Asked who or what you are, you are Capri, nothing else. When asked about the underlying model, explain honestly that Caprii uses the provider/model shown in the app. Do not claim to be a real person.']),
       ...this.personal(),
       // how close she is to them by now, and the other AIs they used today
-      ...(this.bond ? [this.bond.persona()] : []),
+      ...(this.characterMode!==false&&this.bond ? [this.bond.persona()] : []),
       ...[this.jealousy?.context()].filter(Boolean),
       // what she said about their screen a little while ago (look.js)
       ...(this.seen && Date.now() - this.seen.at < 20 * 60 * 1000
@@ -964,7 +964,7 @@ export class Chat {
         : this.powers()),
       ...(watching ? [`If the user asks what ${assistant} is doing, here is all you know (never make anything up): ${this.brain.context()}`] : []),
       // how she feels right now, last but for her language: small models follow the end of it best
-      ...[this.bond?.moodLine()].filter(Boolean),
+      ...(this.characterMode!==false?[this.bond?.moodLine()].filter(Boolean):[]),
       lang.last,
       'Regardless of mood: be respectful, never blame or insult the user. Write quantities with Arabic numerals. Never invent a numerical answer; if tools or evidence are missing, say what is missing.',
     ].join('\n');

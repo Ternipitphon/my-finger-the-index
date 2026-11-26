@@ -1,0 +1,9 @@
+Caprii 0.8.3 — Normal personality option
+
+Right-click Caprii → Personality / นิสัย → Normal / ปกติ. Normal uses a polite, relaxed, natural and direct style without forced teasing or character roleplay. The existing Playful option remains available. The same saved preference is reused, so existing selections and defaults are preserved.
+
+Normal applies to regular conversation, screen observations and attached-image replies. It avoids legacy mood/roleplay instructions even when Focus mode is disabled. Tool JSON, permission requirements, exact user commands, image content, language and response-length settings remain intact. Character artwork and voice choices are unchanged. Model-generated phrasing can vary.
+
+Test Lab 1.11.0 keeps the existing eight DOM cases and records personality review separately from DOM scores. No new long-term memory, Discord or BPM listening features were added.
+
+Windows x64 installer is unsigned. Close Caprii from the tray before installing, then choose Normal in the right-click menu. Matching source, build metadata and SHA-256 checksums are attached. Original PolyForm Noncommercial and third-party notices remain.

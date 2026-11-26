@@ -9,7 +9,7 @@ globalThis.matchMedia=()=>({matches:false,addEventListener(){},removeEventListen
 test('default personality adds friendly direct style without changing user data or tool requirements',()=>{
  const original=[{role:'system',content:'Reply ONLY JSON. Never submit without approval.'},{role:'user',content:'ห้ามส่ง'}];const result=personalityMessages(original);
  assert.match(result[0].content,/รีเบคก้า/);assert.match(result[0].content,/Reply ONLY JSON/);assert.match(result[0].content,/ไม่ใช้คำเหยียด/);assert.equal(result[1].content,'ห้ามส่ง');assert.equal(original[0].content,'Reply ONLY JSON. Never submit without approval.');
- assert.deepEqual(personalityMessages(original,false),original);
+ assert.match(personalityMessages(original,false)[0].content,/บุคลิกปกติ/);assert.equal(personalityMessages(original,false)[1].content,'ห้ามส่ง');
  const config=fs.readFileSync(path.join(__dirname,'../src/main/config.js'),'utf8');assert.match(config,/rebeccaPersonality:\s*true/);
 });
 test('attachments are bounded, resized, replace previous selections and expire without persisting pixels',()=>{
