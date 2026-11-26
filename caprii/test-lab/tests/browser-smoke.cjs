@@ -12,7 +12,7 @@ app.whenReady().then(async()=>{
  win.webContents.debugger.attach('1.3');
  await win.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
  const page=code=>win.webContents.executeJavaScript(code);
- assert.match(await page('document.getElementById("agent-execution-note").textContent'),/0\.8\.4.*ปกติ.*ตัวเล่น.*AI.*แผน/);
+ assert.match(await page('document.getElementById("agent-execution-note").textContent'),/0\.8\.5.*ปกติ.*ตัวเล่น.*AI.*แผน/);
  assert.match(await page('document.getElementById("media-examples").textContent'),/liked song/);
  assert.match(await page('document.getElementById("website-open-note").textContent'),/Spotify.*open\.spotify\.com/);
  await win.webContents.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.bridge=(${createDOM.toString()})();true;`}]);

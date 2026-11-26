@@ -1,0 +1,9 @@
+Caprii 0.8.5 — semantic routing before every chat action
+
+Every text in the normal Gemini/Chat API conversation now reaches a read-only AI intent interpreter before any action route is selected. The presence of a command word no longer decides whether the normal chat path runs media, opens a website or starts an agent. The interpreter distinguishes indirect wishes, questions, explanations, current tasks and clear continuations in Thai, English or mixed input.
+
+Chat-only and clarification decisions cannot fall back to legacy keyword handlers or assistant action tags. Current task wording is preserved for the agent; tool plans, permissions, cancellation, deadlines and verification remain enforced. Media instructions reuse the validated player. Website targets are restricted to known capabilities or user-supplied addresses, never invented domains. No screen/account observation occurs during interpretation.
+
+This adds one AI request before normal chat processing, bounded to twenty seconds; failed or uncertain interpretation asks for clarification without speculative execution. The selected model can still misinterpret language, so this is not a guarantee of perfect understanding. Claude Code keeps its separate terminal-agent workflow. Direct UI controls and the user's existing Spotify autoplay preference remain. Original personality selections, including the Playful default, are preserved.
+
+Test Lab 1.13.0 keeps all eight DOM cases and separately records semantic-routing review contracts. No live Spotify-account or speaker-output claim is made. Windows x64 installer is unsigned. Close Caprii from the tray before installing. Matching source, build information, checksums and original notices are attached.

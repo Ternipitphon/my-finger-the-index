@@ -21,6 +21,12 @@ async function interpretMedia({text,previous=null,lang='th',request,signal,timeo
   if(/^(?:(?:ช่วย|กรุณา|please)\s*)?(?:(?:อย่า|ห้าม|ไม่ต้อง|do not|don't)\s*(?:เปิด|เล่น|หยุด|ข้าม|play|open|pause|stop|skip)|สอน|อธิบาย|ยกตัวอย่าง|how to|explain)/i.test(text.trim()))return{route:'chat'};
   if(result.route==='chat')return{route:'chat'};
   if(result.route==='clarify'||result.confidence<.85)return clarify(typeof result.question==='string'?result.question.trim().slice(0,300):'');
+  return validateMediaIntent(result,{text,previous});
+ }catch(error){if(signal?.aborted)throw signal.reason;return clarify(lang==='en'?'I could not understand the music request yet. No playback command was sent. Try naming the song, Liked Songs, or say resume.':'ยังตีความคำสั่งเพลงไม่สำเร็จ ยังไม่ได้สั่งเล่นครับ ลองระบุชื่อเพลง เพลงที่ถูกใจ หรือเล่นต่อ');}
+ finally{if(listener)combined.removeEventListener('abort',listener);}
+}
+function validateMediaIntent(result,{text,previous=null}){
+ const old=previousMedia(previous);
   const media=result.media;if(!media||typeof media!=='object')throw Error('No media intent');
   // Names must come from the user's words or an explicitly continued media request.
   for(const key of ['query','artist'])if(media[key]!==undefined&&(typeof media[key]!=='string'||!media[key].trim()||media[key].length>300||!norm(text).includes(norm(media[key]))&&!(result.continuation===true&&norm(media[key])===norm(old?.[key]))))throw Error('Unspecified media name');
@@ -33,7 +39,5 @@ async function interpretMedia({text,previous=null,lang='th',request,signal,timeo
   const supplied=text.match(/https:\/\/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(?:playlist|track)\/[A-Za-z0-9]+/i)?.[0];
   const value=validateMedia({service:media.service,action:media.action,collection:media.collection,...(media.query?{query:media.query}:{}),...(media.artist?{artist:media.artist}:{}),...(supplied?{url:supplied}:result.continuation===true&&old?.url?{url:old.url}:{})});
   return{route:'media',media:value};
- }catch(error){if(signal?.aborted)throw signal.reason;return clarify(lang==='en'?'I could not understand the music request yet. No playback command was sent. Try naming the song, Liked Songs, or say resume.':'ยังตีความคำสั่งเพลงไม่สำเร็จ ยังไม่ได้สั่งเล่นครับ ลองระบุชื่อเพลง เพลงที่ถูกใจ หรือเล่นต่อ');}
- finally{if(listener)combined.removeEventListener('abort',listener);}
 }
-module.exports={interpretMedia};
+module.exports={interpretMedia,validateMediaIntent,previousMedia};

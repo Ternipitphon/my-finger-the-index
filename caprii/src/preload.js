@@ -37,6 +37,7 @@ contextBridge.exposeInMainWorld('host', {
   copyImage: (rect) => ipcRenderer.invoke('panel:copy', rect),
   chatStatus: () => ipcRenderer.invoke('chat:status'),
   mediaInterpret: request => ipcRenderer.invoke('media:interpret',request),
+  commandInterpret: request => ipcRenderer.invoke('command:interpret',request),
   taskInterpret: (request) => ipcRenderer.invoke('task:interpret', request),
   agentRun: (request) => ipcRenderer.invoke('agent:run', request),
   chatPickImage: () => ipcRenderer.invoke('chat:image-pick'),

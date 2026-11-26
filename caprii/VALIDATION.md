@@ -1,3 +1,7 @@
+# Caprii 0.8.5 validation
+
+New tests cover every-message semantic dispatch through actual Chat, paraphrases without legacy command words, chat/action separation, failure/close suppression, exact current task wording, known/supplied website destinations and consistency with previous supported websites. Existing Windows UI, media DOM/transport and Lab checks remain required. Semantic route decisions depend on the selected model; no perfect understanding or live Spotify-account claim is made.
+
 # Caprii 0.8.4 validation
 
 Added AI-first media interpretation tests for Thai/English intent, exact named targets, no invented URLs, bounded timeouts/Stop, close-before-action, prohibition/explanation guards, and prevention of legacy/model-tag action fallback after chat-only decisions. Windows media DOM and extension transport checks remain required. No live Spotify-account or speaker-output success is claimed.

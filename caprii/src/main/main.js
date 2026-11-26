@@ -724,6 +724,7 @@ function createTray() {
 }
 
 function registerIpc() {
+  const semanticChats=new Map();
   ipcMain.on('overlay:interactive', (e, on) => {
     if(e.sender===overlay?.webContents)overlayInput.setInteractive(on);
   });
@@ -887,6 +888,15 @@ function registerIpc() {
     }catch(e){return require('./image-attachments').imageError(e,abort.signal.aborted);}
     finally{chats.delete(request.id);}
   });
+  ipcMain.handle('command:interpret',async(event,request={})=>{
+    if(event.sender!==overlay?.webContents||chats.size||!Number.isSafeInteger(request.id)||typeof request.text!=='string'||request.text.length>8000||typeof (request.previous??'')!=='string'||(request.previous||'').length>8000)return{ok:false,error:'Invalid or concurrent command interpretation'};
+    const abort=new AbortController();chats.set(request.id,abort);
+    try{const cfg=config.load();if(cfg.provider==='claude')return{ok:false,error:'Claude Code uses its own agent. Reopen chat after changing provider.'};
+      const result=await require('./command-interpreter').interpretCommand({text:request.text,previous:request.previous||'',media:request.media,connected:chromeBroker.status().connected===true,lang:resolveLang(cfg.lang),signal:abort.signal,request:async(messages,signal)=>{if(!chatModels?.length)await refreshModels();signal.throwIfAborted();return llm.chat(cfg.provider,llmConfig(cfg),{model:pickModel(cfg),messages,jsonMode:true},()=>{},signal);}});
+      if(result.route==='chat'){if(semanticChats.size>=64)semanticChats.delete(semanticChats.keys().next().value);semanticChats.set(request.id,{text:request.text,expires:Date.now()+30000});}
+      return{ok:true,...result};
+    }catch(error){return{ok:false,error:abort.signal.aborted?'หยุดงานแล้ว':error.message};}finally{chats.delete(request.id);}
+  });
   ipcMain.handle('task:interpret',async(event,request={})=>{
     if(event.sender!==overlay?.webContents||chats.size||!Number.isSafeInteger(request.id)||typeof request.text!=='string'||request.text.length>8000||typeof (request.previous??'')!=='string'||(request.previous||'').length>8000)return{ok:false,error:'Invalid or concurrent interpretation request'};
     const abort=new AbortController();chats.set(request.id,abort);
@@ -898,9 +908,10 @@ function registerIpc() {
     }catch(error){return{ok:false,error:abort.signal.aborted?'หยุดงานแล้ว':error.message};}
     finally{chats.delete(request.id);}
   });
-  ipcMain.handle('chat:send', async (_e, { id, messages }) => {
+  ipcMain.handle('chat:send', async (_e, { id, messages, semanticText }) => {
     if (_e.sender !== overlay?.webContents || chats.size || !Array.isArray(messages)) return { ok: false, error: 'Invalid or concurrent chat request' };
-    if(require('./task-result').toolRequest(require('./response-style').userText([...messages].reverse().find(m=>m.role==='user'))))return{ok:false,code:'tool_required',error:'ยังไม่ได้อ่านหรือกรอกข้อมูล คำสั่งนี้ต้องใช้ Agent และแท็บที่เชื่อมต่อ ไม่ใช่แชตข้อความล้วน'};
+    const decision=semanticChats.get(id);semanticChats.delete(id);const semanticChat=decision&&decision.expires>Date.now()&&decision.text===semanticText;
+    if(!semanticChat&&require('./task-result').toolRequest(require('./response-style').userText([...messages].reverse().find(m=>m.role==='user'))))return{ok:false,code:'tool_required',error:'ยังไม่ได้อ่านหรือกรอกข้อมูล คำสั่งนี้ต้องใช้ Agent และแท็บที่เชื่อมต่อ ไม่ใช่แชตข้อความล้วน'};
     const abort = new AbortController();
     chats.set(id, abort);
     try {
@@ -919,7 +930,7 @@ function registerIpc() {
       chats.delete(id);
     }
   });
-  ipcMain.on('chat:stop', (_e, id) => { if (_e.sender === overlay?.webContents) chats.get(id)?.abort(); });
+  ipcMain.on('chat:stop', (_e, id) => { if (_e.sender === overlay?.webContents) {semanticChats.delete(id);chats.get(id)?.abort();} });
   // she looks at your screen (look.js): the picture first, then what her AI says about it
   ipcMain.handle('look:snap', async (e, request = {}) => {
     if(e.sender!==overlay?.webContents)return {ok:false,error:'Invalid sender'};

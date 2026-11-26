@@ -312,10 +312,24 @@ export class Chat {
     this.panel.chatTurn({ quote: text, face: 'aside' });
     this.capri.pulse();
     this.onMessage?.();
+    let semantic=null;
+    if(this.host.commandInterpret&&!this.agent){
+      this.panel.stream(this.brain.lang==='en'?'Understanding your request…':'กำลังทำความเข้าใจคำขอ…');
+      const prior=this.history.slice(0,-1).filter(m=>m.role==='user').at(-1)?.content||'';
+      try{semantic=await this.host.commandInterpret({id,text,previous:typeof prior==='string'?prior:'',media:this.lastMedia||null});}catch{semantic={ok:false,error:this.brain.lang==='en'?'Could not understand the request. No action was sent.':'ยังตีความคำขอไม่สำเร็จ ยังไม่ได้สั่งงานครับ'};}
+      if(this.turn!==id||!this.open)return;
+      if(!semantic.ok||semantic.route==='clarify'){this.panel.stream(semantic.question||semantic.error,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
+      if(['agent','selected-tab','public-web'].includes(semantic.route)){
+        this.lastMedia=null;
+        try{const r=await this.host.agentRun({id,goal:semantic.goal,previousInstruction:semantic.previousInstruction,scope:semantic.route==='agent'?undefined:semantic.route});if(this.turn===id)this.panel.stream(r.ok?r.text:`${this.t.failed} ${r.error}`,{done:true});}
+        catch{if(this.turn===id)this.panel.stream(this.t.failed,{done:true});}
+        finally{if(this.turn===id){this.turn=0;this.panel.setChatBusy(false);}}return;
+      }
+    }
     // what you asked for plainly happens right away (the music, the volume, an app you named): her
     // line about it comes under her answer (Claude Code, answering her chat, does things its own way)
-    let media=mediaCommand(text,this.lastMedia||null),mediaChatOnly=false;
-    if(this.host.mediaInterpret&&!siteCommand(text)&&needsMediaInterpretation(text,this.lastMedia)){
+    let media=semantic?(semantic.route==='media'?semantic.media:null):mediaCommand(text,this.lastMedia||null),mediaChatOnly=semantic?.route==='chat';
+    if(!semantic&&this.host.mediaInterpret&&!siteCommand(text)&&needsMediaInterpretation(text,this.lastMedia)){
       this.panel.stream(this.brain.lang==='en'?'Understanding your music request…':'กำลังตีความคำสั่งเพลง…');
       let interpreted;try{interpreted=await this.host.mediaInterpret({id,text,previous:this.lastMedia||null});}catch{interpreted={ok:false,error:this.brain.lang==='en'?'Could not understand the music request. No playback command was sent.':'ตีความคำสั่งเพลงไม่สำเร็จ ยังไม่ได้สั่งเล่นครับ'};}
       if(this.turn!==id||!this.open)return;
@@ -339,7 +353,7 @@ export class Chat {
       finally{if(this.turn===id){this.turn=0;this.panel.setChatBusy(false);}}
       return;
     }
-    const website = mediaChatOnly?null:siteCommand(text);
+    const website = semantic?(semantic.route==='website'?semantic.website:null):mediaChatOnly?null:siteCommand(text);
     if (website) {
       if(website.question){this.panel.stream(this.brain.lang==='en'?'Please provide the website URL or domain so I can open the correct site.':website.question,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
       try {
@@ -355,11 +369,11 @@ export class Chat {
       return;
     }
     const previous=this.history.slice(0,-1).filter(m=>m.role==='user').at(-1)?.content||'';
-    const browserTask=mediaChatOnly?null:browserTaskIntent(text);
-    const publicTask=mediaChatOnly||browserTask?null:reachIntent(text);
-    const resolved=mediaChatOnly?null:browserTask||resolveTaskCommand(text,typeof previous==='string'?previous:'');
+    const browserTask=semantic||mediaChatOnly?null:browserTaskIntent(text);
+    const publicTask=semantic||mediaChatOnly||browserTask?null:reachIntent(text);
+    const resolved=semantic||mediaChatOnly?null:browserTask||resolveTaskCommand(text,typeof previous==='string'?previous:'');
     if(resolved?.question){this.panel.stream(resolved.question,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
-    if (!mediaChatOnly&&(publicTask || resolved?.goal || /^\/agent\s+/i.test(text) || screenIntent(text) === 'agent' || actionCommand(text))) {
+    if (!semantic&&!mediaChatOnly&&(publicTask || resolved?.goal || /^\/agent\s+/i.test(text) || screenIntent(text) === 'agent' || actionCommand(text))) {
       try {
         const res = await this.host.agentRun({ id, scope:browserTask?.scope||(publicTask?'public-web':undefined), goal: publicTask || resolved?.goal || text.replace(/^\/agent\s+/i, '') });
         if (this.turn === id) this.panel.stream(res.ok ? res.text : `${this.t.failed} ${res.error}`, { done: true });
@@ -370,7 +384,7 @@ export class Chat {
       }
       return;
     }
-    if(!mediaChatOnly&&!this.agent&&this.host.taskInterpret&&needsInterpretation(text)){
+    if(!semantic&&!mediaChatOnly&&!this.agent&&this.host.taskInterpret&&needsInterpretation(text)){
       this.panel.stream(this.brain.lang==='en'?'Understanding your task…':'กำลังทำความเข้าใจคำสั่ง…');
       let inferred;
       try{inferred=await this.host.taskInterpret({id,text,previous:typeof previous==='string'?previous:''});}
@@ -386,7 +400,7 @@ export class Chat {
         return;
       }
     }
-    const asked = this.agent||mediaChatOnly ? null : this.asked(text);
+    const asked = semantic||this.agent||mediaChatOnly ? null : this.asked(text);
     if (asked?.kind === 'look') return this.sendLook(text, id);
     const early = asked && asked.kind !== 'close' ? this.doNow(asked) : null;
     this.bond?.heard(text); // "sorry": she lets it go
@@ -415,7 +429,7 @@ export class Chat {
     const slow = wait && setTimeout(() => {
       if (this.turn === id && !this.answer) this.panel.stream(wait);
     }, LOADING_AFTER_MS);
-    const res = await this.host.chatSend({ id, messages }).catch(() => ({ ok: false, error: 'เชื่อมต่อแอปไม่ได้ กรุณาลองใหม่' }));
+    const res = await this.host.chatSend({ id, messages, semanticText:semantic?.route==='chat'?text:undefined }).catch(() => ({ ok: false, error: 'เชื่อมต่อแอปไม่ได้ กรุณาลองใหม่' }));
     clearTimeout(slow);
     if (this.turn !== id) {
       // closed meanwhile: your message goes too, or the next answer would answer it as well
@@ -437,7 +451,7 @@ export class Chat {
     this.panel.stream(answer, { done: true });
     this.panel.setFace(mood(answer));
     this.panel.setChatBusy(false);
-    if (!this.agent&&!mediaChatOnly) this.after(res.text, answer, asked, early, text);
+    if (!semantic&&!this.agent&&!mediaChatOnly) this.after(res.text, answer, asked, early, text);
     this.listApps(); // fresh for the next message
   }
 
