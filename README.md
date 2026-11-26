@@ -1,14 +1,16 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.8.7 — รุ่นหลักจาก Caprii ตัวเดิม
+## ดาวน์โหลด Caprii 0.8.8 — รุ่นหลักจาก Caprii ตัวเดิม
 
-[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.7 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.7/Caprii-Agent-Setup-0.8.7.exe)
+[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.8 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.8/Caprii-Agent-Setup-0.8.8.exe)
 
-[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.7/Caprii-0.8.7-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.7) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.7/caprii/CAPRII-TH.md)
+[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.8/Caprii-0.8.8-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.8) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.8/caprii/CAPRII-TH.md)
+
+**แก้ขั้นเรียบเรียงคำตอบที่ติดตัวกรอง** ให้ AI แก้เฉพาะถ้อยคำในบริบทแยก ไม่ย้อนใช้บุคลิกกวนและประวัติชุดเดิม คำแซวสุภาพผ่านได้ตามเดิม รักษาเลข ลิงก์ และส่วนโค้ดที่มีเครื่องหมายกำกับ หากแก้แล้วเปลี่ยนข้อมูลสำคัญหรือยังไม่สุภาพจะไม่แสดง ไม่มีการเรียกเครื่องมือซ้ำจากขั้นนี้
 
 **เมนูคลิกขวาจัดใหม่** คำสั่งคุย ดูจอ ย้ายตัวละคร และซ่อน/แสดงอยู่ด้านบน ที่เหลือแบ่งห้าหมวด: นิสัยและเสียง, Chrome และเพลง, AI และงาน, ตัวละครและหน้าจอ, ตั้งค่าและช่วยเหลือ เมนูหลักประมาณ 14 แถว เก็บฟังก์ชัน ค่าสวิตช์ และทางลัดเดิมครบ
 
-[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.7/Caprii-0.8.7-menu.png)
+[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.8/Caprii-0.8.8-menu.png)
 
 **AI ตีความทุกข้อความก่อนเลือกคำสั่งในโหมดแชตหลัก** แยกคำถาม คำขออ้อม ๆ เล่นเพลง เปิดเว็บ และงานบนคอมจากความหมายกับบริบท ไม่ใช้การมีคำว่าเปิด/เล่น/เพลงเป็นประตูเลือกการทำงาน หลัง AI เลือกคุยหรือถามเพิ่ม จะไม่ย้อนใช้ตัวจับคำหรือแท็กเก่าเพื่อสั่งงาน เครื่องมือยังมีขอบเขต ขอสิทธิ์ และตรวจผลจริง ขั้นตีความเพิ่มคำขอ AI หนึ่งครั้งต่อข้อความ จำกัดเวลา 20 วินาที โมเดลอาจตีความผิดได้ โหมด Claude Code แยกใช้ Agent เดิมของตนเอง
 
