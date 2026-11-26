@@ -406,7 +406,7 @@ function rebuildTray() {
       {label:'API อาจมีค่าใช้จ่าย/โควตา แยกจาก Gemini บนเว็บ',enabled:false},
     ]},
     require('./response-style').responseLengthMenu(cfg.responseLength,value=>updateConfig({responseLength:value}),resolveLang(cfg.lang)),
-    require('./personality').personalityMenu(cfg.rebeccaPersonality,value=>updateConfig({rebeccaPersonality:value}),resolveLang(cfg.lang)),
+    require('./personality').personalityMenu(cfg,value=>{const mode=require('./personality').resolvePersonality(value);updateConfig({personalityStyle:mode,rebeccaPersonality:mode!=='normal'});},resolveLang(cfg.lang)),
     {label:'โฟกัสงาน: ตอบตามข้อเท็จจริงและความยาก',type:'checkbox',checked:cfg.assistantFocus!==false,click:item=>updateConfig({assistantFocus:item.checked})},
     {
       label: t.chatModel,
@@ -625,7 +625,7 @@ async function signInToOllama() {
 // closed to new keys), or signed out of Ollama. A model on this PC first. The model that answered is
 // kept for next time.
 async function chatWithFallback(cfg, messages, send, signal, {agent=false}={}) {
-  messages=require('./personality').personalityMessages(messages,cfg.rebeccaPersonality!==false);
+  messages=require('./personality').personalityMessages(messages,cfg);
   messages=require('./response-style').responseMessages(messages,cfg.responseLength,agent?{question:messages.find(m=>m.role==='user')?.content}:{});
   const selected = pickModel(cfg);
   let requests=0;
@@ -682,7 +682,7 @@ async function sayAboutSnap({ id, persona, prompt, history = [], automatic = fal
     ? { role: 'user', content: prompt, images: [image] }
     : { role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${image}` } }] };
   // Each screen observation is grounded in this image/question, not unrelated previous tasks.
-  const messages = require('./response-style').responseMessages(require('./personality').personalityMessages([{role:'system',content:persona},{...user}],cfg.rebeccaPersonality!==false),cfg.responseLength,{question:prompt});
+  const messages = require('./response-style').responseMessages(require('./personality').personalityMessages([{role:'system',content:persona},{...user}],cfg),cfg.responseLength,{question:prompt});
   let requests=0;
   try {
     const result = await require('./chat-runner').runChat({ models: [model], signal, maxAttempts: 2,
@@ -882,7 +882,7 @@ function registerIpc() {
       const dataURL=imageAttachments.get(request.attachmentId),cfg=config.load();
       if(!chatModels?.length)await refreshModels();const model=pickModel(cfg);if(!model)throw Error('ยังไม่มีโมเดลพร้อมใช้งาน');
       if(cfg.provider==='claude'||(cfg.provider==='ollama'&&!await ollama.canSee(model)))return{ok:false,code:'novision',error:'โมเดลนี้ยังดูรูปไม่ได้ เลือก Gemini หรือโมเดลที่รองรับภาพแล้วส่งใหม่'};
-      const messages=require('./image-attachments').imageMessages({prompt:request.prompt,persona:request.persona||'คุณคือ Caprii ผู้ช่วย AI',dataURL,personality:cfg.rebeccaPersonality!==false,responseLength:cfg.responseLength});
+      const messages=require('./image-attachments').imageMessages({prompt:request.prompt,persona:request.persona||'คุณคือ Caprii ผู้ช่วย AI',dataURL,personality:cfg,responseLength:cfg.responseLength});
       const result=await require('./chat-runner').runChat({models:[model],signal:abort.signal,timeoutMs:cfg.modelProfile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>require('./thai-language').thaiResponse({messages,lang:resolveLang(cfg.lang),request:fixed=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:fixed},()=>{},signal)})});
       imageAttachments.remove(request.attachmentId);return{ok:true,text:result.text,model};
     }catch(e){return require('./image-attachments').imageError(e,abort.signal.aborted);}

@@ -1,0 +1,9 @@
+Caprii 0.8.6 — distinct Playful and Caring personalities
+
+Right-click Caprii → Personality / นิสัย → Playful / กวน ๆ, Caring / เป็นห่วง, or Normal / ปกติ. Playful remains the default and existing Playful/Normal selections migrate unchanged. Caring is a separate opt-in style, saved across restarts.
+
+Playful emphasizes brief, friendly situational teasing grounded in visible facts, without routinely turning games or many browser tabs into unsolicited concern/break reminders. Caring emphasizes warmth and considerate check-ins without diagnosing fatigue or distress from a screenshot alone. All modes remain Caprii, keep factual answers, preserve exact user/tool values and JSON, and respect permissions. Genuine necessary risk guidance is retained. Old bond/mood/jealousy instructions no longer override an explicitly selected style in chat or screen observations.
+
+The selection applies to chat, screen observations and attached-image replies. It does not enable microphone or automatic screen watching and does not change character artwork, voice choice or action routing. Generated phrasing still varies by model.
+
+Test Lab 1.14.0 retains the eight DOM cases and separately records the personality review contract. Windows x64 installer is unsigned. Close Caprii from the tray before installing; select Caring only if desired. Source, build information, checksums and original license notices are attached.

@@ -419,7 +419,7 @@ export class Chat {
     // only. Small local models mostly go by the last thing they read: up in her prompt alone, they
     // forget it (and answer in English after a conversation in English).
     if (!this.agent) {
-      const mood = this.bond?.moodLine().replace(/^Right now: /, '');
+      const mood = !this.personalityStyle&&this.bond?.moodLine().replace(/^Right now: /, '');
       const last = messages.at(-1);
       messages[messages.length - 1] = { ...last, content: `${last.content}\n\n(Note for you, never repeat it: ${[mood, this.languageNote()].filter(Boolean).join(' ')})` };
     }
@@ -935,14 +935,19 @@ export class Chat {
       'ตอบจากสิ่งที่เห็นในรูปจริง ยึดความยาวที่เลือกในตั้งค่า อ่านข้อความที่ชัดเจนได้ บอกข้อจำกัดหากภาพไม่ชัด อย่าใช้คำแซวกลบเนื้อหาหรือแกล้งอ้างว่าลงมือแล้ว',
       'Never repeat passwords, bank details, private messages or addresses from the image. If private data is visible, ask the user to hide it before sharing another image.',
       ...this.personal(),
-      ...(this.characterMode!==false&&this.bond ? [this.bond.persona()] : []),
-      ...(this.characterMode!==false?[this.bond?.moodLine()].filter(Boolean):[]),
+      ...(!this.personalityStyle&&this.characterMode!==false&&this.bond ? [this.bond.persona()] : []),
+      ...(!this.personalityStyle&&this.characterMode!==false?[this.bond?.moodLine()].filter(Boolean):[]),
       lang.last,
       'Regardless of mood: be respectful, never blame or insult the user. Write quantities with Arabic numerals. Never invent a numerical answer; if tools or evidence are missing, say what is missing.',
     ].join('\n');
   }
 
-  characterStyle(){return this.characterMode!==false?'บุคลิกได้แรงบันดาลใจจากรีเบคก้า: พูดตรง มั่นใจ ขี้แซวแบบเป็นมิตร ห่วงผู้ใช้ แซวสถานการณ์ได้ แต่ไม่ด่าหรือดูถูกผู้ใช้ และไม่ยอมให้บุคลิกแทนที่ข้อเท็จจริงหรือคำสั่งห้ามส่ง':'นิสัยปกติ: สุภาพ เป็นกันเอง ใจเย็น ตอบเป็นธรรมชาติ ไม่ประชด ไม่บังคับเล่นมุก ไม่สวมบทบาทตัวละคร และยึดข้อเท็จจริง';}
+  characterStyle(){
+    const mode=this.personalityStyle||(this.characterMode===false?'normal':'playful');
+    if(mode==='caring')return 'คุณยังเป็น Caprii นิสัยเป็นห่วง: อบอุ่น ใส่ใจ ถามไถ่อย่างพอดี ไม่บ่นหรือสรุปว่าเหนื่อยจากหน้าจอ ตอบข้อมูลจริงก่อนและไม่อ้างว่าเป็นบุคคลจริง';
+    if(mode==='normal')return 'นิสัยปกติของ Caprii: สุภาพ เป็นกันเอง ใจเย็น ตอบเป็นธรรมชาติ ไม่ประชด ไม่บังคับเล่นมุก ไม่สวมบทบาทตัวละคร และยึดข้อเท็จจริง';
+    return 'คุณยังเป็น Caprii บุคลิกได้แรงบันดาลใจจากรีเบคก้า: กวน ๆ มั่นใจ ขี้แซวสิ่งที่เห็นจริงหรือสถานการณ์แบบเป็นมิตร ไม่ด่าหรือดูถูก ไม่แทรกความห่วงหรือเตือนให้พักเพราะเห็นเกมหรือหลายแท็บ ตอบประเด็นให้ถูกต้อง ข้อเท็จจริงและข้อห้ามสำคัญกว่ามุกเสมอ';
+  }
 
   // Who she is, how she talks, and what's going on right now.
   persona() {
@@ -975,8 +980,8 @@ export class Chat {
       ...(this.agent ? [] : ['Asked who or what you are, you are Capri, nothing else. When asked about the underlying model, explain honestly that Caprii uses the provider/model shown in the app. Do not claim to be a real person.']),
       ...this.personal(),
       // how close she is to them by now, and the other AIs they used today
-      ...(this.characterMode!==false&&this.bond ? [this.bond.persona()] : []),
-      ...[this.jealousy?.context()].filter(Boolean),
+      ...(!this.personalityStyle&&this.characterMode!==false&&this.bond ? [this.bond.persona()] : []),
+      ...(!this.personalityStyle?[this.jealousy?.context()].filter(Boolean):[]),
       // what she said about their screen a little while ago (look.js)
       ...(this.seen && Date.now() - this.seen.at < 20 * 60 * 1000
         ? [`A few minutes ago you looked at the user's screen and told them: "${this.seen.text}". You can bring it up if it fits.`]
@@ -986,7 +991,7 @@ export class Chat {
         : this.powers()),
       ...(watching ? [`If the user asks what ${assistant} is doing, here is all you know (never make anything up): ${this.brain.context()}`] : []),
       // how she feels right now, last but for her language: small models follow the end of it best
-      ...(this.characterMode!==false?[this.bond?.moodLine()].filter(Boolean):[]),
+      ...(!this.personalityStyle&&this.characterMode!==false?[this.bond?.moodLine()].filter(Boolean):[]),
       lang.last,
       'Regardless of mood: be respectful, never blame or insult the user. Write quantities with Arabic numerals. Never invent a numerical answer; if tools or evidence are missing, say what is missing.',
     ].join('\n');

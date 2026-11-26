@@ -1,3 +1,7 @@
+# Caprii 0.8.6 validation
+
+Covers migration from old boolean preferences, Caring persistence through real config reload, three-way menu selection, exact facts/JSON preservation, image personality propagation, and exclusion of legacy bond/mood/jealousy text from explicitly selected screen/chat styles. Tone remains model-generated, not a guaranteed template. Existing Windows UI, media transport and Lab checks remain required.
+
 # Caprii 0.8.5 validation
 
 New tests cover every-message semantic dispatch through actual Chat, paraphrases without legacy command words, chat/action separation, failure/close suppression, exact current task wording, known/supplied website destinations and consistency with previous supported websites. Existing Windows UI, media DOM/transport and Lab checks remain required. Semantic route decisions depend on the selected model; no perfect understanding or live Spotify-account claim is made.
