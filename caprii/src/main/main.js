@@ -321,39 +321,39 @@ function rebuildTray() {
   };
   const cancelReminder = (id) => updateConfig({ reminders: (config.load().reminders || []).filter((r) => r.id !== id) });
 
-  const menu = Menu.buildFromTemplate([
-    { label: t.online(PORT), enabled: false },
-    { label: 'Caprii ' + app.getVersion(), enabled: false },
-    {label:'เปิดเว็บทดสอบ Caprii',click:async()=>{try{await testLab.open();}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดเว็บทดสอบไม่สำเร็จ',detail:err.message});}}},
-    {label:'เปิดโฟลเดอร์ส่วนขยาย Chrome',click:()=>shell.openPath(app.isPackaged?path.join(process.resourcesPath,'browser-extension'):path.join(__dirname,'../../browser-extension'))},
+  const items = [
+    { id:'caprii-online', label: t.online(PORT), enabled: false },
+    { id:'caprii-version', label: 'Caprii ' + app.getVersion(), enabled: false },
+    {id:'caprii-lab',label:'เปิดเว็บทดสอบ Caprii',click:async()=>{try{await testLab.open();}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดเว็บทดสอบไม่สำเร็จ',detail:err.message});}}},
+    {id:'caprii-extension',label:'เปิดโฟลเดอร์ส่วนขยาย Chrome',click:()=>shell.openPath(app.isPackaged?path.join(process.resourcesPath,'browser-extension'):path.join(__dirname,'../../browser-extension'))},
     {id:'caprii-pair',label:'เชื่อมแท็บ Chrome…',click:async()=>{
       try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?(selected.responsive?'แท็บตอบรับอยู่: ':'มีการอนุญาตแท็บไว้ แต่กำลังรอสัญญาณ: ')+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nรหัสใช้เฉพาะรอบที่เปิดโปรแกรม ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
     }},
-    {label:resolveLang(cfg.lang)==='en'?'Read dialogue aloud (English voice)':'อ่านบทพูดด้วยเสียงไทย',type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
+    {id:'caprii-speech',label:resolveLang(cfg.lang)==='en'?'Read dialogue aloud (English voice)':'อ่านบทพูดด้วยเสียงไทย',type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
     { id:'caprii-auto-actions', label:'โหมดไม่ถาม: จอ/เว็บ/เปิดไฟล์และโปรแกรม (จนปิด Caprii)', type:'checkbox', checked:automaticActions, click:item=>{
       for(const controller of chats.values())controller.abort();
       automaticActions=item.checked===true;
       updateConfig({});
     } },
-    { label: 'ทดสอบเมาส์และการพิมพ์', enabled: process.platform === 'win32', click: async () => {
+    { id:'caprii-desktop-test', label: 'ทดสอบเมาส์และการพิมพ์', enabled: process.platform === 'win32', click: async () => {
       if (chats.size) { await dialog.showMessageBox({ message: 'หยุดงานปัจจุบันก่อนเริ่มทดสอบ' }); return; }
       const controller = new AbortController(); chats.set('selftest', controller);
       try { await require('./desktop-self-test').desktopSelfTest({ BrowserWindow, screen, desktopCapturer, dialog, signal: controller.signal }); }
       catch (err) { await dialog.showMessageBox({ type: 'error', message: 'ทดสอบไม่สำเร็จ', detail: err.message }); }
       finally { chats.delete('selftest'); }
     } },
-    { label: t.sync(Math.min(100, Math.floor(xp / 10)), t.stages[stage]), enabled: false },
+    { id:'caprii-bond', label: t.sync(Math.min(100, Math.floor(xp / 10)), t.stages[stage]), enabled: false },
     { type: 'separator' },
     {id:'caprii-pickup',label:resolveLang(cfg.lang)==='en'?'Pick up character — move and click to place':'จับย้ายตัวละคร — ขยับเมาส์แล้วคลิกวาง',click:()=>sendCommand('pickup')},
-    { label: t.teleport, click: () => sendCommand('teleport') },
-    { label: t.satellite, click: () => sendCommand('satellite') },
-    { label: t.demo, click: playDemo },
-    { label: t.help, click: () => sendCommand('welcome') },
-    ...(cfg.claude ? [{ label: t.report, click: () => sendCommand('report') }] : []),
-    { label: t.talk, click: () => sendCommand('chat') },
-    { label: t.lookNow, click: () => sendCommand('look') },
+    { id:'caprii-teleport', label: t.teleport, click: () => sendCommand('teleport') },
+    { id:'caprii-satellite', label: t.satellite, click: () => sendCommand('satellite') },
+    { id:'caprii-demo', label: t.demo, click: playDemo },
+    { id:'caprii-help', label: t.help, click: () => sendCommand('welcome') },
+    ...(cfg.claude ? [{ id:'caprii-report', label: t.report, click: () => sendCommand('report') }] : []),
+    { id:'caprii-talk', label: t.talk, click: () => sendCommand('chat') },
+    { id:'caprii-look', label: t.lookNow, click: () => sendCommand('look') },
     {
-      label: t.reminders,
+      id:'caprii-reminders', label: t.reminders,
       submenu: reminders.length
         ? reminders.map((r) => ({
           label: `${when(r.at)} · ${(r.text || '…').slice(0, 50)}`,
@@ -361,17 +361,17 @@ function rebuildTray() {
         }))
         : [{ label: t.noReminders, enabled: false }],
     },
-    { label: t.custom, click: () => sendCommand('customize') },
-    { label: cfg.visible ? t.hide : t.show, accelerator: 'Ctrl+Alt+C', click: () => toggleVisible() },
+    { id:'caprii-custom', label: t.custom, click: () => sendCommand('customize') },
+    { id:'caprii-visibility', label: cfg.visible ? t.hide : t.show, accelerator: 'Ctrl+Alt+C', click: () => toggleVisible() },
     { type: 'separator' },
     {
-      label: t.size,
+      id:'caprii-size', label: t.size,
       submenu: [[t.small, 0.45], [t.medium, 0.6], [t.large, 0.8]].map(([label, scale]) => ({
         label, type: 'radio', checked: Math.abs(cfg.scale - scale) < 0.01, click: () => updateConfig({ scale }),
       })),
     },
     {
-      label: t.sound,
+      id:'caprii-sound', label: t.sound,
       submenu: [
         { label: t.mute, type: 'checkbox', checked: cfg.muted, click: (item) => updateConfig({ muted: item.checked }) },
         { type: 'separator' },
@@ -385,7 +385,7 @@ function rebuildTray() {
       ],
     },
     {
-      label: t.screen,
+      id:'caprii-screen', label: t.screen,
       enabled: screens.length > 1,
       submenu: [
         ...screens.map((d, i) => ({
@@ -398,8 +398,8 @@ function rebuildTray() {
         { label: t.follow, type: 'checkbox', checked: cfg.follow !== false, click: (item) => updateConfig({ follow: item.checked }) },
       ],
     },
-    {label:'แสดงหน้าต่างติดตามงาน',type:'checkbox',checked:cfg.showTaskWindow===true,click:item=>updateConfig({showTaskWindow:item.checked})},
-    {label:'Agent Reach: ตรวจความพร้อม',click:async()=>{try{const r=await require('./agent-reach').createReach({packaged:app.isPackaged,resourcesPath:process.resourcesPath}).status(AbortSignal.timeout(10000));await dialog.showMessageBox({message:'Agent Reach พร้อมใช้งาน',detail:'รุ่น '+r.version+' — อ่านเว็บ ค้นข้อมูล และคำบรรยาย YouTube แบบสาธารณะ ไม่คัดลอกบัญชีและไม่ถอดเสียงแบบมีค่าใช้จ่าย'});}catch(err){await dialog.showMessageBox({type:'error',message:'Agent Reach ยังไม่พร้อม',detail:err.message});}}},
+    {id:'caprii-task-window',label:'แสดงหน้าต่างติดตามงาน',type:'checkbox',checked:cfg.showTaskWindow===true,click:item=>updateConfig({showTaskWindow:item.checked})},
+    {id:'caprii-reach',label:'Agent Reach: ตรวจความพร้อม',click:async()=>{try{const r=await require('./agent-reach').createReach({packaged:app.isPackaged,resourcesPath:process.resourcesPath}).status(AbortSignal.timeout(10000));await dialog.showMessageBox({message:'Agent Reach พร้อมใช้งาน',detail:'รุ่น '+r.version+' — อ่านเว็บ ค้นข้อมูล และคำบรรยาย YouTube แบบสาธารณะ ไม่คัดลอกบัญชีและไม่ถอดเสียงแบบมีค่าใช้จ่าย'});}catch(err){await dialog.showMessageBox({type:'error',message:'Agent Reach ยังไม่พร้อม',detail:err.message});}}},
     {id:'caprii-model-profile',label:'โหมดคุณภาพโมเดล',submenu:[
       {label:'เลือกโมเดลเอง',type:'radio',checked:!cfg.modelProfile||cfg.modelProfile==='manual',click:()=>updateConfig({modelProfile:'manual'})},
       ...[['speed','รวดเร็ว — Flash Lite'],['balanced','สมดุล — Flash ที่ไม่ใช่ Lite'],['quality','คุณภาพสูง — Pro ถ้ามีใน API']].map(([profile,label])=>({id:'caprii-profile-'+profile,label,type:'radio',checked:cfg.modelProfile===profile,enabled:cfg.provider==='gemini'&&!!chatModels?.length,click:()=>chooseModelProfile(profile)})),
@@ -407,9 +407,9 @@ function rebuildTray() {
     ]},
     require('./response-style').responseLengthMenu(cfg.responseLength,value=>updateConfig({responseLength:value}),resolveLang(cfg.lang)),
     require('./personality').personalityMenu(cfg,value=>{const mode=require('./personality').resolvePersonality(value);updateConfig({personalityStyle:mode,rebeccaPersonality:mode!=='normal'});},resolveLang(cfg.lang)),
-    {label:'โฟกัสงาน: ตอบตามข้อเท็จจริงและความยาก',type:'checkbox',checked:cfg.assistantFocus!==false,click:item=>updateConfig({assistantFocus:item.checked})},
+    {id:'caprii-focus',label:'โฟกัสงาน: ตอบตามข้อเท็จจริงและความยาก',type:'checkbox',checked:cfg.assistantFocus!==false,click:item=>updateConfig({assistantFocus:item.checked})},
     {
-      label: t.chatModel,
+      id:'caprii-model', label: t.chatModel,
       submenu: [
         { label: t.aiSetup, click: () => sendCommand('setupChat') },
         { type: 'separator' },
@@ -447,10 +447,10 @@ function rebuildTray() {
     },
     {id:'caprii-spotify-auto',label:resolveLang(cfg.lang)==='en'?'Play music automatically when opening Spotify':'เล่นเพลงอัตโนมัติเมื่อเปิด Spotify',type:'checkbox',checked:cfg.spotifyAutoPlay!==false,click:item=>updateConfig({spotifyAutoPlay:item.checked})},
     { id:'caprii-idle-chatter',label:resolveLang(cfg.lang)==='en'?'Idle small talk':'พูดเล่นตอนว่าง',type:'checkbox',checked:cfg.idleChatter===true,click:item=>updateConfig({idleChatter:item.checked}) },
-    { label: t.wander, type: 'checkbox', checked: cfg.wander, click: (item) => updateConfig({ wander: item.checked }) },
-    { label: t.possess, type: 'checkbox', checked: cfg.possess, click: (item) => updateConfig({ possess: item.checked }) },
-    { label: t.jealous, type: 'checkbox', checked: cfg.jealous !== false, click: (item) => updateConfig({ jealous: item.checked }) },
-    { label: t.pcReact, type: 'checkbox', checked: cfg.pcReact !== false, click: (item) => updateConfig({ pcReact: item.checked }) },
+    { id:'caprii-wander', label: t.wander, type: 'checkbox', checked: cfg.wander, click: (item) => updateConfig({ wander: item.checked }) },
+    { id:'caprii-possess', label: t.possess, type: 'checkbox', checked: cfg.possess, click: (item) => updateConfig({ possess: item.checked }) },
+    { id:'caprii-jealous', label: t.jealous, type: 'checkbox', checked: cfg.jealous !== false, click: (item) => updateConfig({ jealous: item.checked }) },
+    { id:'caprii-pc-react', label: t.pcReact, type: 'checkbox', checked: cfg.pcReact !== false, click: (item) => updateConfig({ pcReact: item.checked }) },
     {
       // she asks first (what she'll send where), then turns it on herself
       id:'caprii-screen-commentary',label:resolveLang(cfg.lang)==='en'?'Observe screen and comment (AI)':'ดูจอแล้วพูดสิ่งที่เห็น (AI)', type: 'checkbox', checked: Boolean(cfg.watchScreen),
@@ -460,14 +460,14 @@ function rebuildTray() {
       },
     },
     {
-      label: t.rest,
+      id:'caprii-rest', label: t.rest,
       submenu: [['corner', t.restCorner], ['taskbar', t.restTaskbar]].map(([rest, label]) => ({
         label, type: 'radio', checked: cfg.rest === rest, click: () => updateConfig({ rest }),
       })),
     },
     // the coding assistant she watches (a new one: she says hello and offers to plug herself in), or none
     {
-      label: t.watch,
+      id:'caprii-watch', label: t.watch,
       submenu: [
         ...Object.entries(ASSISTANTS).map(([id, { name }]) => ({
           label: name,
@@ -483,13 +483,13 @@ function rebuildTray() {
       ],
     },
     {
-      label: t.motion,
+      id:'caprii-motion', label: t.motion,
       submenu: [['auto', t.motionAuto], ['full', t.motionFull], ['reduced', t.motionReduced]].map(([motion, label]) => ({
         label, type: 'radio', checked: cfg.motion === motion, click: () => updateConfig({ motion, motionAsked: true }),
       })),
     },
     {
-      label: t.display,
+      id:'caprii-display', label: t.display,
       // only read when she starts: she restarts in the mode picked
       submenu: [['auto', t.displayAuto], ['gl', t.displayGl], ['software', t.displaySoftware]].map(([render, label]) => ({
         label, type: 'radio', checked: cfg.render === render,
@@ -502,11 +502,11 @@ function rebuildTray() {
       })),
     },
     {
-      label: t.lang,
+      id:'caprii-language', label: t.lang,
       submenu: require('./language').languageMenu(cfg.lang, lang=>updateConfig({lang})),
     },
     {
-      label: t.startup,
+      id:'caprii-startup', label: t.startup,
       type: 'checkbox',
       checked: app.getLoginItemSettings(loginItemOptions()).openAtLogin,
       click: (item) => app.setLoginItemSettings({ ...loginItemOptions(), openAtLogin: item.checked }),
@@ -515,13 +515,14 @@ function rebuildTray() {
     ...(cfg.claude ? [
       { type: 'separator' },
       hookState.installed
-        ? { label: t.hooksOn, enabled: false }
-        : { label: t.hooksOff, click: () => runHooks('install') },
-      ...(hookState.installed ? [{ label: t.hooksRemove, click: () => runHooks('uninstall') }] : []),
+        ? { id:'caprii-hooks-status', label: t.hooksOn, enabled: false }
+        : { id:'caprii-hooks-status', label: t.hooksOff, click: () => runHooks('install') },
+      ...(hookState.installed ? [{ id:'caprii-hooks-remove', label: t.hooksRemove, click: () => runHooks('uninstall') }] : []),
     ] : []),
     { type: 'separator' },
-    { label: t.quit, click: () => app.quit() },
-  ]);
+    { id:'caprii-quit', label: t.quit, click: () => app.quit() },
+  ];
+  const menu = Menu.buildFromTemplate(require('./context-menu').organizeMenu(items,{lang:resolveLang(cfg.lang),version:app.getVersion()}));
   tray.setContextMenu(menu);
   trayMenu = menu;
 }

@@ -1,0 +1,9 @@
+Caprii 0.8.7 — organized native context menu
+
+The right-click menu now starts with Talk, Look at screen, Move character and Hide/Show. Other actions are grouped into Personality & audio, Chrome & music, AI & tasks, Character & display, and Settings & help. The first level is about fourteen rows rather than the old long list. Native Windows menu behavior and existing shortcuts remain.
+
+Choose a personality under Personality & audio → Personality. Pair Chrome under Chrome & music. Test tools live under Settings & help → Tests & troubleshooting. AI provider and model choices have separate submenus. No function, saved preference, permission scope or callback is intentionally removed or changed; future unclassified actions remain reachable under More.
+
+Tests evaluate the actual menu builder and preserve callbacks, checked/enabled state and shortcuts. Windows native Menu checks verify nested IDs and actions. A public native-menu preview is attached; system theme/font appearance can vary by Windows settings. Test Lab 1.15.0 keeps all eight DOM cases and records menu review separately.
+
+Close Caprii from the tray before installing. Windows x64 installer is unsigned. Matching source, build metadata, SHA-256 checksums and original notices are included.

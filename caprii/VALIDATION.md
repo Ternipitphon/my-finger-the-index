@@ -1,3 +1,7 @@
+# Caprii 0.8.7 validation
+
+Tests evaluate the actual rebuildTray template and check every original callback, checkbox/radio state, enabled flag and shortcut survives grouping exactly once. Covers five ordered categories, common actions, future-item fallback, moved switches, personality rebuild and model/provider subgroups. Native Electron Menu checks run on Windows and capture a public preview. Existing browser, media and Lab checks remain required.
+
 # Caprii 0.8.6 validation
 
 Covers migration from old boolean preferences, Caring persistence through real config reload, three-way menu selection, exact facts/JSON preservation, image personality propagation, and exclusion of legacy bond/mood/jealousy text from explicitly selected screen/chat styles. Tone remains model-generated, not a guaranteed template. Existing Windows UI, media transport and Lab checks remain required.
