@@ -22,3 +22,9 @@ test('choom alone is an allowed address while ordinary English prose still needs
 test('attached-image style preserves literal requested data while applying the selected voice',()=>{
  const m=require('../src/main/image-attachments').imageMessages({prompt:'อ่านรหัส 126',persona:'You are Caprii.',dataURL:'data:image/png;base64,test',personality:{personalityStyle:'playful'}});assert.ok(m[0].content.includes(CHOOM_RULE));assert.equal(m[1].content[0].text,'อ่านรหัส 126');
 });
+test('semantic clarification receives choom wording without changing the action request',async()=>{
+ const {interpretCommand}=require('../src/main/command-interpreter');let seen;
+ const r=await interpretCommand({text:'เอาอันนี้ให้หน่อย',personality:{personalityStyle:'playful'},request:async m=>{seen=m;return JSON.stringify({route:'clarify',confidence:.7});}});
+ assert.ok(seen[0].content.includes(CHOOM_RULE));assert.equal(JSON.parse(seen[1].content).current,'เอาอันนี้ให้หน่อย');assert.match(r.question,/choom/);assert.doesNotMatch(r.question,/ครับ|ค่ะ/);
+ const missing=await interpretCommand({text:'ใช้แท็บนี้',connected:false,personality:{personalityStyle:'playful'},request:async()=>JSON.stringify({route:'selected-tab',confidence:1})});assert.match(missing.question,/choom/);
+});
