@@ -1,16 +1,18 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.8.3 — รุ่นหลักจาก Caprii ตัวเดิม
+## ดาวน์โหลด Caprii 0.8.4 — รุ่นหลักจาก Caprii ตัวเดิม
 
-[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.3 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.3/Caprii-Agent-Setup-0.8.3.exe)
+[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.4 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.4/Caprii-Agent-Setup-0.8.4.exe)
 
-[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.3/Caprii-0.8.3-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.3) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.3/caprii/CAPRII-TH.md)
+[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.4/Caprii-0.8.4-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.4) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.4/caprii/CAPRII-TH.md)
 
 เพิ่ม AI ตีความคำสั่งที่ไม่ตรงแพตเทิร์นจากข้อความปัจจุบันและบริบทผู้ใช้ก่อนหน้า โดยไม่จับจอหรือสั่งเครื่องมือในขั้นตีความ ถ้าไม่ชัดจะถามก่อน งาน Agent ต้องมีแผนก่อนลงมือ และรู้จักข้อห้ามสั้น เช่น “ห้ามส่ง” ยังคงขออนุญาต ตรวจผล และหยุดยกเลิกได้ โหมด Claude Code ใช้ Agent ของตัวเอง
 
 เมื่อสั่งเปิด Spotify หรือเปิดเพลงล่าสุด ระบบรอเพลงที่ค้างอยู่ในตัวเล่นแล้วเล่นต่อก่อน ไม่ใช้เพลงใน cache ทับเพลงที่ผู้ใช้เปิดเอง ถ้าตัวเล่นไม่มีเพลงจึงใช้เพลงที่ Caprii เคยตรวจไว้ พร้อมตรวจเวลาเดินและเสียงแท็บ ต้องเข้าสู่ระบบและเชื่อมส่วนขยาย Chrome เมนูเล่นอัตโนมัติยังเปิด/ปิดได้
 
 เพิ่ม **นิสัยปกติ**: คลิกขวา Caprii → นิสัย → ปกติ ตอบสุภาพ เป็นกันเอง ใจเย็น และตรงประเด็น ไม่บังคับเล่นมุกหรือสวมบทบาท บันทึกค่าไว้และเลือกกวน ๆ แบบเดิมกลับได้ ใช้กับแชต การดูจอ และรูปที่แนบ
+
+คำขอเพลงผ่าน AI ตีความก่อนสั่งเล่น เช่น “เล่นเพลงที่ผมกดชอบหน่อย”, “Play my liked songs” และ “Could you play my Night Drive playlist?” รับไทย/อังกฤษได้ทั้งสองโหมด English เป็นภาษาหลักเมนูและคำตอบ ขั้นตีความจำกัดเวลา 15 วินาที ไม่ใช้คำสั่งหรือ URL ที่ AI แต่ง ถ้าไม่ชัดจะถามก่อน ระบบเล่นและตรวจผลเดิมยังทำงานต่อ การเปิดเว็บ Spotify อย่างเดียวคงสวิตช์ autoplay เดิม โหมด Claude Code ใช้เส้นทางสื่อเดิม
 
 ใช้ **Caprii 0.7.6 ของเราเป็นฐานหลัก** เก็บตัวละคร หน้าตา การลาก ปุ่มคุย ภาษาไทย/อังกฤษ การเชื่อม Chrome และคำสั่งเพลงเดิม เพิ่มการสั่งเครื่องมือผ่าน Gemini แบบมีโครงสร้าง ตรวจคำสั่งก่อนทำงาน รอผลที่มาช้า หยุดเมื่อทำวนซ้ำโดยไม่คืบหน้า และป้องกันกดส่งซ้ำระหว่างรอหลักฐานจากเว็บ จำกัดงานหนึ่งรอบไม่เกิน 5 นาที พร้อมหยุดยกเลิกได้
 
