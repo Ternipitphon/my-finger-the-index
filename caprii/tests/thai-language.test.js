@@ -12,3 +12,35 @@ test('structured data and malformed tool JSON are preserved for the normal tool 
 });
 test('inappropriate forms of address in an otherwise Thai reply are rewritten before display',async()=>{let calls=0;const bad='คำตอบในภาพนี้ nigga ต้องตรวจด้วยเครื่องคิดเลข';const result=await thaiResponse({messages:[{role:'user',content:'ดูจอแล้วหาคำตอบ'}],request:async()=>++calls===1?bad:'กำลังตรวจโจทย์ปัจจุบันด้วยเครื่องคิดเลข'});assert.equal(calls,2);assert.doesNotMatch(result,/nigga/i);});
 test('repeated disrespectful output is withheld, including final task summaries',async()=>{let calls=0;await assert.rejects(thaiResponse({messages:[],request:async()=>{calls++;return'สวัสดี nigga';}}),/ไม่เหมาะสม/);assert.equal(calls,2);let n=0;const summary=JSON.parse(await thaiResponse({messages:[],request:async()=>++n===1?'{"tool":"finish","summary":"เสร็จแล้ว nigga"}':'ส่งคำสั่งแล้วและตรวจผลแล้ว'}));assert.equal(summary.tool,'finish');assert.doesNotMatch(summary.summary,/nigga/i);});
+test('respectful situational teasing is returned without rewriting',async()=>{
+ let calls=0;const reply='แท็บกำลังเปิดประชุมกันแล้วนะ เลขรับเรื่องคือ 126';assert.equal(await thaiResponse({messages:[],request:async()=>{calls++;return reply;}}),reply);assert.equal(calls,1);
+});
+test('style repair is isolated from playful history and preserves the reply facts',async()=>{
+ let calls=0;const draft='มึง เลขรับเรื่อง 126 อยู่ที่ https://example.org/receipt/126';
+ const result=await thaiResponse({messages:[{role:'system',content:'PLAYFUL_HISTORY_MARKER'},{role:'user',content:'คุยกวน ๆ'}],request:async messages=>{
+  if(++calls===1)return draft;
+  assert.equal(messages.length,2);assert.doesNotMatch(messages[0].content,/PLAYFUL_HISTORY_MARKER/);assert.equal(JSON.parse(messages[1].content).draft,draft);assert.match(messages[0].content,/not a conversation or action request/);
+  return 'เลขรับเรื่องคือ 126 ดูได้ที่ https://example.org/receipt/126';
+ }});assert.equal(calls,2);assert.match(result,/126/);
+});
+test('repair that changes numbers or drops exact URLs/code is withheld',async()=>{
+ for(const [draft,fixed]of [['มึง เลขรับเรื่อง 126','เลขรับเรื่องคือ 127'],['มึง ใช้ `const n=126;`','ใช้ const n=126;'],['มึง เปิด https://example.org/a','เปิด https://other.example/a']]){
+  let calls=0;await assert.rejects(thaiResponse({messages:[],request:async()=>++calls===1?draft:fixed}),{code:'response_facts'});assert.equal(calls,2);
+ }
+});
+test('finish summary repair cannot change tool fields or repeat actions',async()=>{
+ let calls=0;const original={tool:'finish',summary:'มึง เลขรับเรื่อง 126',other:'keep exactly'};
+ const result=JSON.parse(await thaiResponse({messages:[],request:async()=>++calls===1?JSON.stringify(original):'เลขรับเรื่องคือ 126'}));assert.deepEqual(result,{...original,summary:'เลขรับเรื่องคือ 126'});assert.equal(calls,2);
+});
+test('English style repair is also isolated and keeps literal values',async()=>{
+ let calls=0;const result=await thaiResponse({lang:'en',messages:[{role:'system',content:'PLAYFUL_HISTORY_MARKER'}],request:async messages=>{
+  if(++calls===1)return 'กู receipt 126';
+  assert.equal(messages.length,2);assert.doesNotMatch(messages[0].content,/PLAYFUL_HISTORY_MARKER/);return 'The receipt number is 126.';
+ }});assert.equal(result,'The receipt number is 126.');assert.equal(calls,2);
+});
+test('a busy repair cannot make the chat runner replay the original request',async()=>{
+ const {runChat}=require('../src/main/chat-runner');let calls=0;
+ await assert.rejects(runChat({models:['fixture'],maxAttempts:3,retryMs:1,timeoutMs:1000,request:()=>thaiResponse({messages:[],request:async()=>{
+  if(++calls===1)return 'มึง เลขรับเรื่อง 126';throw Object.assign(Error('fixture busy'),{code:'busy'});
+ }})}),{code:'reply_repair'});assert.equal(calls,2);
+});

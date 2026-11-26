@@ -1,3 +1,7 @@
+# Caprii 0.8.8 validation
+
+Adds checks for friendly-teasing pass-through, isolated repair without previous persona/history, literal number/URL/code preservation, unchanged finish tool fields, bounded two-request behavior, and English repair. Repeated inappropriate output is still withheld. Windows/native-menu/browser/media/Lab checks remain required.
+
 # Caprii 0.8.7 validation
 
 Tests evaluate the actual rebuildTray template and check every original callback, checkbox/radio state, enabled flag and shortcut survives grouping exactly once. Covers five ordered categories, common actions, future-item fallback, moved switches, personality rebuild and model/provider subgroups. Native Electron Menu checks run on Windows and capture a public preview. Existing browser, media and Lab checks remain required.

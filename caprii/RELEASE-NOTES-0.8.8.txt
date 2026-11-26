@@ -1,0 +1,9 @@
+Caprii 0.8.8 — isolated respectful reply repair
+
+Fixes the reply-rewrite path used when a model's output contains inappropriate address or fails the selected language. The rewrite now uses an isolated wording-only instruction rather than replaying the full Playful persona and conversation history. Respectful situational teasing remains allowed; the insulting-language check is not disabled.
+
+The repair cannot run tools or repeat an action. A failed repair does not trigger an automatic replay of the original model request. Style repairs check literal numbers, URLs and fenced/inline code; rewritten replies that alter those details are withheld. Finish-summary rewriting keeps all original tool fields. Thai and English use the same isolated approach. The existing maximum of one rewrite is retained, so there is no unbounded retry loop or additional request budget.
+
+Playful guidance explicitly favors normal respectful forms of address. Existing personalities, default selection, semantic routing and compact menu are retained. A model can still fail to produce a suitable reply; repeated inappropriate output remains blocked rather than exposed.
+
+Test Lab 1.16.0 keeps the existing DOM cases and records model-repair review separately. Windows x64 installer is unsigned. Close Caprii from the tray before updating. Matching source, build metadata, native-menu preview and SHA-256 checksums are included with original notices.
