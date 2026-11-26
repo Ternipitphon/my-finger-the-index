@@ -1,16 +1,16 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.8.5 — รุ่นหลักจาก Caprii ตัวเดิม
+## ดาวน์โหลด Caprii 0.8.6 — รุ่นหลักจาก Caprii ตัวเดิม
 
-[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.5 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.5/Caprii-Agent-Setup-0.8.5.exe)
+[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.6 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.6/Caprii-Agent-Setup-0.8.6.exe)
 
-[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.5/Caprii-0.8.5-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.5) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.5/caprii/CAPRII-TH.md)
+[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.6/Caprii-0.8.6-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.6) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.6/caprii/CAPRII-TH.md)
 
 **AI ตีความทุกข้อความก่อนเลือกคำสั่งในโหมดแชตหลัก** แยกคำถาม คำขออ้อม ๆ เล่นเพลง เปิดเว็บ และงานบนคอมจากความหมายกับบริบท ไม่ใช้การมีคำว่าเปิด/เล่น/เพลงเป็นประตูเลือกการทำงาน หลัง AI เลือกคุยหรือถามเพิ่ม จะไม่ย้อนใช้ตัวจับคำหรือแท็กเก่าเพื่อสั่งงาน เครื่องมือยังมีขอบเขต ขอสิทธิ์ และตรวจผลจริง ขั้นตีความเพิ่มคำขอ AI หนึ่งครั้งต่อข้อความ จำกัดเวลา 20 วินาที โมเดลอาจตีความผิดได้ โหมด Claude Code แยกใช้ Agent เดิมของตนเอง
 
 เมื่อสั่งเปิด Spotify หรือเปิดเพลงล่าสุด ระบบรอเพลงที่ค้างอยู่ในตัวเล่นแล้วเล่นต่อก่อน ไม่ใช้เพลงใน cache ทับเพลงที่ผู้ใช้เปิดเอง ถ้าตัวเล่นไม่มีเพลงจึงใช้เพลงที่ Caprii เคยตรวจไว้ พร้อมตรวจเวลาเดินและเสียงแท็บ ต้องเข้าสู่ระบบและเชื่อมส่วนขยาย Chrome เมนูเล่นอัตโนมัติยังเปิด/ปิดได้
 
-เพิ่ม **นิสัยปกติ**: คลิกขวา Caprii → นิสัย → ปกติ ตอบสุภาพ เป็นกันเอง ใจเย็น และตรงประเด็น ไม่บังคับเล่นมุกหรือสวมบทบาท บันทึกค่าไว้และเลือกกวน ๆ แบบเดิมกลับได้ ใช้กับแชต การดูจอ และรูปที่แนบ
+คลิกขวา Caprii → **นิสัย** เลือก **กวน ๆ / เป็นห่วง / ปกติ** กวน ๆ แซวสิ่งที่เห็นหรือสถานการณ์แบบเป็นมิตร ลดคำห่วงและคำเตือนที่ไม่เกี่ยวข้อง เป็นห่วงเน้นอบอุ่นใส่ใจ ทุกแบบยังเป็น Caprii และตอบข้อมูลจริง ใช้กับแชต ดูจอ และภาพแนบ จำค่าไว้เมื่อเปิดใหม่ ค่าเริ่มต้นยังกวน ๆ และคงตัวเลือกเดิมของผู้ใช้ ไม่เปิดดูจอหรือไมค์เพิ่มจากการเปลี่ยนนิสัย
 
 ตัวอย่างคำขอเพลง: “เล่นเพลงที่ผมกดชอบหน่อย”, “Play my liked songs” และ “Could you play my Night Drive playlist?” รับไทย/อังกฤษได้ทั้งสองโหมด English เป็นภาษาหลักเมนูและคำตอบ ระบบเล่นและตรวจผลเดิมยังทำงานต่อ การเปิดเว็บ Spotify อย่างเดียวคงสวิตช์ autoplay เดิม
 
