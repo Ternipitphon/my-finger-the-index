@@ -1,3 +1,7 @@
+# Caprii 0.8.1 validation
+
+Added tests for read-only interpretation, low-confidence/invalid/timeout clarification, Stop and close during interpretation, current prohibition separation, mandatory planning before actions, and short submission prohibitions. Real Windows regression checks are required by the release workflow. No general all-app reliability or live Spotify-account verification is claimed.
+
 # Caprii 0.8.0 validation
 
 Primary source is Caprii 0.7.6 at 6899749c0c1e5ad33de58e05cb5420320443962d. Character assets and the main renderer are preserved. New checks cover structured Gemini actions, format-only fallback, bounded task cancellation, repeated no-progress cycles, duplicate-submit blocking and explicit short waits before acknowledgment checks.

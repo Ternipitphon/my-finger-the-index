@@ -5,7 +5,7 @@ function requirements(goal) {
  const solvePage=page&&/(?:ทำ|แก้)โจท(?:ย์|ย)?|ทำข้อ/i.test(goal);
  const answerOnly=/หาคำตอบ|คิดคำตอบ/.test(goal)&&!/กรอก|พิมพ์|ใส่คำตอบ|เติมคำตอบ|กดส่ง|ส่งคำตอบ/.test(goal);
  const noInput=answerOnly||/(?:ไม่ต้อง|อย่า|ห้าม|do not|don't)\s*(?:ให้\s*)?(?:กรอก|พิมพ์|ใส่คำตอบ|เติมคำตอบ|fill|type)/i.test(goal);
- const noSubmit=answerOnly||/(?:ไม่ต้อง|อย่า|ห้าม|do not|don't)\s*(?:ให้\s*)?(?:กดส่ง|ส่งคำตอบ|submit)/i.test(goal);
+ const noSubmit=answerOnly||/(?:ไม่ต้อง|อย่า|ห้าม|do not|don't)\s*(?:ให้\s*)?(?:กด\s*ส่ง|ส่ง(?:คำตอบ)?|(?:click\s+)?(?:submit|send))/i.test(goal);
  return {noInput,noSubmit,input:!noInput&&(solvePage||/(?:กรอก|พิมพ์|ใส่คำตอบ|เติมคำตอบ|\bfill\b|\btype\b)/i.test(goal)),submit:!noSubmit&&/(?:กดส่ง|ส่งคำตอบ|\bsubmit\b)/i.test(goal)};
 }
 function createCompletion(goal) {

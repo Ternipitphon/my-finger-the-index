@@ -155,3 +155,15 @@ test('an agent can wait for asynchronous acknowledgment without sending again',a
  const result=await runProjectAgent({root,goal:'กดส่งแล้วรอผล',allowProjectFiles:false,tools,signal:AbortSignal.timeout(2000),approve:()=>true,ask:async()=>JSON.stringify(actions.shift())});
  assert.equal(result.verified,true);assert.equal(submitted,1);assert.ok(!result.checks.some(e=>e.tool==='task.wait'));
 });
+test('production planning gate runs no tool until a nonempty plan arrives',async t=>{
+ const root=await fixture(t),calls=[];
+ const actions=[{tool:'write',path:'file',content:'unsafe skipped write'},{tool:'plan',steps:['Read current file','Write only requested change','Run verification']},{tool:'read',path:'file'},{tool:'finish',summary:'stopped'}];
+ await fs.writeFile(path.join(root,'file'),'original');
+ const r=await runProjectAgent({root,goal:'inspect file',requirePlan:true,ask:async()=>JSON.stringify(actions.shift()),approve:async a=>{calls.push(a.tool);return true;},signal:AbortSignal.timeout(2000)});
+ assert.deepEqual(calls,['read']);assert.equal(await fs.readFile(path.join(root,'file'),'utf8'),'original');assert.equal(r.verified,false);
+});
+test('model ignoring mandatory plan stops before any permission or action',async t=>{
+ const root=await fixture(t);
+ const r=await runProjectAgent({root,goal:'inspect',requirePlan:true,ask:async()=>JSON.stringify({tool:'read',path:'file'}),approve:async()=>{throw Error('must not ask');},signal:AbortSignal.timeout(2000)});
+ assert.equal(r.reason,'missing-plan');assert.equal(r.audit.length,0);assert.equal(r.verified,false);
+});

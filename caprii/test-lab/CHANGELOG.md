@@ -1,3 +1,7 @@
+# 1.9.0 / Caprii 0.8.1
+
+เพิ่ม contracts task-interpret-context และ task-plan-required แยกจากคะแนน DOM คง stable case IDs เดิมและ actor unknown ไม่เผยแพร่เว็บไซต์
+
 # Changelog
 
 ## 1.8.0 / Caprii 0.8.0

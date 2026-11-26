@@ -792,8 +792,8 @@ function registerIpc() {
   // her answer, streamed to the overlay piece by piece as `chat:delta`
   require('./agent-window').registerAgentWindowIpc(ipcMain);
   ipcMain.handle('agent:run', async (_e, request = {}) => {
-    const { id, goal, scope } = request;
-    if (_e.sender !== overlay?.webContents || !Number.isSafeInteger(id) || typeof goal !== 'string' || !goal.trim() || goal.length > 8000 || (scope!==undefined&&!['public-web','selected-tab'].includes(scope))) return { ok: false, error: 'Invalid agent request' };
+    const { id, goal, scope, previousInstruction } = request;
+    if (_e.sender !== overlay?.webContents || !Number.isSafeInteger(id) || typeof goal !== 'string' || !goal.trim() || goal.length > 8000 || (previousInstruction!==undefined&&(typeof previousInstruction!=='string'||previousInstruction.length>8000)) || (scope!==undefined&&!['public-web','selected-tab'].includes(scope))) return { ok: false, error: 'Invalid agent request' };
     if (chats.size) return { ok: false, error: 'Another task is running' };
     const abort = new AbortController();
     chats.set(id, abort);
@@ -839,7 +839,7 @@ function registerIpc() {
       }});
       if (!chatModels?.length) await refreshModels();
       const result = await require('./project-agent').runProjectAgent({
-        root: projectRoot, goal, signal, tools, allowProjectFiles, browserContext:scope!=='public-web'&&browser.connected?browser.description():null,
+        root: projectRoot, goal, signal, tools, allowProjectFiles, requirePlan:true, previousInstruction, browserContext:scope!=='public-web'&&browser.connected?browser.description():null,
         ask: async (messages, signal) => chatWithFallback(cfg, messages, () => {}, signal,{agent:true}),
         approve: action => taskPermissions.approve(action),
         onProgress: event => {
@@ -885,6 +885,17 @@ function registerIpc() {
       const result=await require('./chat-runner').runChat({models:[model],signal:abort.signal,timeoutMs:cfg.modelProfile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>require('./thai-language').thaiResponse({messages,lang:resolveLang(cfg.lang),request:fixed=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:fixed},()=>{},signal)})});
       imageAttachments.remove(request.attachmentId);return{ok:true,text:result.text,model};
     }catch(e){return require('./image-attachments').imageError(e,abort.signal.aborted);}
+    finally{chats.delete(request.id);}
+  });
+  ipcMain.handle('task:interpret',async(event,request={})=>{
+    if(event.sender!==overlay?.webContents||chats.size||!Number.isSafeInteger(request.id)||typeof request.text!=='string'||request.text.length>8000||typeof (request.previous??'')!=='string'||(request.previous||'').length>8000)return{ok:false,error:'Invalid or concurrent interpretation request'};
+    const abort=new AbortController();chats.set(request.id,abort);
+    try{
+      const cfg=config.load();
+      if(cfg.provider==='claude')return{ok:true,route:'chat'};
+      return{ok:true,...await require('./task-interpreter').interpretTask({text:request.text,previous:request.previous||'',connected:chromeBroker.status().connected===true,lang:resolveLang(cfg.lang),signal:abort.signal,
+        request:async(messages,signal)=>{if(!chatModels?.length)await refreshModels();signal.throwIfAborted();return llm.chat(cfg.provider,llmConfig(cfg),{model:pickModel(cfg),messages,jsonMode:true},()=>{},signal);}})};
+    }catch(error){return{ok:false,error:abort.signal.aborted?'หยุดงานแล้ว':error.message};}
     finally{chats.delete(request.id);}
   });
   ipcMain.handle('chat:send', async (_e, { id, messages }) => {

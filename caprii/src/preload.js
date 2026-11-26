@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld('host', {
   openClaudeFolder: () => ipcRenderer.invoke('guide:claudeFolder'),
   copyImage: (rect) => ipcRenderer.invoke('panel:copy', rect),
   chatStatus: () => ipcRenderer.invoke('chat:status'),
+  taskInterpret: (request) => ipcRenderer.invoke('task:interpret', request),
   agentRun: (request) => ipcRenderer.invoke('agent:run', request),
   chatPickImage: () => ipcRenderer.invoke('chat:image-pick'),
   chatPasteImage: () => ipcRenderer.invoke('chat:image-paste'),

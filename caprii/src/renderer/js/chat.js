@@ -1,3 +1,4 @@
+import { needsInterpretation } from './task-interpretation.js';
 import {mediaCommand} from './media-command.js';
 import { browserTaskIntent } from './browser-task-intent.js';
 import { reachIntent } from './reach-intent.js';
@@ -360,6 +361,22 @@ export class Chat {
         if (this.turn === id) { this.turn = 0; this.panel.setChatBusy(false); }
       }
       return;
+    }
+    if(!this.agent&&this.host.taskInterpret&&needsInterpretation(text)){
+      this.panel.stream(this.brain.lang==='en'?'Understanding your task…':'กำลังทำความเข้าใจคำสั่ง…');
+      let inferred;
+      try{inferred=await this.host.taskInterpret({id,text,previous:typeof previous==='string'?previous:''});}
+      catch{inferred={ok:false,error:'ตีความคำสั่งไม่สำเร็จ ลองระบุงานกับเป้าหมายให้ชัดเจนครับ'};}
+      if(this.turn!==id||!this.open)return;
+      if(!inferred.ok||inferred.route==='clarify'){
+        this.panel.stream(inferred.question||inferred.error,{done:true});this.turn=0;this.panel.setChatBusy(false);return;
+      }
+      if(['agent','selected-tab','public-web'].includes(inferred.route)){
+        try{const res=await this.host.agentRun({id,goal:inferred.goal,previousInstruction:inferred.previousInstruction,scope:inferred.route==='agent'?undefined:inferred.route});if(this.turn===id)this.panel.stream(res.ok?res.text:`${this.t.failed} ${res.error}`,{done:true});}
+        catch{if(this.turn===id)this.panel.stream(this.t.failed,{done:true});}
+        finally{if(this.turn===id){this.turn=0;this.panel.setChatBusy(false);}}
+        return;
+      }
     }
     const asked = this.agent ? null : this.asked(text);
     if (asked?.kind === 'look') return this.sendLook(text, id);

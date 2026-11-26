@@ -19,4 +19,4 @@ test('test server serves the lab, rejects writes, and never exposes repository f
 
 test('external media examples have stable IDs and never claim DOM playback verification',()=>{assert.equal(suite.browserConnection.id,'remember-chrome');assert.equal(suite.browserConnection.status,'not-measured-by-this-page');assert.equal(suite.externalMedia.length,7);assert.equal(new Set(suite.externalMedia.map(x=>x.id)).size,7);for(const e of suite.externalMedia)assert.ok(e.prompt&&e.expected);});
 
-test('agent execution contracts remain distinct from observed DOM scores',()=>{assert.equal(suite.agentExecution.length,2);for(const item of suite.agentExecution)assert.equal(item.verification,'requires-agent-run-not-measured-by-this-page');});
+test('agent execution contracts remain distinct from observed DOM scores',()=>{assert.equal(suite.agentExecution.length,4);for(const item of suite.agentExecution)assert.equal(item.verification,'requires-agent-run-not-measured-by-this-page');});

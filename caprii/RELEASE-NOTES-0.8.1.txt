@@ -1,0 +1,11 @@
+Caprii 0.8.1 — contextual task interpretation and planning
+
+Keeps the original Caprii desktop, character, dragging, voice and Chrome/media routes. Clear existing media, website and tool commands retain their fast paths.
+
+Ambiguous task-like requests may be interpreted by the currently selected chat provider before execution. This read-only request sends the current message and one preceding user message; it does not capture the screen or use tools. It has a ten-second deadline and is cancellable. Uncertain, invalid, disconnected or timed-out routing asks for clarification instead of silently executing. Claude Code mode keeps its separate agent path.
+
+The interpreter cannot rewrite the user's goal or inject a command/URL. Previous context stays separate from the current intent requirements. After routing, existing permission prompts, scope limits, task deadline, emergency Stop, progress guards and real verification still apply. The desktop Agent must return a nonempty plan before running any tool. Short prohibitions such as “ห้ามส่ง” and “do not click submit” are recognized.
+
+Test Lab 1.9.0 retains all eight DOM cases and adds interpretation/planning contracts separately; DOM scores do not prove AI routing quality. No long-term memory, BPM listening or dedicated Discord integration was added. No all-app or live Spotify-account success is claimed.
+
+Windows 10/11 x64. Close Caprii from the tray before installing. The installer is unsigned. Matching source, build information and SHA-256 checksums are attached. Original PolyForm Noncommercial and third-party notices remain in effect. Previous releases remain available.
