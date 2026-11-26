@@ -1053,7 +1053,7 @@ function registerIpc() {
     if(chats.size)return{ok:false,text:'มีงานอื่นกำลังทำอยู่ รอสักครู่ก่อนเล่นเพลง'};
     const {validateMedia,destination,runSpotify}=require('./media-player');let media;
     if(request.autoOpen===true&&config.load().spotifyAutoPlay===false)return{ok:true,text:'เปิด Spotify แล้ว ปิดการเล่นอัตโนมัติไว้'};
-    try{media=validateMedia(request.autoOpen===true?(config.load().spotifyLastTrack||request.media):request.media);}catch(error){return{ok:false,text:error.message};}
+    try{media=validateMedia(request.autoOpen===true?{service:'spotify',action:'play',collection:'current'}:request.media);}catch(error){return{ok:false,text:error.message};}
     const abort=new AbortController();chats.set(request.id,abort);const signal=AbortSignal.any([abort.signal,AbortSignal.timeout(90000)]);
     try{
       const onProgress=text=>overlay?.webContents.send('chat:delta',{id:request.id,text:text+'\n'});
@@ -1061,7 +1061,7 @@ function registerIpc() {
       let browser;
       try{browser=await require('./spotify-session').connectSpotify({broker:chromeBroker,open:()=>require('./launch').site(destination(media)),signal,alreadyOpened:request.alreadyOpened===true,onProgress});}
       finally{spotifyConnecting=false;}
-      const result=await runSpotify({request:media,browser,signal,onProgress});
+      const result=await runSpotify({request:media,browser,signal,onProgress,fallbackTrack:config.load().spotifyLastTrack});
       if(result.ok&&result.track&&result.trackUrl){try{const trackURL=new URL(result.trackUrl);trackURL.search='';trackURL.hash='';const last=validateMedia({service:'spotify',action:'play',collection:'track',query:result.track,url:trackURL.href,...(result.artists?.[0]?{artist:result.artists[0]}:{})});config.save({spotifyLastTrack:last});}catch{}}
       if(resolveLang(config.load().lang)==='en'&&result.verified&&media.action==='play')result.text='Spotify playback is advancing for “'+result.track+'”. '+(result.audioVerified?'Chrome reports audio from this tab; speaker output is not verified.':'Audio output could not be verified.');
       return result;

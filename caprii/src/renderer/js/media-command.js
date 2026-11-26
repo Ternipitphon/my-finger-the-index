@@ -33,7 +33,7 @@ export function mediaCommand(text,previous=null){
  const likes=/liked\s*songs?|เพลง(?:ที่)?(?:กด)?(?:ถูกใจ|ชอบ|ไล[กค]์?)|เพลงโปรด|ไลค์(?:ซอง|เพลง)|เพลงที่ไลก์/i.test(t);
  const playlist=/play\s*list|เพลย์ลิสต์|เพลลิสต์|เพลย์ลิส|เพลลิส/i.test(t);
  const play=/(?:เล่น|เปิดเพลง|play|resume)/i.test(t)||((likes||playlist)&&/^เปิด/.test(t));
- if(!spotify&&!likes&&!playlist&&!/^(?:เล่นเพลง|เปิดเพลง|play\s+(?:song|track))/i.test(t))return null;
+ if(!spotify&&!likes&&!playlist&&!/^(?:เล่นเพลง|เปิดเพลง|play\s+(?:(?:the )?(?:current|last|previous)\s+)?(?:song|track))/i.test(t))return null;
  if(!play){
   const search=/(?:ค้นหา(?:ว่า)?|หาเพลง|search(?:\s+for)?)\s*(.+)$/i.exec(t);
   if(search){const q=polite(search[1].replace(/\s*(?:ใน|บน|on)\s*spotify\s*$/i,''));return q?{service:'spotify',action:'search',query:q,url:'https://open.spotify.com/search/'+encodeURIComponent(q)}:{question:'ต้องการค้นหาเพลงอะไรครับ?'};}
@@ -49,7 +49,7 @@ export function mediaCommand(text,previous=null){
  }
  let q=t.replace(/^open\s+spotify\s+(?:(?:and|then)\s+)*/i,'').replace(/^(?:เปิด\s*(?:spotify|สปอติฟาย)\s*(?:แล้ว(?:ก็)?\s*)?)?(?:กด)?(?:เล่น|เปิด|play)\s*(?:เพลง|song|track)?\s*(?:ชื่อ|ที่ชื่อ)?\s*/i,'').replace(/\s*(?:ใน|บน|จาก|on)\s*(?:spotify|สปอติฟาย)\s*$/i,'');
  q=polite(q);
- if(!q||/^(?:เพลง|ต่อ|เพลงต่อ|spotify|สปอติฟาย)$/i.test(q))return{...base,collection:'current'};
+ if(!q||/^(?:(?:เพลง)?(?:ล่าสุด|เดิม|ที่เปิดอยู่|ที่ค้างอยู่|ล่าสุดที่เปิดอยู่|ล่าสุดที่ค้างอยู่|ล่าสุดที่เปิด|ปัจจุบัน)(?:เลย)?|เลย|เพลง|ต่อ|เพลงต่อ|spotify|สปอติฟาย|(?:the )?(?:last|current|previous)(?: song| track)?|music)$/i.test(q)&&!/(?:ชื่อ|named|called)/i.test(t))return{...base,collection:'current'};
  const by=/^(.*?)\s+(?:ของ|by)\s+(.+)$/i.exec(q);
  return{...base,collection:'track',query:clean(by?by[1]:q),...(by?{artist:clean(by[2])}:{})};
 }

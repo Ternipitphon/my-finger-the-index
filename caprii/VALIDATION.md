@@ -1,3 +1,7 @@
+# Caprii 0.8.2 validation
+
+Controlled-player tests cover late hydration beyond the old wait, live-track priority over cache, empty-player cache fallback, no invented collection, cancellation, and natural-language resume commands. Existing speaker-output and live Spotify-account verification limits remain. Windows checks run before publishing.
+
 # Caprii 0.8.1 validation
 
 Added tests for read-only interpretation, low-confidence/invalid/timeout clarification, Stop and close during interpretation, current prohibition separation, mandatory planning before actions, and short submission prohibitions. Real Windows regression checks are required by the release workflow. No general all-app reliability or live Spotify-account verification is claimed.

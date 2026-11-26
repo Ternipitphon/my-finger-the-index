@@ -16,3 +16,20 @@ test('a stuck Pause control is never claimed to have stopped the player and is n
 test('saved public track URLs restore the exact song without a search or choosing a different result',async()=>{const f=fixture();const r=await runSpotify({request:{service:'spotify',action:'play',collection:'track',query:'Harpy Hare',url:'https://open.spotify.com/track/abc123'},browser:f.browser,sleep:async()=>{}});assert.equal(r.verified,true);assert.deepEqual(f.navigation,['https://open.spotify.com/track/abc123']);assert.equal(r.trackUrl,'https://open.spotify.com/track/abc123');});
 test('Spotify locale prefixes are supported without granting unrelated paths or origins',()=>{const {spotifyURL,spotifyPath}=require('../src/main/media-url');assert.equal(spotifyPath('https://open.spotify.com/intl-th/track/abc123'),'/track/abc123');assert.equal(spotifyURL('https://open.spotify.com/intl-en/collection/tracks'),'https://open.spotify.com/intl-en/collection/tracks');assert.equal(validateMedia({service:'spotify',action:'play',collection:'track',query:'Song',url:'https://open.spotify.com/intl-th/track/abc123'}).url,'https://open.spotify.com/intl-th/track/abc123');assert.throws(()=>spotifyURL('https://open.spotify.com/intl-th/account'));assert.throws(()=>spotifyURL('https://evil.example/intl-th/track/abc123'));});
 test('a newly started silent intro is not reloaded as if it were a restored ghost player',async()=>{const f=soundFixture({restored:false});const r=await runSpotify({request:{service:'spotify',action:'play',collection:'current'},browser:f.browser,sleep:async()=>{},maxChecks:5});assert.equal(r.verified,false);assert.equal(r.code,'silent_playback');assert.equal(f.navigations,0);assert.equal(f.clicks,1);});
+test('resume waits for a late hydrated player and prefers its current track over the cache',async()=>{
+ let reads=0,clicks=0;const navigation=[];
+ const browser={mediaNavigate:async url=>navigation.push(url),spotify:async a=>{if(a.action==='play'){assert.equal(a.current,true);clicks++;return{clicked:true};}reads++;return{url:'https://open.spotify.com/',heading:'Home',ready:reads>=15,track:reads>=15?'Current live song':'',trackUrl:'https://open.spotify.com/track/live',documentId:'new',playing:clicks>0,position:clicks?reads:0,positionKind:'clock'};}};
+ const r=await runSpotify({request:{service:'spotify',action:'play',collection:'current'},fallbackTrack:{service:'spotify',action:'play',collection:'track',query:'Old cached song',url:'https://open.spotify.com/track/old'},browser,sleep:async()=>{}});
+ assert.equal(r.verified,true);assert.equal(r.track,'Current live song');assert.equal(clicks,1);assert.deepEqual(navigation,[]);
+});
+test('empty restored player falls back to a validated cached track only after waiting',async()=>{
+ const f=fixture();const r=await runSpotify({request:{service:'spotify',action:'play',collection:'current'},fallbackTrack:{service:'spotify',action:'play',collection:'track',query:'Harpy Hare',url:'https://open.spotify.com/track/abc123'},browser:f.browser,sleep:async()=>{}});
+ assert.equal(r.verified,true);assert.equal(f.clicks,1);assert.deepEqual(f.navigation,['https://open.spotify.com/track/abc123']);
+});
+test('no current song and invalid saved data never invent a song or choose a collection',async()=>{
+ const f=fixture();const r=await runSpotify({request:{service:'spotify',action:'play',collection:'current'},fallbackTrack:{service:'spotify',action:'play',collection:'liked'},browser:f.browser,sleep:async()=>{}});
+ assert.equal(r.verified,false);assert.equal(f.clicks,0);assert.deepEqual(f.navigation,[]);assert.equal(destination({collection:'current'}),'https://open.spotify.com/');
+});
+test('Stop during player hydration prevents cached fallback and playback',async()=>{
+ const f=fixture(),a=new AbortController();await assert.rejects(runSpotify({request:{service:'spotify',action:'play',collection:'current'},browser:f.browser,signal:a.signal,sleep:async()=>a.abort(Error('stopped'))}),/stopped/);assert.equal(f.clicks,0);assert.deepEqual(f.navigation,[]);
+});

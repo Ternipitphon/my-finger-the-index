@@ -1,0 +1,9 @@
+Caprii 0.8.2 — resume the song already in Spotify
+
+Opening Spotify with autoplay enabled now prioritizes the track currently restored in its player rather than overriding it with Caprii's saved track. Waits up to roughly ten seconds for the player and current song to hydrate before treating it as empty. Only an empty player may fall back to a previously verified public track URL. No random song, playlist or Liked Songs is selected as a fallback.
+
+Understands requests such as “เปิดเพลงล่าสุดที่เปิดอยู่”, “เล่นเพลงเลย”, and “play current song” as resume requests, rather than song titles to search for. Generic playback connects to Spotify home if it needs to open the site. Explicit song/playlist requests and pause/next/previous retain their existing behavior. Autoplay can still be disabled; explicit play commands remain available.
+
+Playback still requires a logged-in Spotify browser session and the paired Chrome extension. Existing audio checks, bounded recovery and cancellation remain. Chrome may require a real Play click for initial autoplay permission. Tests use controlled player fixtures; no live user Spotify-account or speaker-output success is claimed.
+
+Test Lab 1.10.0 preserves all eight DOM cases and records the new Spotify resume scenario separately. Windows x64 installer is unsigned. Close Caprii from the tray before installing; reload the bundled extension after updating. Source and SHA-256 checksums are included. Original licenses and notices are retained.

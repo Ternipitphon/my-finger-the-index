@@ -10,8 +10,8 @@ function validateMedia(request){
  if(request.url!==undefined){const u=new URL(spotifyURL(request.url));if(!['playlist','track'].includes(request.collection)||!spotifyPath(u.href).startsWith('/'+request.collection+'/'))throw Error('Invalid media URL');}
  return{service:'spotify',action:request.action,collection:request.collection,...(request.query?{query:request.query}:{}),...(request.artist?{artist:request.artist}:{}),...(request.url?{url:request.url}:{})};
 }
-function destination(r){return r.collection==='liked'?'https://open.spotify.com/collection/tracks':r.url||(r.query&&r.collection==='track'?'https://open.spotify.com/search/'+encodeURIComponent(r.query):'https://open.spotify.com/collection');}
-async function runSpotify({request,browser,signal,onProgress=()=>{},sleep=wait,maxChecks=12}){
+function destination(r){return r.collection==='current'?'https://open.spotify.com/':r.collection==='liked'?'https://open.spotify.com/collection/tracks':r.url||(r.query&&r.collection==='track'?'https://open.spotify.com/search/'+encodeURIComponent(r.query):'https://open.spotify.com/collection');}
+async function runSpotify({request,browser,signal,onProgress=()=>{},sleep=wait,maxChecks=12,fallbackTrack=null}){
  const r=validateMedia(request);let observed,clicked=false,expectedTrack=null,recovered=false;
  const inspect=()=>browser.spotify({action:'inspect'},signal);
  async function go(url,force=false){url=spotifyURL(url);const oldDocument=observed.documentId;onProgress('กำลังเปิดหน้า Spotify ที่ต้องการ');if(force||spotifyPath(observed.url)!==spotifyPath(url))await browser.mediaNavigate(url,signal);for(let i=0;i<20;i++){signal?.throwIfAborted();observed=await inspect();if(spotifyPath(observed.url)===spotifyPath(url)&&observed.documentReady!=='loading'&&(!force||!oldDocument||observed.documentId!==oldDocument)){if(observed.loggedOut)throw Error('กรุณาเข้าสู่ระบบ Spotify ก่อน ยังไม่ได้กดเล่น');return observed;}await sleep(350,signal);}throw Error('หน้า Spotify ยังไม่พร้อม ยังไม่ได้กดเล่น');}
@@ -62,7 +62,14 @@ async function runSpotify({request,browser,signal,onProgress=()=>{},sleep=wait,m
     }
    }
   }
-  for(let i=0;i<10;i++){observed=await inspect();if(observed.loggedOut)throw Error('กรุณาเข้าสู่ระบบ Spotify ก่อน ยังไม่ได้กดเล่น');const headingOK=r.collection==='liked'?/liked songs|เพลงที่(?:กด)?(?:ถูกใจ|ชอบ)|เพลงโปรด/i.test(observed.heading):r.collection==='track'||r.collection==='playlist'&&r.query?normalize(observed.heading)===normalize(r.query):true;if((r.collection==='current'?observed.ready:observed.canPlayCollection)&&headingOK)break;await sleep(350,signal);}
+  for(let i=0;i<(r.collection==='current'?30:10);i++){signal?.throwIfAborted();observed=await inspect();if(observed.loggedOut)throw Error('กรุณาเข้าสู่ระบบ Spotify ก่อน ยังไม่ได้กดเล่น');const headingOK=r.collection==='liked'?/liked songs|เพลงที่(?:กด)?(?:ถูกใจ|ชอบ)|เพลงโปรด/i.test(observed.heading):r.collection==='track'||r.collection==='playlist'&&r.query?normalize(observed.heading)===normalize(r.query):true;if((r.collection==='current'?observed.ready&&!!observed.track:observed.canPlayCollection)&&headingOK)break;await sleep(350,signal);}
+  if(r.collection==='current'&&!observed.track&&fallbackTrack){
+   let saved;try{saved=validateMedia(fallbackTrack);}catch{}
+   if(saved?.action==='play'&&saved.collection==='track'&&saved.url){
+    onProgress('ตัวเล่นยังไม่มีเพลง กำลังเปิดเพลงล่าสุดที่ Caprii เคยตรวจไว้');
+    return runSpotify({request:saved,browser,signal,onProgress,sleep,maxChecks});
+   }
+  }
   if(r.collection==='current'&&!observed.track)return{ok:false,verified:false,text:'ยังไม่มีเพลงในตัวเล่น บอกชื่อเพลงหรือสั่งเล่น Liked Songs ได้เลยครับ'};
   if(r.collection==='liked'&&!/liked songs|เพลงที่(?:กด)?(?:ถูกใจ|ชอบ)|เพลงโปรด/i.test(observed.heading))throw Error('ยังไม่พบหน้า Liked Songs ที่พร้อมเล่น ยังไม่ได้กดเล่น');
   if((r.collection==='track'||r.collection==='playlist'&&r.query)&&normalize(observed.heading)!==normalize(r.query))throw Error('หน้าที่เปิดไม่ตรงกับชื่อเพลง ยังไม่ได้กดเล่น');
