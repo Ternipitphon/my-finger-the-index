@@ -1,10 +1,12 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.8.0 — รุ่นหลักจาก Caprii ตัวเดิม
+## ดาวน์โหลด Caprii 0.8.1 — รุ่นหลักจาก Caprii ตัวเดิม
 
-[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.0 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.0/Caprii-Agent-Setup-0.8.0.exe)
+[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.1 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.1/Caprii-Agent-Setup-0.8.1.exe)
 
-[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.0/Caprii-0.8.0-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.0) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.0/caprii/CAPRII-TH.md)
+[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.1/Caprii-0.8.1-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.1) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.1/caprii/CAPRII-TH.md)
+
+เพิ่ม AI ตีความคำสั่งที่ไม่ตรงแพตเทิร์นจากข้อความปัจจุบันและบริบทผู้ใช้ก่อนหน้า โดยไม่จับจอหรือสั่งเครื่องมือในขั้นตีความ ถ้าไม่ชัดจะถามก่อน งาน Agent ต้องมีแผนก่อนลงมือ และรู้จักข้อห้ามสั้น เช่น “ห้ามส่ง” ยังคงขออนุญาต ตรวจผล และหยุดยกเลิกได้ โหมด Claude Code ใช้ Agent ของตัวเอง
 
 ใช้ **Caprii 0.7.6 ของเราเป็นฐานหลัก** เก็บตัวละคร หน้าตา การลาก ปุ่มคุย ภาษาไทย/อังกฤษ การเชื่อม Chrome และคำสั่งเพลงเดิม เพิ่มการสั่งเครื่องมือผ่าน Gemini แบบมีโครงสร้าง ตรวจคำสั่งก่อนทำงาน รอผลที่มาช้า หยุดเมื่อทำวนซ้ำโดยไม่คืบหน้า และป้องกันกดส่งซ้ำระหว่างรอหลักฐานจากเว็บ จำกัดงานหนึ่งรอบไม่เกิน 5 นาที พร้อมหยุดยกเลิกได้
 
@@ -13,6 +15,9 @@
 การควบคุม Spotify ใช้ส่วนขยาย Chrome เดิม อัปเดตส่วนขยายจากโฟลเดอร์ `browser-extension` ของรุ่นนี้แล้วเชื่อมกับ Caprii การเล่นเพลงขึ้นกับการเข้าสู่ระบบ อุปกรณ์เสียง และสิทธิ์เล่นอัตโนมัติของ Chrome ระบบไม่ยืนยันเสียงลำโพงจากสถานะเล่นเพียงอย่างเดียว
 
 **CapriCore 1.2.2 เป็นอีกแอปหนึ่ง** คีย์ API ที่บันทึกแบบเข้ารหัสใน CapriCore จะไม่ย้ายมารุ่นนี้อัตโนมัติ ตั้งค่า Gemini ใน Caprii อีกครั้งหากยังไม่มีคีย์เดิม ซอร์สรุ่นนี้คงใบอนุญาต PolyForm Noncommercial และเครดิตเดิม ไม่ได้นำซอร์ส GPL ของ CapriCore มารวม
+
+
+[ดาวน์โหลดรุ่นก่อนหน้า 0.8.0](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.0)
 
 ---
 
