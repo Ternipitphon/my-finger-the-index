@@ -20,6 +20,11 @@ app.whenReady().then(async()=>{
  const page=code=>win.webContents.executeJavaScript(code);const install=()=>win.webContents.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.spotify=(${createSpotify.toString()})();true;`}]);
  await install();const browser={mediaNavigate:async url=>{ghost=false;await win.loadURL(url);await install();},spotify:async(a)=>{const value=await win.webContents.executeJavaScriptInIsolatedWorld(1004,[{code:`globalThis.spotify.execute(${JSON.stringify(a)})`}]);if(a.action==='inspect')value.tabAudio={audible:await page('!!window.audioReported'),muted:await page('!!window.tabMuted')};return value;}};
  const signal=()=>AbortSignal.timeout(15000);const request=collection=>({service:'spotify',action:'play',collection});
+ await page(`document.getElementById('current').textContent='';setTimeout(()=>document.getElementById('current').textContent='Harpy Hare',2000)`);
+ const resumed=await runSpotify({request:request('current'),fallbackTrack:{service:'spotify',action:'play',collection:'track',query:'Old cached song',url:'https://open.spotify.com/track/old'},browser,signal:signal(),sleep:()=>new Promise(r=>setTimeout(r,160))});
+ assert.equal(resumed.verified,true,resumed.text);assert.equal(resumed.track,'Harpy Hare');assert.equal(await page('window.started'),1);assert.equal(await page('location.pathname'),'/collection');
+ console.log('PASS real DOM late player hydration resumes the current song once without navigating to stale cached track');
+ await browser.mediaNavigate('https://open.spotify.com/collection');
  let result=await runSpotify({request:request('liked'),browser,signal:signal(),sleep:()=>new Promise(r=>setTimeout(r,160))});assert.equal(result.verified,true);assert.ok(result.evidence.positionAfter>result.evidence.positionBefore);assert.equal(await page('window.started'),1);
  result=await runSpotify({request:{...request('track'),query:'Harpy Hare',artist:'Yaelokre'},browser,signal:signal(),sleep:()=>new Promise(r=>setTimeout(r,160))});assert.equal(result.verified,true);assert.match(await page('location.pathname'),/track\/abc123/);
  result=await runSpotify({request:{...request('playlist'),query:'Night Drive'},browser,signal:signal(),sleep:()=>new Promise(r=>setTimeout(r,160))});assert.equal(result.verified,true);assert.match(await page('location.pathname'),/playlist\/abc456/);

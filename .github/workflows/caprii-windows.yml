@@ -33,6 +33,8 @@ jobs:
       - run: npm run test:electron
       - run: npm run test:talk-ui
       - run: npm run test:dom-ui
+      - run: npm run test:media-ui
+      - run: npm run test:media-transport
       - run: npm run test:lab-ui
       - name: Recreate the original pinned public-reader runtime
         run: python scripts/prepare-agent-reach.py
