@@ -1,0 +1,9 @@
+Caprii 0.8.4 — AI-first Thai and English music commands
+
+Music requests now go to the selected chat AI for structured interpretation before playback. Thai, English and mixed input are accepted independently of the reply language: “เล่นเพลงที่ผมกดชอบหน่อย”, “Play my liked songs”, “Could you play my Night Drive playlist?”, or “เปิดเพลง”. Generic music requests resume the current player; no song or collection is chosen randomly.
+
+The interpreter is read-only, bounded to fifteen seconds, cancellable and restricted to validated media intents. It cannot invent song/artist names or executable URLs. Invalid, uncertain or failed interpretations ask for clarification without silently reverting to a legacy playback command. Questions, explanations and prohibitions do not execute playback or model action tags. Existing Chrome pairing, title matching, current-player priority, timing/audio evidence and bounded recovery remain in force.
+
+Plain website opens retain their existing autoplay setting. Claude Code mode retains its separate legacy media path. Personality choices and the original Playful default are preserved. English mode selects the primary interface/reply language, not the only accepted command language.
+
+Test Lab 1.12.0 preserves all eight DOM cases and separately records AI-music review contracts. Tests use controlled fixtures; no real Spotify-account or speaker-output success is claimed. Windows x64 installer is unsigned. Close Caprii from the tray before updating. Matching source, build information, checksums and original license notices are included.

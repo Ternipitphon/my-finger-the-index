@@ -1,3 +1,4 @@
+import { needsMediaInterpretation } from './media-interpretation.js';
 import { needsInterpretation } from './task-interpretation.js';
 import {mediaCommand} from './media-command.js';
 import { browserTaskIntent } from './browser-task-intent.js';
@@ -313,7 +314,14 @@ export class Chat {
     this.onMessage?.();
     // what you asked for plainly happens right away (the music, the volume, an app you named): her
     // line about it comes under her answer (Claude Code, answering her chat, does things its own way)
-    const media=mediaCommand(text,this.lastMedia||null);
+    let media=mediaCommand(text,this.lastMedia||null),mediaChatOnly=false;
+    if(this.host.mediaInterpret&&!siteCommand(text)&&needsMediaInterpretation(text,this.lastMedia)){
+      this.panel.stream(this.brain.lang==='en'?'Understanding your music request…':'กำลังตีความคำสั่งเพลง…');
+      let interpreted;try{interpreted=await this.host.mediaInterpret({id,text,previous:this.lastMedia||null});}catch{interpreted={ok:false,error:this.brain.lang==='en'?'Could not understand the music request. No playback command was sent.':'ตีความคำสั่งเพลงไม่สำเร็จ ยังไม่ได้สั่งเล่นครับ'};}
+      if(this.turn!==id||!this.open)return;
+      if(!interpreted.ok||interpreted.route==='clarify'){this.panel.stream(interpreted.question||interpreted.error,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
+      if(interpreted.route!=='legacy'){media=interpreted.route==='media'?interpreted.media:null;mediaChatOnly=interpreted.route==='chat';}
+    }
     if(!media||media.question)this.lastMedia=null;
     if(media){
       try{
@@ -331,7 +339,7 @@ export class Chat {
       finally{if(this.turn===id){this.turn=0;this.panel.setChatBusy(false);}}
       return;
     }
-    const website = siteCommand(text);
+    const website = mediaChatOnly?null:siteCommand(text);
     if (website) {
       if(website.question){this.panel.stream(this.brain.lang==='en'?'Please provide the website URL or domain so I can open the correct site.':website.question,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
       try {
@@ -347,11 +355,11 @@ export class Chat {
       return;
     }
     const previous=this.history.slice(0,-1).filter(m=>m.role==='user').at(-1)?.content||'';
-    const browserTask=browserTaskIntent(text);
-    const publicTask=browserTask?null:reachIntent(text);
-    const resolved=browserTask||resolveTaskCommand(text,typeof previous==='string'?previous:'');
+    const browserTask=mediaChatOnly?null:browserTaskIntent(text);
+    const publicTask=mediaChatOnly||browserTask?null:reachIntent(text);
+    const resolved=mediaChatOnly?null:browserTask||resolveTaskCommand(text,typeof previous==='string'?previous:'');
     if(resolved?.question){this.panel.stream(resolved.question,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
-    if (publicTask || resolved?.goal || /^\/agent\s+/i.test(text) || screenIntent(text) === 'agent' || actionCommand(text)) {
+    if (!mediaChatOnly&&(publicTask || resolved?.goal || /^\/agent\s+/i.test(text) || screenIntent(text) === 'agent' || actionCommand(text))) {
       try {
         const res = await this.host.agentRun({ id, scope:browserTask?.scope||(publicTask?'public-web':undefined), goal: publicTask || resolved?.goal || text.replace(/^\/agent\s+/i, '') });
         if (this.turn === id) this.panel.stream(res.ok ? res.text : `${this.t.failed} ${res.error}`, { done: true });
@@ -362,7 +370,7 @@ export class Chat {
       }
       return;
     }
-    if(!this.agent&&this.host.taskInterpret&&needsInterpretation(text)){
+    if(!mediaChatOnly&&!this.agent&&this.host.taskInterpret&&needsInterpretation(text)){
       this.panel.stream(this.brain.lang==='en'?'Understanding your task…':'กำลังทำความเข้าใจคำสั่ง…');
       let inferred;
       try{inferred=await this.host.taskInterpret({id,text,previous:typeof previous==='string'?previous:''});}
@@ -378,7 +386,7 @@ export class Chat {
         return;
       }
     }
-    const asked = this.agent ? null : this.asked(text);
+    const asked = this.agent||mediaChatOnly ? null : this.asked(text);
     if (asked?.kind === 'look') return this.sendLook(text, id);
     const early = asked && asked.kind !== 'close' ? this.doNow(asked) : null;
     this.bond?.heard(text); // "sorry": she lets it go
@@ -429,7 +437,7 @@ export class Chat {
     this.panel.stream(answer, { done: true });
     this.panel.setFace(mood(answer));
     this.panel.setChatBusy(false);
-    if (!this.agent) this.after(res.text, answer, asked, early, text);
+    if (!this.agent&&!mediaChatOnly) this.after(res.text, answer, asked, early, text);
     this.listApps(); // fresh for the next message
   }
 

@@ -1048,6 +1048,13 @@ function registerIpc() {
   });
   ipcMain.handle('apps:launch', (_e, item) => launch.launch(item).then(() => ({ ok: true }), (err) => ({ ok: false, error: err.message })));
   ipcMain.handle('apps:media', (_e, action) => launch.media(action));
+  ipcMain.handle('media:interpret',async(event,request={})=>{
+    if(event.sender!==overlay?.webContents||chats.size||!Number.isSafeInteger(request.id)||typeof request.text!=='string'||request.text.length>8000)return{ok:false,error:'Invalid or concurrent media interpretation'};
+    const abort=new AbortController();chats.set(request.id,abort);
+    try{const cfg=config.load();if(cfg.provider==='claude')return{ok:true,route:'legacy'};
+      return{ok:true,...await require('./media-interpreter').interpretMedia({text:request.text,previous:request.previous,lang:resolveLang(cfg.lang),signal:abort.signal,request:async(messages,signal)=>{if(!chatModels?.length)await refreshModels();signal.throwIfAborted();return llm.chat(cfg.provider,llmConfig(cfg),{model:pickModel(cfg),messages,jsonMode:true},()=>{},signal);}})};
+    }catch(error){return{ok:false,error:abort.signal.aborted?'หยุดงานแล้ว':error.message};}finally{chats.delete(request.id);}
+  });
   ipcMain.handle('media:run',async(e,request={})=>{
     if(e.sender!==overlay?.webContents||!Number.isSafeInteger(request.id))return{ok:false,text:'Invalid media request'};
     if(chats.size)return{ok:false,text:'มีงานอื่นกำลังทำอยู่ รอสักครู่ก่อนเล่นเพลง'};

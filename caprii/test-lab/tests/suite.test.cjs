@@ -21,3 +21,4 @@ test('external media examples have stable IDs and never claim DOM playback verif
 
 test('agent execution contracts remain distinct from observed DOM scores',()=>{assert.equal(suite.agentExecution.length,4);for(const item of suite.agentExecution)assert.equal(item.verification,'requires-agent-run-not-measured-by-this-page');});
 test('personality review remains separate from DOM scores',()=>{assert.equal(suite.personality.id,'normal');assert.equal(suite.personality.verification,'requires-chat-review-not-measured-by-this-page');assert.equal(suite.cases.some(c=>c.id==='normal'),false);});
+test('AI music interpretation examples are separate from DOM scoring',()=>{assert.equal(suite.mediaInterpretation.id,'ai-first-music');assert.equal(suite.mediaInterpretation.verification,'requires-model-and-playback-run-not-measured-by-this-page');assert.ok(suite.mediaInterpretation.examples.some(x=>x==='Play my liked songs'));});

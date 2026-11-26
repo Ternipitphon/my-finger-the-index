@@ -1,3 +1,7 @@
+# Caprii 0.8.4 validation
+
+Added AI-first media interpretation tests for Thai/English intent, exact named targets, no invented URLs, bounded timeouts/Stop, close-before-action, prohibition/explanation guards, and prevention of legacy/model-tag action fallback after chat-only decisions. Windows media DOM and extension transport checks remain required. No live Spotify-account or speaker-output success is claimed.
+
 # Caprii 0.8.3 validation
 
 Normal personality menu selection and reconstruction, nonmutation of user/image/tool messages, and exclusion of legacy roleplay with Focus off are covered by new tests. Existing Windows UI, DOM, media transport and Lab checks remain required. Persona prompts guide model style; they are not a guarantee of every generated response.
