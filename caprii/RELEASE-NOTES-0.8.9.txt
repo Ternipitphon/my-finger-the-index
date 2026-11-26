@@ -1,0 +1,7 @@
+Caprii 0.8.9 — Playful choom address style
+
+Playful is now explicitly casual, direct and lightly teasing, without formal Thai endings such as ครับ/ค่ะ/คะ. It uses “choom” as an occasional address or ending, at most once per reply, without forcing it into every sentence. Caprii identity, the original Playful default, factual accuracy and the existing Normal/Caring choices remain.
+
+The same short address-style rule is passed into isolated reply repair so repair does not reintroduce formal endings. It does not restore the old persona/history context. Exact numbers, codes, JSON/tool fields and literal requested data must not gain a nickname or be rewritten as casual dialogue. The language helper recognizes choom as an address, not an unrelated English response.
+
+Test Lab 1.17.0 retains all eight DOM cases and records style review separately. Style guidance is model-generated rather than a literal text substitution. Close Caprii from the tray before installing. Windows x64 installer is unsigned. Source, build metadata, menu preview and SHA-256 checksums are attached with original notices.

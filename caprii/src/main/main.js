@@ -633,7 +633,7 @@ async function chatWithFallback(cfg, messages, send, signal, {agent=false}={}) {
   const { text, model } = await require('./chat-runner').runChat({
     models: require('./model-profiles').fallbackModels({provider:cfg.provider,selected,models:chatModels||[]}), signal, onDelta: send, timeoutMs:cfg.modelProfile==='quality'?60000:30000,
     request: async (model, onDelta, signal) => {
-      const text=await require('./thai-language').thaiResponse({messages,lang:resolveLang(cfg.lang),request:async fixed=>{if(++requests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed,jsonMode:llm.isTaskActionRequest(fixed, agent)},()=>{},signal);}});
+      const text=await require('./thai-language').thaiResponse({messages,personality:cfg,lang:resolveLang(cfg.lang),request:async fixed=>{if(++requests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed,jsonMode:llm.isTaskActionRequest(fixed, agent)},()=>{},signal);}});
       onDelta(text);return text;
     },
   });
@@ -687,7 +687,7 @@ async function sayAboutSnap({ id, persona, prompt, history = [], automatic = fal
   let requests=0;
   try {
     const result = await require('./chat-runner').runChat({ models: [model], signal, maxAttempts: 2,
-      request: (model, delta, signal) => require('./thai-language').thaiResponse({messages,lang:resolveLang(cfg.lang),request:fixed=>{if(++requests>2)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}}),
+      request: (model, delta, signal) => require('./thai-language').thaiResponse({messages,personality:cfg,lang:resolveLang(cfg.lang),request:fixed=>{if(++requests>2)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}}),
     });
     return { ok: true, text: result.text, model };
   } catch (err) {
@@ -884,7 +884,7 @@ function registerIpc() {
       if(!chatModels?.length)await refreshModels();const model=pickModel(cfg);if(!model)throw Error('ยังไม่มีโมเดลพร้อมใช้งาน');
       if(cfg.provider==='claude'||(cfg.provider==='ollama'&&!await ollama.canSee(model)))return{ok:false,code:'novision',error:'โมเดลนี้ยังดูรูปไม่ได้ เลือก Gemini หรือโมเดลที่รองรับภาพแล้วส่งใหม่'};
       const messages=require('./image-attachments').imageMessages({prompt:request.prompt,persona:request.persona||'คุณคือ Caprii ผู้ช่วย AI',dataURL,personality:cfg,responseLength:cfg.responseLength});
-      const result=await require('./chat-runner').runChat({models:[model],signal:abort.signal,timeoutMs:cfg.modelProfile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>require('./thai-language').thaiResponse({messages,lang:resolveLang(cfg.lang),request:fixed=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:fixed},()=>{},signal)})});
+      const result=await require('./chat-runner').runChat({models:[model],signal:abort.signal,timeoutMs:cfg.modelProfile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>require('./thai-language').thaiResponse({messages,personality:cfg,lang:resolveLang(cfg.lang),request:fixed=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:fixed},()=>{},signal)})});
       imageAttachments.remove(request.attachmentId);return{ok:true,text:result.text,model};
     }catch(e){return require('./image-attachments').imageError(e,abort.signal.aborted);}
     finally{chats.delete(request.id);}

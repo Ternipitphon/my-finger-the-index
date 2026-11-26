@@ -1,3 +1,7 @@
+# Caprii 0.8.9 validation
+
+Checks Playful-only choom guidance, isolated-repair profile propagation, exclusion from Normal/Caring, literal user/image prompt preservation and language recognition for the nickname without accepting unrelated English prose as Thai. Existing exact-value, reply-repair, menu, media and Windows checks remain required. Generated phrasing remains model-dependent.
+
 # Caprii 0.8.8 validation
 
 Adds checks for friendly-teasing pass-through, isolated repair without previous persona/history, literal number/URL/code preservation, unchanged finish tool fields, bounded two-request behavior, and English repair. Repeated inappropriate output is still withheld. Windows/native-menu/browser/media/Lab checks remain required.
