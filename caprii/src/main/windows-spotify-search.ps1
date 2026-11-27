@@ -100,7 +100,7 @@ function Get-CapriiSpotifyCandidates($root,[string]$query) {
   if ($results.Count -ge 60) { break }
   if ($row.Current.IsOffscreen -or -not $row.Current.IsEnabled -or (Test-CapriiSpotifyPlayerRegion $row $root)) { continue }
   $parts=Get-CapriiSpotifyParts $row $query
-  if ($parts.texts.Count) { $candidate=New-CapriiSpotifyCandidate $row $parts 'row' $query;if ($null -ne $candidate) { [void]$results.Add($candidate) } }
+  if ($parts.texts.Count -and -not $parts.transport -and -not $parts.detailsPanel) { $candidate=New-CapriiSpotifyCandidate $row $parts 'row' $query;if ($null -ne $candidate) { [void]$results.Add($candidate) } }
  }
  # Top-result cards expose their Play outside the DataItem song rows.
  # Find its nearest small ancestor with this exact title, never the footer transport.
