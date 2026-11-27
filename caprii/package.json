@@ -1,6 +1,6 @@
 {
   "name": "capri-desktop",
-  "version": "0.8.19",
+  "version": "0.8.20",
   "description": "Caprii: Thai/English desktop and project AI agent with confirmed tools, bounded chat, browser automation and Windows controls.",
   "author": "mochiiwuff",
   "repository": "github:mochiiwuff/capri-desktop",
@@ -39,7 +39,8 @@
     "test:menu": "electron scripts/context-menu-smoke.cjs",
     "test:pairing": "electron scripts/pairing-smoke.cjs",
     "test:spotify-desktop": "electron scripts/windows-spotify-smoke.cjs",
-    "test:spotify-search-ui": "electron scripts/spotify-search-ui-smoke.cjs"
+    "test:spotify-search-ui": "electron scripts/spotify-search-ui-smoke.cjs",
+    "test:task-animations": "electron scripts/task-animation-smoke.cjs"
   },
   "keywords": [
     "claude-code",

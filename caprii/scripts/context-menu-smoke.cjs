@@ -7,6 +7,7 @@ app.whenReady().then(async()=>{
  for(const lang of ['th','en']){
   const f=createMenuFixture({Menu,lang});assert.ok(f.menu.items.length<=15);
   for(const id of ['caprii-pair','caprii-auto-actions','caprii-personality-caring','caprii-lab','caprii-profile-quality'])assert.ok(f.menu.getMenuItemById(id),id);
+  const reactions=f.menu.getMenuItemById('caprii-task-animations');assert.equal(reactions.checked,true);reactions.click(reactions);assert.equal(f.cfg.taskAnimations,false);assert.equal(f.cfg.watchScreen,false);
   const autoplay=f.menu.getMenuItemById('caprii-spotify-auto');assert.equal(autoplay.checked,true);autoplay.click(autoplay);assert.equal(autoplay.checked,false);assert.equal(f.cfg.spotifyAutoPlay,false);
   f.menu.getMenuItemById('caprii-talk').click();assert.equal(f.calls[0][0],'chat');
   f.menu.getMenuItemById('caprii-personality-caring').click();assert.equal(f.cfg.personalityStyle,'caring');const rebuilt=f.rebuild();assert.equal(rebuilt.getMenuItemById('caprii-personality-caring').checked,true);if(lang==='th')preview=rebuilt;

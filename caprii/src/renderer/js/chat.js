@@ -290,6 +290,7 @@ export class Chat {
   }
 
   close() {
+    this.taskAnimation?.cancel();
     if (!this.open) return;
     this.open = false;
     this.removeImage();

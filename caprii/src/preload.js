@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('host', {
   onClaudeEvent: on('claude:event'),
   onCommand: on('capri:command'),
   onConfig: on('capri:config'),
+  onTaskAnimation: on('task:animation'),
   onResize: on('overlay:resize'),
   onWindows: on('windows:update'),
   holdCharacter: on => ipcRenderer.send('overlay:hold', Boolean(on)),

@@ -349,6 +349,7 @@ function rebuildTray() {
     {id:'caprii-pickup',label:resolveLang(cfg.lang)==='en'?'Pick up character — move and click to place':'จับย้ายตัวละคร — ขยับเมาส์แล้วคลิกวาง',click:()=>sendCommand('pickup')},
     { id:'caprii-teleport', label: t.teleport, click: () => sendCommand('teleport') },
     { id:'caprii-satellite', label: t.satellite, click: () => sendCommand('satellite') },
+    {id:'caprii-task-animations',label:resolveLang(cfg.lang)==='en'?'AI task reactions':'ท่าทางประกอบงาน AI',type:'checkbox',checked:cfg.taskAnimations!==false,click:item=>updateConfig({taskAnimations:item.checked})},
     { id:'caprii-demo', label: t.demo, click: playDemo },
     { id:'caprii-help', label: t.help, click: () => sendCommand('welcome') },
     ...(cfg.claude ? [{ id:'caprii-report', label: t.report, click: () => sendCommand('report') }] : []),
@@ -802,22 +803,25 @@ function registerIpc() {
     const abort = new AbortController();
     chats.set(id, abort);
     const signal = AbortSignal.any([abort.signal, AbortSignal.timeout(300000)]);
+    const animate=phase=>overlay?.webContents.send('task:animation',{id,phase});
     let task = null, browser = null, taskPermissions = null;
     try {
       if(scope==='selected-tab'&&!chromeBroker.status().connected)throw Error('ยังไม่ได้เชื่อมแท็บ Chrome ที่พร้อมใช้งาน เปิดเมนู เชื่อมแท็บ Chrome… แล้วอนุญาตแท็บนี้ก่อน ยังไม่ได้อ่านหรือกรอกข้อมูล');
+      if(!automaticActions)animate('waiting');
       const consent = automaticActions ? {response:1} : await dialog.showMessageBox(overlay, {
         type: 'question', buttons: scope==='public-web'?['ยกเลิก','อ่านเว็บสาธารณะ']:scope==='selected-tab'?['ยกเลิก','อ่าน/กรอกแท็บที่เชื่อม']:['ยกเลิก', 'ทำงานบนจอ/เว็บ', 'เลือกโฟลเดอร์โปรเจกต์'], defaultId: 0, cancelId: 0, signal,
         message: 'เริ่มงาน Agent แบบไหน?',
         detail: 'คำสั่งและข้อมูลที่คุณอนุมัติจะส่งให้ผู้ให้บริการ AI ขออนุญาตแยกก่อนอ่าน/แก้ไฟล์ เปิดเว็บ ควบคุมหน้าจอ หรือรันสคริปต์ ไม่เก็บความจำข้ามงาน\nหยุดฉุกเฉิน Ctrl+Alt+Esc\n' + goal,
       });
       signal.throwIfAborted();
-      if (consent.response === 0) return { ok: false, error: 'ยกเลิกแล้ว' };
+      animate('working');
+      if (consent.response === 0) return { ok: false, canceled:true, error: 'ยกเลิกแล้ว' };
       let projectRoot = app.getPath('temp');
       const allowProjectFiles = scope===undefined&&consent.response === 2;
       if (allowProjectFiles) {
         const picked = await dialog.showOpenDialog(overlay, { properties: ['openDirectory'] });
         signal.throwIfAborted();
-        if (picked.canceled) return { ok: false, error: 'ยกเลิกแล้ว' };
+        if (picked.canceled) return { ok: false, canceled:true, error: 'ยกเลิกแล้ว' };
         projectRoot = picked.filePaths[0];
       }
       const cfg = config.load();
@@ -833,11 +837,13 @@ function registerIpc() {
         signal.throwIfAborted();
         if(task.window.isDestroyed())return 'deny';
         if(config.load().showTaskWindow===true){task.window.restore();task.window.show();}
+        animate('waiting');
         const answer=await dialog.showMessageBox(task.window,{
           type:'warning',buttons:['ไม่อนุญาต','อนุญาตครั้งนี้',...(reusable?['อนุญาตตลอดงานนี้']:[])],defaultId:0,cancelId:0,signal,
           message:'Caprii ขออนุญาต: '+action.tool,
           detail:(reusable?'อนุญาตตลอดงานนี้: ใช้จอหรือหน้าต่างเดิมต่อได้จนจบงาน กดหยุด หรือครบ 5 นาที การควบคุมหน้าต่างรวมการพิมพ์ คลิก และส่งแบบฟอร์ม พร้อมส่งภาพจอและชื่อหน้าต่างให้ AI เมื่อเปลี่ยนหน้าต่างหรือจอจะถามใหม่\n\n':'')+JSON.stringify(action,null,2)
         });
+        animate('working');
         if(action.tool.startsWith('desktop.'))task.hide();
         return answer.response===2?'task':answer.response===1?'once':'deny';
       }});
@@ -856,6 +862,7 @@ function registerIpc() {
       task.finish({ ...result,summary:safeSummary, state: result.verified ? 'done' : 'partial' });
       return { ok: true, text: safeSummary + '\nผลตรวจ: ผ่าน ' + result.checks.filter(c=>c.passed).length + ' จาก ' + result.checks.length + ' รายการ', verified: result.verified };
     } catch (err) {
+      if(signal.aborted)animate('cancelled');
       const error = abort.signal.aborted ? 'หยุดงานแล้ว' : signal.aborted ? 'หมดเวลางาน 5 นาที' : err.message;
       task?.finish({ state: signal.aborted ? 'stopped' : 'failed', summary: error });
       return { ok: false, error };

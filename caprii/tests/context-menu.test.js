@@ -34,3 +34,7 @@ test('diagnostics and model/provider lists are discoverable in dedicated submenu
 test('future actions remain visible and menu construction does not execute callbacks',()=>{
  let called=false;const unknown={id:'future-action',label:'Future',click:()=>called=true};const result=organizeMenu([unknown],{lang:'en'});assert.equal(called,false);assert.ok(walk(result).some(x=>x===unknown));
 });
+test('task reaction switch is separate from screen access and all original manual demo actions remain reachable',()=>{
+ const f=createMenuFixture(),all=walk(f.organized);const setting=all.find(x=>x.id==='caprii-task-animations');assert.equal(setting.checked,true);setting.click({checked:false});assert.equal(f.cfg.taskAnimations,false);assert.equal(f.cfg.watchScreen,false);assert.equal(walk(f.rebuild()).find(x=>x.id==='caprii-task-animations').checked,false);
+ for(const id of ['caprii-satellite','caprii-demo','caprii-teleport'])assert.equal(all.filter(x=>x.id===id).length,1);
+});

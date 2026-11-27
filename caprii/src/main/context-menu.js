@@ -20,7 +20,7 @@ function organizeMenu(items,{lang='th',version=''}={}){
  const coding=group('caprii-coding-tools',label('ผู้ช่วยเขียนโค้ด','Coding assistants'),codingItems);
  const ai=group('caprii-group-ai',label('AI และงาน','AI & tasks'),[model,...takeMany(['caprii-model-profile','caprii-auto-actions','caprii-task-window','caprii-focus','caprii-screen-commentary']),coding].filter(Boolean));
  const behavior=group('caprii-character-behavior',label('พฤติกรรมตัวละคร','Character behavior'),takeMany(['caprii-wander','caprii-possess','caprii-jealous','caprii-pc-react']));
- const effects=group('caprii-character-effects',label('ลูกเล่นตัวละคร','Character effects'),takeMany(['caprii-teleport','caprii-satellite','caprii-demo']));
+ const effects=group('caprii-character-effects',label('ลูกเล่นตัวละคร','Character effects'),takeMany(['caprii-task-animations','caprii-teleport','caprii-satellite','caprii-demo']));
  const character=group('caprii-group-character',label('ตัวละครและหน้าจอ','Character & display'),[...takeMany(['caprii-custom','caprii-size','caprii-screen','caprii-rest','caprii-motion']),behavior,effects].filter(Boolean));
  const diagnostics=group('caprii-diagnostics',label('ทดสอบและแก้ปัญหา','Tests & troubleshooting'),takeMany(['caprii-lab','caprii-desktop-test','caprii-reach','caprii-display']));
  const about=group('caprii-about',label('เกี่ยวกับ Caprii','About Caprii'),takeMany(['caprii-version','caprii-online','caprii-bond']));

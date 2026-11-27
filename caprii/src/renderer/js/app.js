@@ -1,3 +1,4 @@
+import { TaskAnimation } from './task-animation.js';
 import {trackDragCursor} from './drag-cursor.js';
 import { ThaiSpeech } from './thai-speech.js';
 import { Capri } from './capri.js';
@@ -18,7 +19,8 @@ import { Pc } from './pc.js';
 import { linesFor } from './lines.js';
 import { pick, fmt, reducedMotion } from './util.js';
 
-const host = window.host;
+const rawHost = window.host;
+let host = rawHost;
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -93,6 +95,10 @@ async function boot() {
     fx,
     voice,
   });
+  const taskAnimation=new TaskAnimation({capri,reduced:()=>reducedMotion.matches});
+  taskAnimation.configure(config);host=taskAnimation.wrapHost(rawHost);
+  host.onTaskAnimation?.(event=>taskAnimation.phase(event));
+  window.addEventListener('beforeunload',()=>taskAnimation.cancel());
   capri.wander = config.wander;
   let idleChatter=config.idleChatter===true;
   capri.possessWindows = config.possess;
@@ -247,6 +253,7 @@ async function boot() {
   const guide = new Guide({ capri, panel, voice, host, brain });
   // Talking to her (chat.js): "Talk to her" in her menu, or the button when you click her idle.
   const chat = new Chat({ capri, panel, voice, host, brain });
+  chat.taskAnimation=taskAnimation;
   chat.spotifyAutoPlay=config.spotifyAutoPlay!==false;chat.dictationAvailable=config.canDictate===true;chat.focusedAssistant=config.assistantFocus!==false;chat.characterMode=config.rebeccaPersonality!==false;chat.personalityStyle=config.personalityStyle||(config.rebeccaPersonality===false?'normal':'playful');chat.responseLength=config.responseLength||'short';
   brain.onTalk = () => chat.start();
   // Getting her chat going with buttons (setup.js): Ollama and a model, a key, or an address
@@ -529,7 +536,7 @@ async function boot() {
   // what's in here, for --dev scripts (debug route `eval`)
   window.dev = { capri, brain, panel, chat, guide, fx, voice, bond, jealousy, reminders, look, pc, setup, screens: () => screens };
 
-  host.onClaudeEvent((evt) => brain.handle(evt));
+  host.onClaudeEvent((evt) => {if(evt.demo)taskAnimation.cancel();brain.handle(evt);});
   host.onWindows((data) => {
     capri.setWindows(data);
     brain.onWindows(data);
@@ -618,6 +625,7 @@ async function boot() {
   });
 
   host.onConfig((cfg) => {
+    taskAnimation.configure(cfg);
     chat.spotifyAutoPlay=cfg.spotifyAutoPlay!==false;
     idleChatter=cfg.idleChatter===true;
     chat.focusedAssistant=cfg.assistantFocus!==false;chat.characterMode=cfg.rebeccaPersonality!==false;chat.personalityStyle=cfg.personalityStyle||(cfg.rebeccaPersonality===false?'normal':'playful');chat.responseLength=cfg.responseLength||'short';
@@ -764,7 +772,7 @@ async function boot() {
         if (cmd.on) capri.stow();
         else capri.unstow();
         break;
-      case 'satellite': // the whole sequence, on demand (tray)
+      case 'satellite': taskAnimation.cancel(); // the whole sequence, on demand (tray)
         if (capri.stowed) {
           host.setConfig({ visible: true });
           await capri.unstow();
