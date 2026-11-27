@@ -1,7 +1,7 @@
 // Visual reactions only. This adapter never captures a screen, grants access, retries a tool,
 // changes its arguments/results, or moves focus. Manual demo/idle behaviour stays independent.
 export class TaskAnimation {
- constructor({capri,reduced=()=>false,now=()=>performance.now(),schedule=setInterval,unschedule=clearInterval,onState=()=>{}}){
+ constructor({capri,reduced=()=>false,now=()=>performance.now(),schedule=(fn,ms)=>setInterval(fn,ms),unschedule=id=>clearInterval(id),onState=()=>{}}){
   Object.assign(this,{capri,reduced,now,schedule,unschedule,onState});this.enabled=true;this.active=null;this.timer=null;this.lastPose=-Infinity;this.ownedAct=null;
  }
  configure(cfg={}){this.enabled=cfg.taskAnimations!==false;if(!this.enabled||cfg.motion==='reduced'||cfg.visible===false||this.active?.automatic&&cfg.watchScreen===false)this.cancel();}
