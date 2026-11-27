@@ -7,7 +7,7 @@ export class TaskAnimation {
  configure(cfg={}){this.enabled=cfg.taskAnimations!==false;if(!this.enabled||cfg.motion==='reduced'||cfg.visible===false||this.active?.automatic&&cfg.watchScreen===false)this.cancel();}
  pose(name){
   const c=this.capri;
-  if(!this.enabled||this.reduced()||c.hidden||c.stowed||c.dormant||c.busy||c.sky||c.act||['held','fly','down','fall','peek'].includes(c.stance)||this.now()-this.lastPose<1200)return;
+  if(!this.enabled||this.reduced()||c.hidden||c.stowed||c.dormant||c.busy||c.sky||(c.act&&c.act.player?.name!=='talk')||['held','fly','down','fall','peek'].includes(c.stance)||this.now()-this.lastPose<1200)return;
   try{this.lastPose=this.now();const before=c.act;const result=c.perform(name);if(c.act&&c.act!==before)this.ownedAct=c.act;Promise.resolve(result).catch(()=>{});}catch{}
  }
  safely(fn){try{return fn();}catch{try{this.cancel();}catch{}return null;}}

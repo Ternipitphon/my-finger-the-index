@@ -40,3 +40,6 @@ test('full victory is reserved for a long verified agent task; unverified work n
 test('a broken visual scheduler cannot block, retry or alter a real tool or its cancellation',async()=>{
  const {TaskAnimation}=await ready;let calls=0,stops=0;const result={ok:true,verified:true};const a=new TaskAnimation({capri:{perform(){}},schedule:()=>{throw Error('visual timer failed');},unschedule:()=>{throw Error('cleanup failed');}});const h=a.wrapHost(Object.freeze({mediaRun:async()=>{calls++;return result;},chatStop:()=>{stops++;}}));assert.equal(await h.mediaRun({id:1}),result);assert.equal(calls,1);assert.equal(a.active,null);h.chatStop(1);assert.equal(stops,1);
 });
+test('ordinary talking can yield to a task reaction while an existing special act keeps priority',async()=>{
+ const f=await fixture();f.capri.act={player:{name:'talk'}};f.a.pose('hop');assert.deepEqual(f.poses,['hop']);f.advance(3000);f.capri.act={player:{name:'uplink'}};f.a.pose('hop');assert.deepEqual(f.poses,['hop']);
+});
