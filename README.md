@@ -1,10 +1,10 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.8.10 — รุ่นหลักจาก Caprii ตัวเดิม
+## ดาวน์โหลด Caprii 0.8.11 — รุ่นหลักจาก Caprii ตัวเดิม
 
-[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.10 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.10/Caprii-Agent-Setup-0.8.10.exe)
+[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.11 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.11/Caprii-Agent-Setup-0.8.11.exe)
 
-[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.10/Caprii-0.8.10-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.10) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.10/caprii/CAPRII-TH.md)
+[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.11/Caprii-0.8.11-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.11) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.11/caprii/CAPRII-TH.md)
 
 **แก้เปิด Spotify แล้วไม่ต่อถึงการเล่น** ใช้เส้นทางสื่อโดยตรง ไม่ถามยืนยันเปิดเว็บซ้ำ คำสั่ง “เปิดเพลง” และ “turn on some music” ให้ AI เลือกเล่นเพลงที่ค้างอยู่ ส่วนการเปิด Spotify อย่างเดียวใช้สวิตช์ autoplay จากแอปโดยตรง สั่งเล่นชัดเจนยังเล่นได้แม้ปิดสวิตช์ ต้องเชื่อม Chrome และล็อกอิน Spotify ไว้
 
@@ -14,9 +14,9 @@
 
 **เมนูคลิกขวาจัดใหม่** คำสั่งคุย ดูจอ ย้ายตัวละคร และซ่อน/แสดงอยู่ด้านบน ที่เหลือแบ่งห้าหมวด: นิสัยและเสียง, Chrome และเพลง, AI และงาน, ตัวละครและหน้าจอ, ตั้งค่าและช่วยเหลือ เมนูหลักประมาณ 14 แถว เก็บฟังก์ชัน ค่าสวิตช์ และทางลัดเดิมครบ
 
-[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.10/Caprii-0.8.10-menu.png)
+[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.11/Caprii-0.8.11-menu.png)
 
-**AI ตีความทุกข้อความก่อนเลือกคำสั่งในโหมดแชตหลัก** แยกคำถาม คำขออ้อม ๆ เล่นเพลง เปิดเว็บ และงานบนคอมจากความหมายกับบริบท ไม่ใช้การมีคำว่าเปิด/เล่น/เพลงเป็นประตูเลือกการทำงาน หลัง AI เลือกคุยหรือถามเพิ่ม จะไม่ย้อนใช้ตัวจับคำหรือแท็กเก่าเพื่อสั่งงาน เครื่องมือยังมีขอบเขต ขอสิทธิ์ และตรวจผลจริง ขั้นตีความเพิ่มคำขอ AI หนึ่งครั้งต่อข้อความ จำกัดเวลา 20 วินาที โมเดลอาจตีความผิดได้ โหมด Claude Code แยกใช้ Agent เดิมของตนเอง
+**AI เลือกตอบหรือเรียกเครื่องมือในรอบเดียว** แชตทั่วไปได้คำตอบสุดท้ายจากรอบตัดสินใจ ไม่แยกประเภทแล้วเรียก AI ตอบซ้ำ ส่งประวัติคุยแบบจำกัดและความจำที่เปิดบันทึกไว้ พร้อมนิสัย ภาษา และความยาวคำตอบ คำสั่งใช้เครื่องมือจริงแล้วตรวจผลก่อนตอบ คำขอดูจออย่างเดียวจับภาพจริงตามสิทธิ์เดิมก่อนวิเคราะห์ ไม่แต่งว่าทำงานแล้วจากข้อความของโมเดล งานหลายขั้นตอน การวิเคราะห์ภาพ โมเดลสำรอง หรือการแก้ถ้อยคำยังอาจต้องเรียก AI เพิ่มตามความจำเป็น โหมด Claude Code ใช้ Agent เดิม
 
 เมื่อสั่งเปิด Spotify หรือเปิดเพลงล่าสุด ระบบรอเพลงที่ค้างอยู่ในตัวเล่นแล้วเล่นต่อก่อน ไม่ใช้เพลงใน cache ทับเพลงที่ผู้ใช้เปิดเอง ถ้าตัวเล่นไม่มีเพลงจึงใช้เพลงที่ Caprii เคยตรวจไว้ พร้อมตรวจเวลาเดินและเสียงแท็บ ต้องเข้าสู่ระบบและเชื่อมส่วนขยาย Chrome เมนูเล่นอัตโนมัติยังเปิด/ปิดได้
 
