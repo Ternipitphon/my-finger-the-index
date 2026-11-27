@@ -74,7 +74,8 @@ async function pump(){
   if(['auth','session','origin','tab'].includes(error.code))await disconnect(connection||await selected());
  }finally{
   running=false;
-  if((await selected()||await preferences())&&failures<6)wake(failures?Math.min(5000,500*2**failures):350);
+  const remembered=await preferences();
+  if(remembered||(await selected()&&failures<6))wake(failures?Math.min(5000,500*2**failures):350);
  }
 }
 chrome.runtime.onMessage.addListener((message,sender,reply)=>{
@@ -82,7 +83,7 @@ chrome.runtime.onMessage.addListener((message,sender,reply)=>{
   const connection=await selected();
   if(message.type==='connect'&&!sender.tab){
    if(message.remember===true&&!await chrome.permissions.contains({origins:AUTO_ORIGINS}))throw Error('ต้องอนุญาต Chrome ให้ใช้เว็บไซต์ก่อนเปิดโหมดจำการเชื่อมต่อ');
-   const [tab]=await chrome.tabs.query({active:true,currentWindow:true});const url=new URL(tab.url);
+   const [tab]=await chrome.tabs.query({active:true,currentWindow:true});if(tab?.incognito)throw Error('เลือกแท็บปกติเพื่อเชื่อม Caprii ไม่เชื่อมแท็บไม่ระบุตัวตน');const url=new URL(tab.url);
    if(!['http:','https:'].includes(url.protocol))throw Error(url.protocol==='file:'?'หน้านี้เปิดจากไฟล์ คลิกขวา Caprii → เปิดเว็บทดสอบ Caprii แล้วเชื่อมแท็บ http://127.0.0.1':'เลือกแท็บ http หรือ https ก่อน');
    epoch++;clearTimeout(pumpTimer);
    const next={code:message.code,tabId:tab.id,origin:url.origin,title:tab.title,url:tab.url};
@@ -100,7 +101,7 @@ chrome.runtime.onMessage.addListener((message,sender,reply)=>{
    if(pref){failures=0;wake();}
    if(!connection)return{connected:false,remember:!!pref,code};
    try{await checkTab(connection);const live=await request('/ping',{session:connection.session},connection);if(live.transport!=='worker')throw failure('เชื่อมแท็บนี้ใหม่อีกครั้งเพื่อใช้ตัวส่งคำสั่งรุ่นใหม่','session');failures=0;wake();return{connected:true,remember:!!pref,title:connection.title,url:connection.url,code};}
-   catch(error){if(['auth','session','origin','tab'].includes(error.code))await disconnect(connection);else{failures=0;wake(500);}return{connected:false,remember:!!pref,paired:!!await selected(),error:error.message,code};}
+   catch(error){if(error.code==='auth'){await forgetBrowser();await disconnect(connection);await chrome.storage.session.remove('lastCode');return{connected:false,remember:false,error:error.message,code:''};}if(['session','origin','tab'].includes(error.code))await disconnect(connection);failures=0;wake(500);return{connected:false,remember:!!pref,paired:!!await selected(),retrying:!!pref&&error.code==='session',error:pref&&error.code==='session'?'กำลังเชื่อมกลับอัตโนมัติ':error.message,code};}
   }
   // Old page-timer pollers must not compete with the background dispatcher.
   return{stop:true};

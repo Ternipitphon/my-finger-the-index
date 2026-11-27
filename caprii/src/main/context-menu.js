@@ -10,7 +10,7 @@ function organizeMenu(items,{lang='th',version=''}={}){
  const rename=(item,name)=>item?{...item,label:name}:null;
  const quick=[rename(take('caprii-talk'),label('คุยกับ Caprii','Talk to Caprii')),rename(take('caprii-look'),label('ดูหน้าจอตอนนี้','Look at screen')),rename(take('caprii-pickup'),label('ย้ายตัวละคร','Move character')),take('caprii-visibility')].filter(Boolean);
  const personality=group('caprii-group-personality',label('นิสัยและเสียง','Personality & audio'),takeMany(['caprii-personality','caprii-response-length','caprii-speech','caprii-sound','caprii-idle-chatter']));
- const chrome=group('caprii-group-chrome',label('Chrome และเพลง','Chrome & music'),takeMany(['caprii-pair','caprii-extension','caprii-spotify-auto']));
+ const chrome=group('caprii-group-chrome',label('Chrome และเพลง','Chrome & music'),takeMany(['caprii-pair','caprii-forget-chrome','caprii-extension','caprii-spotify-auto']));
  let model=take('caprii-model');
  if(model?.submenu){
   const sections=[[]];for(const item of model.submenu){if(item.type==='separator')sections.push([]);else sections.at(-1).push(item);}

@@ -33,3 +33,5 @@ test('Spotify no-confirm review separates explicit play from opening-only autopl
 test('unified reply/action decision is reviewed separately from DOM evidence',()=>{assert.equal(suite.unifiedDecision.id,'one-ai-decision');assert.equal(suite.unifiedDecision.requests.length,4);assert.equal(suite.unifiedDecision.verification,'requires-model-and-action-review-not-measured-by-this-page');assert.equal(suite.cases.length,8);});
 
 test('interpretation training review does not award a DOM or production model score',()=>{assert.equal(suite.interpretationPractice.id,'context-and-ambiguity');assert.equal(suite.interpretationPractice.verification,'requires-model-and-action-review-not-measured-by-this-page');});
+
+test('persistent pairing review is separate from DOM scores',()=>{assert.equal(suite.persistentPairing.id,'chrome-restart-pairing');assert.equal(suite.persistentPairing.verification,'requires-native-and-extension-review-not-measured-by-this-page');});

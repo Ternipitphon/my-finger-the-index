@@ -1,0 +1,21 @@
+'use strict';
+const {app,safeStorage}=require('electron'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {createPairingStore}=require('../src/main/chrome-pairing'),{createChromeBroker}=require('../src/main/chrome-broker');
+let broker,dir;const deadline=setTimeout(()=>{console.error('Persistent pairing timeout');app.exit(1);},15000);
+app.whenReady().then(async()=>{
+ assert.equal(safeStorage.isEncryptionAvailable(),true,'OS key encryption must be available');
+ dir=fs.mkdtempSync(path.join(app.getPath('temp'),'caprii-native-pair-'));const file=()=>path.join(dir,'pair.json');
+ const makeStore=()=>createPairingStore({file,seal:value=>require('../src/main/setup').sealKey(value),open:value=>require('../src/main/setup').openKeys({pair:value}).pair});
+ let store=makeStore();const makeBroker=port=>createChromeBroker({port,extensionId:'fixture-extension',tokenProvider:options=>store.get(options),onRememberChange:on=>store.remember(on)});
+ broker=makeBroker(0);const first=await broker.start();
+ const post=(route,data,code=first.code)=>fetch('http://127.0.0.1:'+first.port+route,{method:'POST',headers:{Authorization:'Bearer '+code,'X-Caprii-Extension':'fixture-extension','Content-Type':'application/json',Connection:'close'},body:JSON.stringify(data)});
+ const connect=await post('/connect',{url:'https://open.spotify.com/',browserMode:true,transport:'worker',media:true,mediaVersion:2});assert.equal(connect.status,200);const prior=await connect.json();
+ assert.ok(!fs.readFileSync(file(),'utf8').includes(first.code));await broker.close();
+ store=makeStore();broker=makeBroker(first.port);const reopened=await broker.start();assert.equal(reopened.code,first.code);assert.equal(broker.status().browserMode,true);
+ assert.equal((await post('/ping',{session:prior.session})).status,409);
+ const current=await(await post('/connect',{url:'https://open.spotify.com/',automatic:true,transport:'worker',media:true,mediaVersion:2})).json();assert.notEqual(current.session,prior.session);
+ assert.equal((await(await post('/poll',{session:current.session})).json()).command,null,'old work is never replayed after restart');
+ await broker.revoke();assert.equal((await post('/connect',{url:'https://open.spotify.com/',automatic:true})).status,403);
+ await broker.close();fs.rmSync(dir,{recursive:true,force:true});clearTimeout(deadline);
+ console.log('PASS real Electron safeStorage encryption and fresh store/broker instances: same pairing key, new session, no stale work, persisted remembered mode, revoked key rejected. Physical Chrome restart not tested.');app.exit(0);
+}).catch(async error=>{console.error(error);if(broker)await broker.close();if(dir)fs.rmSync(dir,{recursive:true,force:true});clearTimeout(deadline);app.exit(1);});

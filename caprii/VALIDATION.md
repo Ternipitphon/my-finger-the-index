@@ -1,3 +1,7 @@
+# Caprii 0.8.13 validation
+
+Tests persistent encrypted key storage, fresh HTTP broker/store with remembered worker after app restart, Chrome session-storage reset, more than six offline failures, stale-session recovery, revoked token rejection, permission removal, incognito rejection and no background DOM injection. Native Windows pairing smoke uses actual Electron safeStorage and fresh store/server instances; physical Chrome restart and the user Spotify account remain outside the fixture. Existing Windows/menu/chat/browser/media/Lab checks required.
+
 # Caprii 0.8.12 validation
 
 Covers consent-scoped Chrome metadata, stripped query/fragment, absent/stale/credentialed connections, structured uncertainty blocking action, latest-user-only URL continuation, train/dev/test separation, trained checkpoint metrics and no production deployment. Exploratory Gemini pilot 7/10 vs 9/10 was before the URL fix and is not an independent final quality estimate. Neural route model held-out 32/42; all-connected stress 34/42. Existing native/browser/media/Lab checks remain required. No real account actions in training or benchmarks.

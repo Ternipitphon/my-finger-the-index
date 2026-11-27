@@ -52,7 +52,8 @@ let chatErrorCode = null; // 'nokey' or 'nourl': what her setup should ask for
 let cloud = { at: 0, account: null, free: [] };
 let emergencyStopReady = false;
 let spotifyConnecting=false;
-const chromeBroker=require('./chrome-broker').createChromeBroker({isBusy:()=>chats.size>0&&!(spotifyConnecting&&chats.size===1),handoffOrigin:()=>spotifyConnecting?'https://open.spotify.com':null});
+const chromePairing=require('./chrome-pairing').createPairingStore({file:()=>path.join(app.getPath('userData'),'chrome-pairing.json'),seal:value=>require('./setup').sealKey(value),open:value=>require('./setup').openKeys({chrome:value}).chrome});
+const chromeBroker=require('./chrome-broker').createChromeBroker({tokenProvider:options=>chromePairing.get(options),onRememberChange:on=>chromePairing.remember(on),isBusy:()=>chats.size>0&&!(spotifyConnecting&&chats.size===1),handoffOrigin:()=>spotifyConnecting?'https://open.spotify.com':null});
 const testLab=require('./test-lab').createTestLab({openExternal:url=>shell.openExternal(url)});
 let automaticActions = false; // Explicit tray opt-in; reset every app launch, never persisted.
 const chats = new Map(); // id -> AbortController of an answer being streamed
@@ -326,8 +327,9 @@ function rebuildTray() {
     { id:'caprii-version', label: 'Caprii ' + app.getVersion(), enabled: false },
     {id:'caprii-lab',label:'เปิดเว็บทดสอบ Caprii',click:async()=>{try{await testLab.open();}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดเว็บทดสอบไม่สำเร็จ',detail:err.message});}}},
     {id:'caprii-extension',label:'เปิดโฟลเดอร์ส่วนขยาย Chrome',click:()=>shell.openPath(app.isPackaged?path.join(process.resourcesPath,'browser-extension'):path.join(__dirname,'../../browser-extension'))},
+    {id:'caprii-forget-chrome',label:resolveLang(cfg.lang)==='en'?'Forget Chrome pairing…':'ลืมการจับคู่ Chrome…',click:async()=>{const answer=await dialog.showMessageBox({type:'question',message:'ลืมการจับคู่ Chrome?',detail:'ส่วนขยายที่จำไว้จะเชื่อมกลับไม่ได้จนกว่าจะจับคู่ใหม่',buttons:['ยกเลิก','ลืมการจับคู่'],defaultId:0,cancelId:0});if(answer.response!==1)return;try{await chromeBroker.revoke();}catch(err){await dialog.showMessageBox({type:'error',message:'ยังลืมการจับคู่ไม่ได้',detail:err.message});}}},
     {id:'caprii-pair',label:'เชื่อมแท็บ Chrome…',click:async()=>{
-      try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?(selected.responsive?'แท็บตอบรับอยู่: ':'มีการอนุญาตแท็บไว้ แต่กำลังรอสัญญาณ: ')+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nรหัสใช้เฉพาะรอบที่เปิดโปรแกรม ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
+      try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?(selected.responsive?'แท็บตอบรับอยู่: ':'มีการอนุญาตแท็บไว้ แต่กำลังรอสัญญาณ: ')+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nจับคู่ครั้งแรกครั้งเดียว เปิดโหมดจำ Chrome ในส่วนขยายแล้วเปิดแอปใหม่จะเชื่อมกลับเอง รหัสนี้ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
     }},
     {id:'caprii-speech',label:resolveLang(cfg.lang)==='en'?'Read dialogue aloud (English voice)':'อ่านบทพูดด้วยเสียงไทย',type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
     { id:'caprii-auto-actions', label:'โหมดไม่ถาม: จอ/เว็บ/เปิดไฟล์และโปรแกรม (จนปิด Caprii)', type:'checkbox', checked:automaticActions, click:item=>{
@@ -1305,6 +1307,8 @@ function main() {
     if (!['codex', 'claude'].includes(config.load().assistant)) config.save({ assistant: activeAssistant().id });
     serveProtocol();
     registerIpc();
+    // Listen at startup so a remembered extension can reconnect without opening the pairing menu.
+    chromeBroker.start().catch(()=>console.error('[caprii] Chrome pairing listener could not start; open Chrome pairing from the menu.'));
     createOverlay();
     createTray();
     windowWatch = startWindowWatch({

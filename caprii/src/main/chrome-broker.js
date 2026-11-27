@@ -3,7 +3,7 @@ const http=require('node:http');
 const {randomBytes,timingSafeEqual}=require('node:crypto');
 const {browserUrl}=require('./agent-browser');
 const identity=require('./extension-identity.json');
-function createChromeBroker({port=47824,token=randomBytes(32).toString('base64url'),extensionId=identity.id,timeoutMs=12000,now=Date.now,isBusy=()=>false,handoffOrigin=()=>null}={}){
+function createChromeBroker({port=47824,token=randomBytes(32).toString('base64url'),extensionId=identity.id,timeoutMs=12000,now=Date.now,isBusy=()=>false,handoffOrigin=()=>null,tokenProvider,onRememberChange}={}){
  let server,starting,connection=null,browserMode=false;const pending=new Map(),queue=[];
  const cancel=message=>{for(const p of pending.values())p.reject(Error(message));pending.clear();queue.length=0;};
  const status=()=>connection?{connected:true,browserMode,responsive:now()-connection.last<8000,url:connection.url,title:connection.title,media:connection.media,mediaVersion:connection.mediaVersion,worker:connection.worker}:{connected:false,browserMode,paired:!!connection};
@@ -21,9 +21,10 @@ function createChromeBroker({port=47824,token=randomBytes(32).toString('base64ur
    if(req.url==='/connect'){
     if(data.automatic===true&&(pending.size>0||isBusy()||(handoffOrigin()&&new URL(browserUrl(data.url)).origin!==handoffOrigin()))){res.writeHead(423);return res.end(JSON.stringify({error:'กำลังทำงานในแท็บเดิม'}));}
     const url=browserUrl(data.url);cancel('เชื่อมต่อแท็บใหม่แล้ว');
-    browserMode=data.browserMode===true||data.automatic===true;
+    const nextMode=data.browserMode===true||data.automatic===true;
+    await onRememberChange?.(nextMode);browserMode=nextMode;
     connection={session:randomBytes(16).toString('hex'),media:data.media===true,mediaVersion:data.mediaVersion===2?2:1,worker:data.transport==='worker',url,title:String(data.title||'').slice(0,200),last:now()};
-    return res.end(JSON.stringify({session:connection.session,browserMode:true,transport:connection.worker?'worker':'page'}));
+    return res.end(JSON.stringify({session:connection.session,browserMode,transport:connection.worker?'worker':'page'}));
    }
    if(!connection||data.session!==connection.session){res.writeHead(409);return res.end(JSON.stringify({error:'เชื่อมต่อใหม่ก่อน'}));}
    connection.last=now();
@@ -34,11 +35,22 @@ function createChromeBroker({port=47824,token=randomBytes(32).toString('base64ur
     const p=pending.get(data.id);if(p){pending.delete(data.id);data.error?p.reject(Error(String(data.error).slice(0,600))):p.resolve(data.result);}
     return res.end('{}');
    }
-   if(req.url==='/disconnect'){cancel('ตัดการเชื่อมต่อ Chrome แล้ว');connection=null;if(!data.keepBrowser)browserMode=false;return res.end('{}');}
+   if(req.url==='/disconnect'){cancel('ตัดการเชื่อมต่อ Chrome แล้ว');connection=null;if(!data.keepBrowser){await onRememberChange?.(false);browserMode=false;}return res.end('{}');}
    res.writeHead(404);res.end('{}');
   }catch(err){res.writeHead(400);res.end(JSON.stringify({error:String(err.message).slice(0,600)}));}
  }
- async function start(){if(server?.listening)return{port:server.address().port,code:token};if(starting)return starting;starting=new Promise((resolve,reject)=>{server=http.createServer(handle);server.once('error',reject);server.listen(port,'127.0.0.1',()=>{server.unref();resolve({port:server.address().port,code:token});});});try{return await starting;}finally{starting=null;}}
+ async function start(){
+  if(server?.listening)return{port:server.address().port,code:token};if(starting)return starting;
+  starting=(async()=>{if(tokenProvider){const saved=await tokenProvider();token=saved.token;browserMode=saved.browserMode===true;}
+   return new Promise((resolve,reject)=>{server=http.createServer(handle);server.once('error',reject);server.listen(port,'127.0.0.1',()=>{server.unref();resolve({port:server.address().port,code:token});});});
+  })();try{return await starting;}finally{starting=null;}
+ }
+ async function revoke(){
+  if(isBusy()||pending.size)throw Error('หยุดงานก่อนลืมการจับคู่ Chrome');
+  cancel('ลืมการจับคู่ Chrome แล้ว');connection=null;browserMode=false;
+  token=randomBytes(32).toString('base64url');
+  if(tokenProvider){const saved=await tokenProvider({rotate:true});token=saved.token;}
+ }
  async function command(op,args,signal){
   signal?.throwIfAborted();if(!status().connected)throw Error('ยังไม่ได้เชื่อมแท็บ Chrome เปิดส่วนขยายแล้วเชื่อมแท็บที่ต้องการ');
   if(!['read','type','click','select','check','verify','expect','spotify','media-navigate'].includes(op))throw Error('Unsupported browser command');
@@ -63,6 +75,6 @@ function createChromeBroker({port=47824,token=randomBytes(32).toString('base64ur
    close:async()=>{cancel('จบงานแล้ว');},
   };
  }
- return{start,status,browser,close:async()=>{cancel('ปิดการเชื่อมต่อแล้ว');connection=null;if(server?.listening)await new Promise(r=>server.close(r));}};
+ return{start,status,browser,revoke,close:async()=>{cancel('ปิดการเชื่อมต่อแล้ว');connection=null;if(server?.listening)await new Promise(r=>server.close(r));}};
 }
 module.exports={createChromeBroker};
