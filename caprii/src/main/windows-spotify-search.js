@@ -3,9 +3,10 @@ const path=require('node:path');
 const {runProcess,scriptEnvironment}=require('./agent-process');
 const {state}=require('./windows-spotify');
 const norm=s=>String(s||'').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase();
+function artistText(value){return norm(value).replace(/^(?:song|เพลง)\s*[•·]\s*/, '');}
 function select(rows,query,artist){
  if(!Array.isArray(rows)||rows.length>60)throw Error('Invalid search results');
- const matches=rows.filter(r=>r&&typeof r.id==='string'&&((typeof r.button==='string'&&typeof r.buttonName==='string')||(r.button===null&&r.buttonName===null))&&Array.isArray(r.texts)&&r.texts.length<=200&&r.texts.every(t=>typeof t==='string'&&t.length<=500)&&r.texts.some(t=>norm(t)===norm(query))&&(!artist||r.texts.some(t=>norm(t)===norm(artist))));
+ const matches=rows.filter(r=>r&&typeof r.id==='string'&&((typeof r.button==='string'&&typeof r.buttonName==='string')||(r.button===null&&r.buttonName===null))&&Array.isArray(r.texts)&&r.texts.length<=200&&r.texts.every(t=>typeof t==='string'&&t.length<=500)&&r.texts.some(t=>norm(t)===norm(query))&&(!artist||r.texts.some(t=>artistText(t)===norm(artist))));
  // Keep Spotify's visible top-to-bottom result order; an explicit artist is a constraint.
  return matches[0]||null;
 }
@@ -19,20 +20,26 @@ async function searchWindowsSpotify({query,artist,lang='th',platform=process.pla
   onProgress(en?'Searching in the Spotify app…':'กำลังค้นเพลงในแอป Spotify…');
   signal?.throwIfAborted();await open('spotify:search:'+encodeURIComponent(query+(artist?' '+artist:'')));
   let snapshot,row;
-  for(let i=0;i<8;i++){signal?.throwIfAborted();await sleep(500);snapshot=await call('windows-spotify-search.ps1',{kind:'inspect'});if(snapshot.ok===true&&typeof snapshot.window==='string'){row=select(snapshot.rows,query,artist);if(row?.button)break;}}
+  for(let i=0;i<8;i++){signal?.throwIfAborted();await sleep(500);snapshot=await call('windows-spotify-search.ps1',{kind:'inspect',query});if(snapshot.ok===true&&typeof snapshot.window==='string'){row=select(snapshot.rows,query,artist);if(row?.button)break;}}
   if(!row)return fail('spotify_search_no_match','ยังไม่พบเพลงชื่อตรงในผลค้นหา Spotify ลองตรวจชื่อเพลงอีกครั้ง','No matching song title was found in Spotify. Check the song name.');
-  if(!row.button)return fail('spotify_search_control_unavailable','พบเพลงตรงชื่อบนสุดแล้ว แต่ Spotify ยังไม่เปิดปุ่ม Play ให้ใช้งาน จึงยังเล่นไม่ได้','The top matching song was found, but Spotify has not exposed its Play control.');
-  onProgress(en?'Playing the matching Spotify result…':'กำลังเล่นผลค้นหาที่ตรงใน Spotify…');
-  const invoked=await call('windows-spotify-search.ps1',{kind:'invoke',window:snapshot.window,row});
-  if(invoked.ok!==true||invoked.invoked!==true)return fail('spotify_search_changed','ผลค้นหาหรือหน้าต่างเปลี่ยน จึงยังไม่กดเล่น','The result or window changed; playback was not invoked.');
+  async function observePlaying(maxChecks,alreadyPlaying){
   let consecutive=0,last;
-  for(let i=0;i<8;i++){
+  for(let i=0;i<maxChecks;i++){
    signal?.throwIfAborted();await sleep(400);const r=await call('windows-spotify.ps1',{action:'inspect'});
    if(r.ok!==true){consecutive=0;continue;}
-   const s=state(r.session),matches=norm(s.title)===norm(query)&&(artist?norm(s.artist)===norm(artist):!!s.artist&&row.texts.some(t=>norm(t)===norm(s.artist)));
+   const s=state(r.session),matches=norm(s.title)===norm(query)&&(artist?norm(s.artist)===norm(artist):!!s.artist&&row.texts.some(t=>artistText(t)===norm(s.artist)));
    consecutive=matches&&s.status==='Playing'&&(!last||last.sourceAppId===s.sourceAppId)?consecutive+1:0;last=s;
-   if(consecutive>=2)return{ok:true,verified:true,audioVerified:false,backend:'windows-smtc',verification:'windows-session-status',track:s.title,artists:s.artist?[s.artist]:[],text:(en?'Spotify reports playing: ':'แอป Spotify แสดงสถานะกำลังเล่น: ')+s.title+(s.artist?' — '+s.artist:'')+(en?'. Speaker output is not verified.':' ยังตรวจเสียงลำโพงไม่ได้'),evidence:{sourceAppId:s.sourceAppId,status:s.status,selection:'first-matching-visible-result'}};
+   if(consecutive>=2)return{ok:true,verified:true,audioVerified:false,backend:'windows-smtc',verification:'windows-session-status',track:s.title,artists:s.artist?[s.artist]:[],text:(alreadyPlaying?(en?'This song is already playing in Spotify: ':'เพลงนี้กำลังเล่นอยู่ใน Spotify แล้ว: '):(en?'Spotify reports playing: ':'แอป Spotify แสดงสถานะกำลังเล่น: '))+s.title+(s.artist?' — '+s.artist:'')+(en?'. Speaker output is not verified.':' ยังตรวจเสียงลำโพงไม่ได้'),evidence:{sourceAppId:s.sourceAppId,status:s.status,selection:'first-matching-visible-result',alreadyPlaying}};
   }
+  return null;
+  }
+  // A visible Pause button is not an absent player: verify a matching track before any mutation.
+  const alreadyPlaying=await observePlaying(2,true);if(alreadyPlaying)return alreadyPlaying;
+  if(!row.button)return fail('spotify_search_control_unavailable','พบเพลงตรงชื่อบนสุด แต่ยังอ่านปุ่ม Play ของแถวหรือการ์ดผลค้นหาไม่ได้ และยังยืนยันว่าเพลงนั้นกำลังเล่นไม่ได้','The top matching song was found, but neither its row nor card Play control is available, and matching playback is not confirmed.');
+  onProgress(en?'Playing the matching Spotify result…':'กำลังเล่นผลค้นหาที่ตรงใน Spotify…');
+  const invoked=await call('windows-spotify-search.ps1',{kind:'invoke',query,window:snapshot.window,row});
+  if(invoked.ok!==true||invoked.invoked!==true)return fail('spotify_search_changed','ผลค้นหาหรือหน้าต่างเปลี่ยน จึงยังไม่กดเล่น','The result or window changed; playback was not invoked.');
+  const playing=await observePlaying(8,false);if(playing)return playing;
   return fail('spotify_search_not_confirmed','กดผลค้นหาครั้งเดียวแล้ว แต่ยังไม่ยืนยันว่าเพลงที่ขอกำลังเล่น จึงไม่กดซ้ำ','The matching result was invoked once, but playback of the requested song is not confirmed. It was not repeated.');
  }catch(error){if(signal?.aborted)throw signal.reason;return fail('spotify_search_ui_unavailable','Spotify ยังไม่เปิดข้อมูลปุ่มค้นหาให้ใช้งาน ลองเปิดแอปและเข้าสู่ระบบก่อน การเล่นต่อ/หยุดยังใช้ได้ตามเดิม','Spotify search controls are unavailable. Open the app and sign in. Current-track controls remain available.');}
 }

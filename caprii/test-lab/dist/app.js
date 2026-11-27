@@ -3,7 +3,7 @@
  const suite=window.CAPRII_SUITE,$=id=>document.getElementById(id),states=new Map();
  let active=suite.cases[0].id,filter='all';
  const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- if(suite.spotifyDesktopSearch){const note=document.createElement('p');note.className='hint';note.textContent='Spotify Desktop เลือกเพลงตรงชื่อบนสุด (ทดลอง): '+suite.spotifyDesktopSearch.prompts[0]+' — ต้องตรวจผลในแอป Windows จริง หน้าเว็บนี้ไม่ให้คะแนนการเล่นเพลง';document.body.append(note);}
+ if(suite.spotifyDesktopSearch){const note=document.createElement('p');note.className='hint';note.textContent='Spotify Desktop อ่านปุ่มบนการ์ดและตรวจเพลงที่เล่นอยู่ (ทดลอง): '+suite.spotifyDesktopSearch.prompts[0]+' — ต้องตรวจผลในแอป Windows จริง หน้าเว็บนี้ไม่ให้คะแนนการเล่นเพลง';document.body.append(note);}
  const sessionId=crypto.randomUUID?.()||'lab-'+Date.now();
  function newState(id){return {id,runId:crypto.randomUUID?.()||String(Date.now()+Math.random()),status:'waiting',checks:[false,false,false],message:'รอการลงมือบนพื้นที่ทดสอบ',events:[],values:{},submissions:0,pending:false,swapped:false,a:7+Math.floor(Math.random()*8),b:3+Math.floor(Math.random()*7),c:1+Math.floor(Math.random()*9),startedAt:new Date().toISOString()};}
  function state(id=active){if(!states.has(id))states.set(id,newState(id));return states.get(id);}
