@@ -17,7 +17,7 @@ test('test server serves the lab, rejects writes, and never exposes repository f
  assert.equal((await fetch(base+'/server.mjs')).status,404);assert.equal((await fetch(base+'/../package.json')).status,404);assert.equal((await fetch(base,{method:'POST'})).status,405);
 });
 
-test('external media examples have stable IDs and never claim DOM playback verification',()=>{assert.equal(suite.browserConnection.id,'remember-chrome');assert.equal(suite.browserConnection.status,'not-measured-by-this-page');assert.equal(suite.externalMedia.length,8);assert.equal(new Set(suite.externalMedia.map(x=>x.id)).size,8);for(const e of suite.externalMedia)assert.ok(e.prompt&&e.expected);});
+test('external media examples have stable IDs and never claim DOM playback verification',()=>{assert.equal(suite.browserConnection.id,'remember-chrome');assert.equal(suite.browserConnection.status,'not-measured-by-this-page');assert.equal(suite.externalMedia.length,9);assert.equal(new Set(suite.externalMedia.map(x=>x.id)).size,9);for(const e of suite.externalMedia)assert.ok(e.prompt&&e.expected);});
 
 test('agent execution contracts remain distinct from observed DOM scores',()=>{assert.equal(suite.agentExecution.length,4);for(const item of suite.agentExecution)assert.equal(item.verification,'requires-agent-run-not-measured-by-this-page');});
 test('personality review remains separate from DOM scores',()=>{assert.equal(suite.personality.id,'normal');assert.equal(suite.personality.verification,'requires-chat-review-not-measured-by-this-page');assert.equal(suite.cases.some(c=>c.id==='normal'),false);});

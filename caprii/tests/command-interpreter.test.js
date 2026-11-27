@@ -40,3 +40,15 @@ test('chat-only decisions, failed interpretation and closing prevent any legacy 
 test('canonical website capability map matches the legacy destinations without parsing user command words',async()=>{
  const legacy=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/command-intent.js')));assert.deepEqual(require('../src/shared/website-destinations.json'),legacy.WEBSITE_URLS);
 });
+
+test('an explicit generic play reaches playback without the website/autoplay preference path in Thai and English',async()=>{
+ const {Chat}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/chat.js')));
+ for(const text of ['เปิดเพลง','turn on some music','เปิดเพลงล่าสุดที่ค้างอยู่']){
+  const calls=[];const c=fixture(Chat,{commandInterpret:async()=>({ok:true,route:'media',media:{service:'spotify',action:'play',collection:'current'}}),openSite(){throw Error('No website confirmation');},mediaRun:async r=>{calls.push(r);return{text:'fixture'};}});c.spotifyAutoPlay=false;await c.send(text);assert.equal(calls.length,1);assert.equal(calls[0].autoOpen,undefined);assert.equal(calls[0].media.collection,'current');
+ }
+ let prompt='';await call({route:'media',confidence:.99,media:{service:'spotify',action:'play',collection:'current'}},{text:'เปิดเพลง',request:async messages=>{prompt=messages[0].content;return JSON.stringify({route:'media',confidence:.99,media:{service:'spotify',action:'play',collection:'current'}});}});assert.match(prompt,/Do not ask which song/);assert.match(prompt,/takes precedence over the autoplay preference/);
+});
+test('AI website Spotify root also reaches media before any generic website confirmation',async()=>{
+ const {Chat}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/chat.js')));let calls=0;
+ const c=fixture(Chat,{commandInterpret:async()=>({ok:true,route:'website',website:{name:'spotify',url:'https://open.spotify.com/'}}),openSite(){throw Error('No generic website dialog');},mediaRun:async r=>{calls++;assert.equal(r.autoOpen,true);assert.equal(r.alreadyOpened,undefined);return{text:'fixture'};}});await c.send('เปิด Spotify');assert.equal(calls,1);assert.equal(c.turn,0);
+});

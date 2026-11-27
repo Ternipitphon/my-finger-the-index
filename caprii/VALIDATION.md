@@ -1,3 +1,7 @@
+# Caprii 0.8.10 validation
+
+Regression tests exercise actual Chat and media IPC handler: Spotify root bypasses generic website confirmation, backend autoplay defaults work before renderer config sync, disabled autoplay still opens, explicit play ignores opening-only preference, deep links and other websites retain existing behavior. Thai/English model guidance resumes current without unnecessary title clarification. Existing player/time/audio and Chrome reconnect checks remain required. No real Spotify account or speaker output is verified by fixtures.
+
 # Caprii 0.8.9 validation
 
 Checks Playful-only choom guidance, isolated-repair profile propagation, exclusion from Normal/Caring, literal user/image prompt preservation and language recognition for the nickname without accepting unrelated English prose as Thai. Existing exact-value, reply-repair, menu, media and Windows checks remain required. Generated phrasing remains model-dependent.

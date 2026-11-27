@@ -357,10 +357,15 @@ export class Chat {
     if (website) {
       if(website.question){this.panel.stream(this.brain.lang==='en'?'Please provide the website URL or domain so I can open the correct site.':website.question,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
       try {
+        if(new URL(website.url).origin==='https://open.spotify.com'&&new URL(website.url).pathname==='/'){
+          this.lastMedia={service:'spotify',action:'play',collection:'current'};
+          const result=await this.host.mediaRun({id,media:this.lastMedia,autoOpen:true});
+          if(this.turn===id)this.panel.stream(result.text,{done:true});
+          return;
+        }
         const opened = await this.host.openSite(website.url);
         if(opened&&new URL(website.url).hostname==='open.spotify.com'){
           this.lastMedia={service:'spotify',action:'play',collection:'current'};
-          if(this.spotifyAutoPlay===true&&new URL(website.url).pathname==='/'){const result=await this.host.mediaRun({id,media:this.lastMedia,autoOpen:true,alreadyOpened:true});if(this.turn===id)this.panel.stream(result.text,{done:true});return;}
         }
         if (this.turn === id) this.panel.stream(this.brain.lang==='en'?(opened?`Sent ${website.name} to your default browser.`:`${website.name} was not opened — canceled or failed.`):(opened ? `ส่งคำขอเปิด ${website.name} ในเบราว์เซอร์แล้ว` : `ยังไม่ได้เปิด ${website.name} — ถูกยกเลิกหรือเปิดไม่สำเร็จ`), { done: true });
       } catch {

@@ -1071,7 +1071,9 @@ function registerIpc() {
     if(e.sender!==overlay?.webContents||!Number.isSafeInteger(request.id))return{ok:false,text:'Invalid media request'};
     if(chats.size)return{ok:false,text:'มีงานอื่นกำลังทำอยู่ รอสักครู่ก่อนเล่นเพลง'};
     const {validateMedia,destination,runSpotify}=require('./media-player');let media;
-    if(request.autoOpen===true&&config.load().spotifyAutoPlay===false)return{ok:true,text:'เปิด Spotify แล้ว ปิดการเล่นอัตโนมัติไว้'};
+    if(request.autoOpen===true&&config.load().spotifyAutoPlay===false){
+      try{const opened=await require('./launch').site('https://open.spotify.com/');return{ok:opened,text:opened?'เปิด Spotify แล้ว ปิดการเล่นอัตโนมัติไว้':'เปิด Spotify ไม่สำเร็จ'};}catch{return{ok:false,text:'เปิด Spotify ไม่สำเร็จ'};}
+    }
     try{media=validateMedia(request.autoOpen===true?{service:'spotify',action:'play',collection:'current'}:request.media);}catch(error){return{ok:false,text:error.message};}
     const abort=new AbortController();chats.set(request.id,abort);const signal=AbortSignal.any([abort.signal,AbortSignal.timeout(90000)]);
     try{
