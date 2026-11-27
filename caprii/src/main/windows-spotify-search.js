@@ -14,8 +14,9 @@ function artistEvidence(row,value){
 function select(rows,query,artist){
  if(!Array.isArray(rows)||rows.length>60)throw Error('Invalid search results');
  const matches=rows.filter(r=>r&&typeof r.id==='string'&&((typeof r.button==='string'&&typeof r.buttonName==='string')||(r.button===null&&r.buttonName===null))&&Array.isArray(r.texts)&&r.texts.length<=200&&r.texts.every(t=>typeof t==='string'&&t.length<=500)&&r.texts.some(t=>titleKey(t)===titleKey(query))&&(!artist||artistEvidence(r,artist)));
- // Keep Spotify's visible top-to-bottom result order; an explicit artist is a constraint.
- return matches[0]||null;
+ // Spotify's promoted result card takes precedence over ordinary cover rows.
+ // Never infer popularity/original recording from the currently playing session.
+ return matches.find(r=>r.kind==='card')||matches[0]||null;
 }
 async function searchWindowsSpotify({query,artist,lang='th',platform=process.platform,open,signal,onProgress=()=>{},run=runProcess,sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}){
  const en=lang==='en';
@@ -48,7 +49,7 @@ async function searchWindowsSpotify({query,artist,lang='th',platform=process.pla
    if(r.ok!==true){consecutive=0;continue;}
    const s=state(r.session),matches=titleKey(s.title)===titleKey(query)&&!!s.artist&&artistEvidence(row,s.artist)&&(!artist||artistText(s.artist)===artistText(artist)||artistEvidence({texts:artistText(s.artist).split(/\s*[,;]\s*|\s+&\s+/)},artist));
    consecutive=matches&&s.status==='Playing'&&(!last||last.sourceAppId===s.sourceAppId)?consecutive+1:0;last=s;
-   if(consecutive>=2)return{ok:true,verified:true,audioVerified:false,backend:'windows-smtc',verification:'windows-session-status',track:s.title,artists:s.artist?[s.artist]:[],text:(alreadyPlaying?(en?'This song is already playing in Spotify: ':'เพลงนี้กำลังเล่นอยู่ใน Spotify แล้ว: '):(en?'Spotify reports playing: ':'แอป Spotify แสดงสถานะกำลังเล่น: '))+s.title+(s.artist?' — '+s.artist:'')+(en?'. Speaker output is not verified.':' ยังตรวจเสียงลำโพงไม่ได้'),evidence:{sourceAppId:s.sourceAppId,status:s.status,selection:'first-matching-visible-result',alreadyPlaying}};
+   if(consecutive>=2)return{ok:true,verified:true,audioVerified:false,backend:'windows-smtc',verification:'windows-session-status',track:s.title,artists:s.artist?[s.artist]:[],text:(alreadyPlaying?(en?'This song is already playing in Spotify: ':'เพลงนี้กำลังเล่นอยู่ใน Spotify แล้ว: '):(en?'Spotify reports playing: ':'แอป Spotify แสดงสถานะกำลังเล่น: '))+s.title+(s.artist?' — '+s.artist:'')+(en?'. Speaker output is not verified.':' ยังตรวจเสียงลำโพงไม่ได้'),evidence:{sourceAppId:s.sourceAppId,status:s.status,selection:row.kind==='card'?'promoted-matching-card':'first-matching-visible-row',alreadyPlaying}};
   }
   return null;
   }

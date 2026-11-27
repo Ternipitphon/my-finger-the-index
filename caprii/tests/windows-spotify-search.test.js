@@ -73,3 +73,12 @@ test('an uncertain query correction is never retried or followed by playback',as
 test('an already visible matching song can play immediately without editing an encoded search field',async()=>{
  const calls=[];let invoked=false;const r=await searchWindowsSpotify({query:'long song',platform:'win32',open:async()=>{},sleep:async()=>{},run:async(_f,_a,o)=>{const q=JSON.parse(o.input);calls.push(q);if(q.kind==='invoke')invoked=true;return{passed:true,stdout:JSON.stringify(q.kind==='inspect'?{ok:true,window:'w',rows:[{...row(),texts:['long song','Artist']}],search:{id:'field',value:'long+song',needsCorrection:true}}:q.kind==='invoke'?{ok:true,invoked:true}:{ok:true,session:session(invoked?{title:'long song',artist:'Artist'}:{title:'Magnolia',artist:'Magnolia Celebration'})})};}});assert.equal(r.verified,true);assert.equal(calls.filter(q=>q.kind==='prepare').length,0);assert.equal(calls.filter(q=>q.kind==='invoke').length,1);
 });
+
+test('a promoted matching card wins over cover rows regardless of enumeration order or the song currently playing',async()=>{
+ const title='I Really Want to Stay at Your House',cover={...row('厌倦伦','cover'),texts:[title,'厌倦伦']},card={...row('Rosa Walton','original'),kind:'card',texts:[title,'Rosa Walton','Hallie Coggins']};
+ assert.equal(select([cover,card],title).id,'original');assert.equal(select([card,cover],title,'厌倦伦').id,'cover');
+ for(const actualArtist of ['Rosa Walton, Hallie Coggins','厌倦伦']){
+  let invoked=false;const selected=[];const r=await searchWindowsSpotify({query:title,platform:'win32',open:async()=>{},sleep:async()=>{},run:async(_f,_a,o)=>{const q=JSON.parse(o.input);let data;if(q.kind==='inspect')data={ok:true,window:'w',rows:[cover,card]};else if(q.kind==='invoke'){selected.push(q.row.id);invoked=true;data={ok:true,invoked:true};}else data={ok:true,session:session({title,artist:invoked?actualArtist:'厌倦伦'})};return{passed:true,stdout:JSON.stringify(data)};}});
+  assert.deepEqual(selected,['original']);assert.equal(r.verified,actualArtist!=='厌倦伦');
+ }
+});

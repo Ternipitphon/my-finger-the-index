@@ -60,31 +60,46 @@ function Set-CapriiSpotifySearch($root,$expected,[string]$query,[scriptblock]$gu
 }
 function Get-CapriiSpotifyParts($container) {
  $children = $container.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
- $texts = @(); $buttons = @(); $transport = $false
+ $texts = @(); $buttons = @(); $transport = $false; $textPositions=@()
  foreach ($child in $children) {
   $info = $child.Current
   if ($info.IsPassword -or $info.IsOffscreen -or -not $info.IsEnabled) { continue }
   if ($info.ControlType -eq [System.Windows.Automation.ControlType]::Slider -or ($info.ControlType -eq [System.Windows.Automation.ControlType]::Button -and $info.Name -match '^(Next|Previous|Shuffle|Repeat|Mute|Volume|เพลงถัดไป|เพลงก่อนหน้า|สุ่ม|เล่นซ้ำ|ระดับเสียง)')) { $transport = $true }
   if ($info.ControlType -eq [System.Windows.Automation.ControlType]::Text -or $info.ControlType -eq [System.Windows.Automation.ControlType]::Hyperlink) {
-   if ($info.Name -and $info.Name.Length -le 500) { $texts += $info.Name }
+   if ($info.Name -and $info.Name.Length -le 500) { $texts += $info.Name;$box=$info.BoundingRectangle;if (-not $box.IsEmpty -and $box.Width -gt 0 -and $box.Height -gt 0 -and -not [double]::IsInfinity($box.Top)) { $textPositions+=@{text=$info.Name;top=$box.Top;left=$box.Left} } }
   }
   if ($info.ControlType -eq [System.Windows.Automation.ControlType]::Button -or $info.ControlType -eq [System.Windows.Automation.ControlType]::Custom) { if ($null -ne (Get-CapriiSpotifyPlayAction $child)) { $buttons += $child } }
  }
- return @{texts=@($texts | Select-Object -Unique);buttons=@($buttons);transport=$transport;size=$children.Count}
+ return @{texts=@($texts | Select-Object -Unique);buttons=@($buttons);transport=$transport;positions=@($textPositions);size=$children.Count}
 }
-function New-CapriiSpotifyCandidate($node,$parts,$kind) {
+function New-CapriiSpotifyCandidate($node,$parts,$kind,[string]$query) {
  $button=$null;$buttonId=$null;$buttonName=$null;$action=$null;$defaultAction=''
  if ($parts.buttons.Count -eq 1) { $button=$parts.buttons[0];$buttonId=($button.GetRuntimeId() -join ',');$support=Get-CapriiSpotifyPlayAction $button;$buttonName=$support.label;$action=$support.method;$defaultAction=$support.defaultAction }
- return @{id=($node.GetRuntimeId() -join ',');kind=$kind;action=$action;defaultAction=$defaultAction;texts=@($parts.texts);button=$buttonId;buttonName=$buttonName;top=$node.Current.BoundingRectangle.Top;left=$node.Current.BoundingRectangle.Left;playNode=$button}
+ $titlePositions=@($parts.positions | Where-Object { (ConvertTo-CapriiSongTitle $_.text) -ceq (ConvertTo-CapriiSongTitle $query) } | Sort-Object top,left)
+ if ($parts.texts.Count -lt 2 -or $titlePositions.Count -eq 0) { return $null }
+ # A container spanning several same-title songs is not one selectable song.
+ if ($titlePositions[-1].top-$titlePositions[0].top -gt 24) { return $null }
+ $anchor=@($titlePositions | Select-Object -First 1)
+ if ($anchor.Count -ne 1) { return $null }
+ return @{id=($node.GetRuntimeId() -join ',');kind=$kind;action=$action;defaultAction=$defaultAction;texts=@($parts.texts);button=$buttonId;buttonName=$buttonName;top=$anchor[0].top;left=$anchor[0].left;playNode=$button}
+}
+function Test-CapriiSpotifyPlayerRegion($node,$root) {
+ $walker=[System.Windows.Automation.TreeWalker]::ControlViewWalker
+ for ($i=0;$i -lt 16 -and $null -ne $node -and -not $node.Equals($root);$i++) {
+  $info=$node.Current
+  if ($info.ControlType -ne [System.Windows.Automation.ControlType]::Window -and ($info.Name -match '^(Now playing|Currently playing|กำลังเล่น|Lyrics|เนื้อเพลง|Credits|เครดิต|About the artist|เกี่ยวกับศิลปิน)(\b|$)' -or $info.AutomationId -match 'now.?playing|lyrics|credits')) { return $true }
+  $node=$walker.GetParent($node)
+ }
+ return $false
 }
 function Get-CapriiSpotifyCandidates($root,[string]$query) {
  $results=New-Object System.Collections.ArrayList
  $rows=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::DataItem))
  foreach ($row in $rows) {
   if ($results.Count -ge 60) { break }
-  if ($row.Current.IsOffscreen -or -not $row.Current.IsEnabled) { continue }
+  if ($row.Current.IsOffscreen -or -not $row.Current.IsEnabled -or (Test-CapriiSpotifyPlayerRegion $row $root)) { continue }
   $parts=Get-CapriiSpotifyParts $row
-  if ($parts.texts.Count) { [void]$results.Add((New-CapriiSpotifyCandidate $row $parts 'row')) }
+  if ($parts.texts.Count) { $candidate=New-CapriiSpotifyCandidate $row $parts 'row' $query;if ($null -ne $candidate) { [void]$results.Add($candidate) } }
  }
  # Top-result cards expose their Play outside the DataItem song rows.
  # Find its nearest small ancestor with this exact title, never the footer transport.
@@ -92,7 +107,7 @@ function Get-CapriiSpotifyCandidates($root,[string]$query) {
  $walker=[System.Windows.Automation.TreeWalker]::ControlViewWalker
  foreach ($button in $allButtons) {
   if ($results.Count -ge 60) { break }
-  if ($null -eq (Get-CapriiSpotifyPlayAction $button)) { continue }
+  if ($null -eq (Get-CapriiSpotifyPlayAction $button) -or (Test-CapriiSpotifyPlayerRegion $button $root)) { continue }
   $node=$button
   for ($depth=0;$depth -lt 12;$depth++) {
    $node=$walker.GetParent($node)
@@ -104,13 +119,13 @@ function Get-CapriiSpotifyCandidates($root,[string]$query) {
    $sameTitle=@($parts.texts | Where-Object { (ConvertTo-CapriiSongTitle $_) -ceq (ConvertTo-CapriiSongTitle $query) })
    if ($sameTitle.Count -eq 0) { continue }
    if ($parts.buttons.Count -ne 1 -or -not $parts.buttons[0].Equals($button)) { break }
-   $candidate=New-CapriiSpotifyCandidate $node $parts 'card'
-   if (-not @($results | Where-Object { $_.button -eq $candidate.button }).Count) { [void]$results.Add($candidate) }
+   $candidate=New-CapriiSpotifyCandidate $node $parts 'card' $query
+   if ($null -ne $candidate -and -not @($results | Where-Object { $_.button -eq $candidate.button }).Count) { [void]$results.Add($candidate) }
    break
   }
  }
  # Screen positions only establish order. They are never used as click coordinates.
- $ordered=@($results | Sort-Object top,left)
+ $ordered=@($results | Sort-Object top,left,@{Expression={$_.texts.Count}})
  for ($i=0;$i -lt $ordered.Count;$i++) { $ordered[$i].order=$i }
  return $ordered
 }
