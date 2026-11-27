@@ -725,7 +725,6 @@ function createTray() {
 }
 
 function registerIpc() {
-  const semanticChats=new Map();
   ipcMain.on('overlay:interactive', (e, on) => {
     if(e.sender===overlay?.webContents)overlayInput.setInteractive(on);
   });
@@ -893,8 +892,36 @@ function registerIpc() {
     if(event.sender!==overlay?.webContents||chats.size||!Number.isSafeInteger(request.id)||typeof request.text!=='string'||request.text.length>8000||typeof (request.previous??'')!=='string'||(request.previous||'').length>8000)return{ok:false,error:'Invalid or concurrent command interpretation'};
     const abort=new AbortController();chats.set(request.id,abort);
     try{const cfg=config.load();if(cfg.provider==='claude')return{ok:false,error:'Claude Code uses its own agent. Reopen chat after changing provider.'};
-      const result=await require('./command-interpreter').interpretCommand({text:request.text,previous:request.previous||'',media:request.media,connected:chromeBroker.status().connected===true,lang:resolveLang(cfg.lang),personality:cfg,signal:abort.signal,request:async(messages,signal)=>{if(!chatModels?.length)await refreshModels();signal.throwIfAborted();return llm.chat(cfg.provider,llmConfig(cfg),{model:pickModel(cfg),messages,jsonMode:true},()=>{},signal);}});
-      if(result.route==='chat'){if(semanticChats.size>=64)semanticChats.delete(semanticChats.keys().next().value);semanticChats.set(request.id,{text:request.text,expires:Date.now()+30000});}
+      const signal=AbortSignal.any([abort.signal,AbortSignal.timeout(cfg.modelProfile==='quality'?60000:30000)]);
+      let chosen,modelRequests=0;
+      const ask=(model,messages,jsonMode,bounded)=>{
+        if(++modelRequests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});
+        return llm.chat(cfg.provider,llmConfig(cfg),{model,messages,jsonMode},()=>{},bounded);
+      };
+      const result=await require('./command-interpreter').interpretCommand({
+        text:request.text,history:request.history,profile:cfg,previous:request.previous||'',media:request.media,
+        connected:chromeBroker.status().connected===true,lang:resolveLang(cfg.lang),personality:cfg,signal,
+        timeoutMs:cfg.modelProfile==='quality'?60000:30000,
+        request:async(messages,bounded)=>{
+          if(!chatModels?.length)await refreshModels();bounded.throwIfAborted();
+          const selected=pickModel(cfg);
+          const answer=await require('./chat-runner').runChat({
+            models:require('./model-profiles').fallbackModels({provider:cfg.provider,selected,models:chatModels||[]}),
+            signal:bounded,timeoutMs:cfg.modelProfile==='quality'?60000:30000,
+            request:(model,_delta,attemptSignal)=>ask(model,messages,true,attemptSignal),
+          });
+          chosen=answer.model;return answer.text;
+        },
+      });
+      if(result.route==='chat'){
+        // Validate the existing final answer; only an invalid wording/language draft needs another request.
+        let first=true;
+        result.reply=await require('./thai-language').thaiResponse({
+          messages:[],personality:cfg,lang:resolveLang(cfg.lang),
+          request:fixed=>{signal.throwIfAborted();if(first){first=false;return Promise.resolve(result.reply);}return ask(chosen||pickModel(cfg),fixed,undefined,signal);},
+        });
+        signal.throwIfAborted();
+      }
       return{ok:true,...result};
     }catch(error){return{ok:false,error:abort.signal.aborted?'หยุดงานแล้ว':error.message};}finally{chats.delete(request.id);}
   });
@@ -909,10 +936,9 @@ function registerIpc() {
     }catch(error){return{ok:false,error:abort.signal.aborted?'หยุดงานแล้ว':error.message};}
     finally{chats.delete(request.id);}
   });
-  ipcMain.handle('chat:send', async (_e, { id, messages, semanticText }) => {
+  ipcMain.handle('chat:send', async (_e, { id, messages }) => {
     if (_e.sender !== overlay?.webContents || chats.size || !Array.isArray(messages)) return { ok: false, error: 'Invalid or concurrent chat request' };
-    const decision=semanticChats.get(id);semanticChats.delete(id);const semanticChat=decision&&decision.expires>Date.now()&&decision.text===semanticText;
-    if(!semanticChat&&require('./task-result').toolRequest(require('./response-style').userText([...messages].reverse().find(m=>m.role==='user'))))return{ok:false,code:'tool_required',error:'ยังไม่ได้อ่านหรือกรอกข้อมูล คำสั่งนี้ต้องใช้ Agent และแท็บที่เชื่อมต่อ ไม่ใช่แชตข้อความล้วน'};
+    if(require('./task-result').toolRequest(require('./response-style').userText([...messages].reverse().find(m=>m.role==='user'))))return{ok:false,code:'tool_required',error:'ยังไม่ได้อ่านหรือกรอกข้อมูล คำสั่งนี้ต้องใช้ Agent และแท็บที่เชื่อมต่อ ไม่ใช่แชตข้อความล้วน'};
     const abort = new AbortController();
     chats.set(id, abort);
     try {
@@ -931,7 +957,7 @@ function registerIpc() {
       chats.delete(id);
     }
   });
-  ipcMain.on('chat:stop', (_e, id) => { if (_e.sender === overlay?.webContents) {semanticChats.delete(id);chats.get(id)?.abort();} });
+  ipcMain.on('chat:stop', (_e, id) => { if (_e.sender === overlay?.webContents) {chats.get(id)?.abort();} });
   // she looks at your screen (look.js): the picture first, then what her AI says about it
   ipcMain.handle('look:snap', async (e, request = {}) => {
     if(e.sender!==overlay?.webContents)return {ok:false,error:'Invalid sender'};

@@ -312,13 +312,28 @@ export class Chat {
     this.panel.chatTurn({ quote: text, face: 'aside' });
     this.capri.pulse();
     this.onMessage?.();
+    // Keep the opening line in context before either the unified decision or terminal-agent chat.
+    if (this.opening) {
+      const at = this.history.length - 1;
+      const before = this.history[at - 1];
+      if (before?.role === 'assistant') this.history[at - 1] = { ...before, content: `${before.content}\n${this.opening}` };
+      else this.history.splice(at, 0, { role: 'assistant', content: this.opening });
+      this.opening = null;
+    }
     let semantic=null;
     if(this.host.commandInterpret&&!this.agent){
-      this.panel.stream(this.brain.lang==='en'?'Understanding your request…':'กำลังทำความเข้าใจคำขอ…');
+      this.panel.stream(this.brain.lang==='en'?'Thinking…':'กำลังคิด…');
       const prior=this.history.slice(0,-1).filter(m=>m.role==='user').at(-1)?.content||'';
-      try{semantic=await this.host.commandInterpret({id,text,previous:typeof prior==='string'?prior:'',media:this.lastMedia||null});}catch{semantic={ok:false,error:this.brain.lang==='en'?'Could not understand the request. No action was sent.':'ยังตีความคำขอไม่สำเร็จ ยังไม่ได้สั่งงานครับ'};}
+      try{semantic=await this.host.commandInterpret({id,text,previous:typeof prior==='string'?prior:'',media:this.lastMedia||null,history:this.history.slice(-REMEMBER,-1)});}catch{semantic={ok:false,error:this.brain.lang==='en'?'Could not understand the request. No action was sent.':'ยังตีความคำขอไม่สำเร็จ ยังไม่ได้สั่งงานครับ'};}
       if(this.turn!==id||!this.open)return;
       if(!semantic.ok||semantic.route==='clarify'){this.panel.stream(semantic.question||semantic.error,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
+      if(semantic.route==='chat'){
+        this.lastMedia=null;
+        if(typeof semantic.reply!=='string'||!semantic.reply.trim()){this.panel.stream(this.t.failed,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
+        const answer=clean(semantic.reply)||'…';this.turn=0;this.warm=true;this.bond?.heard(text);
+        this.remember({role:'assistant',content:answer});this.panel.stream(answer,{done:true});this.panel.setFace(mood(answer));this.panel.setChatBusy(false);this.listApps();return;
+      }
+      if(semantic.route==='look'){this.lastMedia=null;return this.sendLook(text,id);}
       if(['agent','selected-tab','public-web'].includes(semantic.route)){
         this.lastMedia=null;
         try{const r=await this.host.agentRun({id,goal:semantic.goal,previousInstruction:semantic.previousInstruction,scope:semantic.route==='agent'?undefined:semantic.route});if(this.turn===id)this.panel.stream(r.ok?r.text:`${this.t.failed} ${r.error}`,{done:true});}
@@ -410,15 +425,6 @@ export class Chat {
     const early = asked && asked.kind !== 'close' ? this.doNow(asked) : null;
     this.bond?.heard(text); // "sorry": she lets it go
     await Promise.race([this.appsReady, new Promise((r) => setTimeout(r, 1500))]);
-    // what she greeted you with (angry, sulking…), in the conversation before your message, so her
-    // answer carries on from it (after another answer of hers: added to that one, never two in a row)
-    if (this.opening) {
-      const at = this.history.length - 1;
-      const before = this.history[at - 1];
-      if (before?.role === 'assistant') this.history[at - 1] = { ...before, content: `${before.content}\n${this.opening}` };
-      else this.history.splice(at, 0, { role: 'assistant', content: this.opening });
-      this.opening = null;
-    }
     const messages = [{ role: 'system', content: this.persona() }, ...this.history.slice(-REMEMBER)];
     // Her mood (angry, sulking…) and her language, said again right by your message, for this answer
     // only. Small local models mostly go by the last thing they read: up in her prompt alone, they
@@ -434,7 +440,7 @@ export class Chat {
     const slow = wait && setTimeout(() => {
       if (this.turn === id && !this.answer) this.panel.stream(wait);
     }, LOADING_AFTER_MS);
-    const res = await this.host.chatSend({ id, messages, semanticText:semantic?.route==='chat'?text:undefined }).catch(() => ({ ok: false, error: 'เชื่อมต่อแอปไม่ได้ กรุณาลองใหม่' }));
+    const res = await this.host.chatSend({ id, messages }).catch(() => ({ ok: false, error: 'เชื่อมต่อแอปไม่ได้ กรุณาลองใหม่' }));
     clearTimeout(slow);
     if (this.turn !== id) {
       // closed meanwhile: your message goes too, or the next answer would answer it as well

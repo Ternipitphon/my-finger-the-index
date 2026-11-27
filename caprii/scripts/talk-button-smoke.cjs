@@ -57,6 +57,15 @@ app.whenReady().then(async()=>{
  await wait(90);assert.equal(await page('statusCalls'),beforeCancel);
  await page(`fixturePanel.samplePointer({...${JSON.stringify(safe)},primaryDown:true});fixturePanel.samplePointer({x:0,y:0,inside:true,primaryDown:false})`);
  await wait(90);assert.equal(await page('statusCalls'),beforeCancel);assert.equal(await page('fixturePanel.interactionHeld'),false);
+ // A real chat form must display the unified decision reply without invoking chatSend again.
+ await page('fixtureChat.open=false;fixtureChat.start();void 0');await page('resolveStatus();void 0');await wait(40);
+ await page(`window.decisionCalls=0;window.remembered=[];fixtureChat.brain.lang='th';fixtureChat.host.chatRemember=h=>remembered.push(h);fixtureChat.host.chatSend=()=>{throw Error('Unexpected second answer request');};fixtureChat.host.commandInterpret=async()=>{decisionCalls++;return{ok:true,route:'chat',reply:'สวัสดี choom'};};fixturePanel.chatInput.value='สวัสดี';fixturePanel.chatForm.requestSubmit();void 0`);
+ for(let i=0;i<80&&await page('fixtureChat.turn!==0');i++)await wait(10);
+ assert.equal(await page('decisionCalls'),1);assert.equal(await page('fixtureChat.history.at(-1).content'),'สวัสดี choom');assert.equal(await page('fixturePanel.chatInput.disabled'),false);assert.equal(await page('fixturePanel.streamTo.join("")'),'สวัสดี choom');
+ await page(`window.actionResults=0;fixtureChat.host.commandInterpret=async()=>({ok:true,route:'media',media:{service:'spotify',action:'play',collection:'current'}});fixtureChat.host.mediaRun=async()=>{actionResults++;return{ok:false,text:'fixture: ยังไม่ยืนยันเวลาเพลง'};};fixturePanel.chatInput.value='เปิดเพลง';fixturePanel.chatForm.requestSubmit();void 0`);
+ for(let i=0;i<80&&await page('fixtureChat.turn!==0');i++)await wait(10);
+ assert.equal(await page('actionResults'),1);assert.match(await page('fixturePanel.streamTo.join("")'),/ยังไม่ยืนยัน/);
+ console.log('PASS real chat form: one AI decision reply, remembered answer, enabled input, action dispatch once and actual failure result; no second chat request or invented success');
  console.log('PASS no-DOM native press/release recovery; unknown button state, mixed DOM/native single activation, detached button and outside gestures');
  console.log('PASS actual idle Talk button on nonfocusable transparent Electron window: pinned target and timer while pressed, immediate loading, delayed AI status, single-flight, usable chat form, late-dismiss cancellation and visible error. Native Windows hit delivery not tested.');win.destroy();clearTimeout(timer);app.exit(0);
 }).catch(async e=>{console.error(e);if(win&&!win.isDestroyed())console.error('Pointer trace',await win.webContents.executeJavaScript('JSON.stringify({events:window.pointerEvents,holds:window.holds,current:window.fixturePanel?.current?.kind,rect:window.fixturePanel?.rect()})'));clearTimeout(timer);app.exit(1);});

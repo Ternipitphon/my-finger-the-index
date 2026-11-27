@@ -1,6 +1,6 @@
-# Caprii 0.8.10 — กลับมาใช้ตัวเดิมเป็นฐานหลัก
+# Caprii 0.8.11 — กลับมาใช้ตัวเดิมเป็นฐานหลัก
 
-[ดาวน์โหลดตัวติดตั้ง Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.10)
+[ดาวน์โหลดตัวติดตั้ง Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.11)
 
 ใช้ Caprii 0.7.6 commit `6899749c0c1e5ad33de58e05cb5420320443962d` เป็นฐาน รักษาหน้าตา ตัวละคร การลาก เสียงไทย การเชื่อม Chrome และเครื่องมือเดิม
 

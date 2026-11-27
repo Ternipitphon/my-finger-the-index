@@ -1,3 +1,7 @@
+# Caprii 0.8.11 validation
+
+Actual renderer and main IPC tests count one model call for ordinary chat, preserve bounded conversation/profile context, reject malformed context/replies, isolate wording repair without repeating routing, and dispatch screen-only requests to the existing capture path. Native Talk UI smoke submits the real chat form, checks remembered/displayed replies and one media dispatch with its actual failure message. Existing permission, cancellation, exact-name media and eight DOM lab checks remain required. Model and Spotify-account behavior is not proven by fixtures alone.
+
 # Caprii 0.8.10 validation
 
 Regression tests exercise actual Chat and media IPC handler: Spotify root bypasses generic website confirmation, backend autoplay defaults work before renderer config sync, disabled autoplay still opens, explicit play ignores opening-only preference, deep links and other websites retain existing behavior. Thai/English model guidance resumes current without unnecessary title clarification. Existing player/time/audio and Chrome reconnect checks remain required. No real Spotify account or speaker output is verified by fixtures.
