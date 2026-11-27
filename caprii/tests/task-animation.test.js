@@ -37,3 +37,6 @@ test('real Chat with wrapped host animates verified media only and closing preve
 test('full victory is reserved for a long verified agent task; unverified work never wins',async()=>{
  for(const verified of [true,false]){const f=await fixture();const host=f.a.wrapHost({agentRun:async()=>{f.advance(125000);return{ok:true,verified};}});await host.agentRun({id:1});assert.equal(f.poses.includes('victory'),verified);assert.equal(f.timers.size,0);}
 });
+test('a broken visual scheduler cannot block, retry or alter a real tool or its cancellation',async()=>{
+ const {TaskAnimation}=await ready;let calls=0,stops=0;const result={ok:true,verified:true};const a=new TaskAnimation({capri:{perform(){}},schedule:()=>{throw Error('visual timer failed');},unschedule:()=>{throw Error('cleanup failed');}});const h=a.wrapHost(Object.freeze({mediaRun:async()=>{calls++;return result;},chatStop:()=>{stops++;}}));assert.equal(await h.mediaRun({id:1}),result);assert.equal(calls,1);assert.equal(a.active,null);h.chatStop(1);assert.equal(stops,1);
+});

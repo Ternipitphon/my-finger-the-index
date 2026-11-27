@@ -10,6 +10,7 @@ export class TaskAnimation {
   if(!this.enabled||this.reduced()||c.hidden||c.stowed||c.dormant||c.busy||c.sky||c.act||['held','fly','down','fall','peek'].includes(c.stance)||this.now()-this.lastPose<1200)return;
   try{this.lastPose=this.now();const before=c.act;const result=c.perform(name);if(c.act&&c.act!==before)this.ownedAct=c.act;Promise.resolve(result).catch(()=>{});}catch{}
  }
+ safely(fn){try{return fn();}catch{try{this.cancel();}catch{}return null;}}
  state(value){try{this.onState(value);}catch{}}
  begin(kind,request={}){
   const id=request?.id??Symbol(kind),same=this.active&&this.active.id===id;
@@ -26,7 +27,7 @@ export class TaskAnimation {
   else if(outcome==='failed')this.pose('flinch');
   else if(outcome==='reply'||outcome==='waiting')this.pose('curious');
  }
- cancel(){if(this.timer!==null){this.unschedule(this.timer);this.timer=null;}this.active=null;if(this.ownedAct&&this.capri.act===this.ownedAct){try{this.capri.endAct(false);}catch{}}this.ownedAct=null;this.state('idle');}
+ cancel(){const timer=this.timer;this.timer=null;this.active=null;if(timer!==null){try{this.unschedule(timer);}catch{}}if(this.ownedAct&&this.capri.act===this.ownedAct){try{this.capri.endAct(false);}catch{}}this.ownedAct=null;this.state('idle');}
  wrapHost(raw){
   const wrapped={...raw};
   const kinds={commandInterpret:'decision',mediaInterpret:'decision',taskInterpret:'decision',mediaRun:'media',agentRun:'agent',chatSend:'chat',chatImageSend:'image',lookSnap:'look',lookSay:'look',openSite:'website'};
@@ -34,25 +35,25 @@ export class TaskAnimation {
    if(typeof raw[name]!=='function')continue;
    wrapped[name]=async(...args)=>{
     const request=typeof args[0]==='object'&&args[0]!==null?args[0]:{};
-    const token=this.begin(kind,request);
+    const token=this.safely(()=>this.begin(kind,request));
     try{
      const result=await raw[name](...args);
-     if(this.active!==token)return result;
+     if(!token||this.active!==token)return result;
      if(name==='lookSnap'&&result?.ok===true){token.id=result.id;return result;}
      if(kind==='decision'&&result?.ok===true){
-      if(result.route==='clarify'){this.finish(token,'waiting');}
-      else if(result.route==='chat'){this.finish(token,typeof result.reply==='string'&&result.reply.trim()?'reply':'neutral');}
+      if(result.route==='clarify'){this.safely(()=>this.finish(token,'waiting'));}
+      else if(result.route==='chat'){this.safely(()=>this.finish(token,typeof result.reply==='string'&&result.reply.trim()?'reply':'neutral'));}
       // An interpretation is a plan, never proof that its requested action finished.
       return result;
      }
      const outcome=result?.canceled===true?'neutral':kind==='website'?'neutral':result?.clarification?'waiting':result?.ok!==true?'failed':
       ['media','agent'].includes(kind)?result.verified===true?'success':'neutral':typeof result.text==='string'&&result.text.trim()?'reply':'neutral';
-     this.finish(token,outcome);return result;
-    }catch(error){if(this.active===token)this.finish(token,error?.name==='AbortError'?'neutral':'failed');throw error;}
+     this.safely(()=>this.finish(token,outcome));return result;
+    }catch(error){if(token&&this.active===token)this.safely(()=>this.finish(token,error?.name==='AbortError'?'neutral':'failed'));throw error;}
    };
   }
-  if(typeof raw.chatStop==='function')wrapped.chatStop=(...args)=>{this.cancel();return raw.chatStop(...args);};
-  if(typeof raw.lookWhere==='function')wrapped.lookWhere=(...args)=>{if(this.active)this.phase({id:this.active.id,phase:'waiting'});return raw.lookWhere(...args);};
+  if(typeof raw.chatStop==='function')wrapped.chatStop=(...args)=>{this.safely(()=>this.cancel());return raw.chatStop(...args);};
+  if(typeof raw.lookWhere==='function')wrapped.lookWhere=(...args)=>{if(this.active)this.safely(()=>this.phase({id:this.active.id,phase:'waiting'}));return raw.lookWhere(...args);};
   return wrapped;
  }
 }
