@@ -1,12 +1,14 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.8.16 — รุ่นหลักจาก Caprii ตัวเดิม
+## ดาวน์โหลด Caprii 0.8.17 — รุ่นหลักจาก Caprii ตัวเดิม
 
-[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.16 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.16/Caprii-Agent-Setup-0.8.16.exe)
+[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.17 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.17/Caprii-Agent-Setup-0.8.17.exe)
 
-[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.16/Caprii-0.8.16-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.16) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.16/caprii/CAPRII-TH.md)
+[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.17/Caprii-0.8.17-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.17) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.17/caprii/CAPRII-TH.md)
 
-**เล่นต่อ/หยุด/ข้ามผ่านแอป Spotify บน Windows โดยตรง** ใช้ Windows System Media Transport Controls เลือกเฉพาะ session ของ Spotify Store/desktop ไม่ผ่าน Chrome ไม่ส่ง Space หรือ media key ไปโปรแกรมอื่น ตรวจ PlaybackStatus และการเปลี่ยนเพลงจาก Windows จำตัวเล่น Windows/Chrome ที่ใช้จริงเพื่อให้คำสั่งต่อเนื่องไม่สลับไปผิดตัว ยังตรวจเสียงลำโพงไม่ได้ ถ้ายังไม่มี session จะลองเปิด Spotify หนึ่งครั้ง คำสั่งระบุเว็บ ชื่อเพลง เพลย์ลิสต์ และ Liked Songs ยังใช้เส้นทางเว็บเดิม ปิดสวิตช์ Spotify Windows ในเมนู Chrome และเพลงเพื่อใช้เว็บสำหรับคำสั่งตัวเล่นได้
+**ทดลองค้นและเล่นชื่อเพลงในแอป Spotify** สั่ง “เล่นเพลง weathergirl ของ FLAVOR FOLEY” หรืออังกฤษได้ เปิดค้นหาในแอป Windows อ่านชื่อเพลง/ศิลปินและปุ่ม Play ผ่าน accessibility เลือกเฉพาะผลตรงเพียงหนึ่งรายการ ตรวจหน้าต่างและผลก่อนกดครั้งเดียว จากนั้นตรวจชื่อเพลง/ศิลปินและ Windows Playing สองครั้ง ไม่สุ่มผลแรก หากแอปไม่เปิดปุ่มให้ใช้งานจะหยุดและแจ้งตรง ๆ ต้องลองกับ Spotify รุ่นที่ใช้จริง ชุด CI ตรวจจำลองและ PowerShell ไม่ใช่บัญชีจริง
+
+**เล่นต่อ/หยุด/ข้ามผ่านแอป Spotify บน Windows โดยตรง** ใช้ Windows System Media Transport Controls เลือกเฉพาะ session ของ Spotify Store/desktop ไม่ผ่าน Chrome ไม่ส่ง Space หรือ media key ไปโปรแกรมอื่น ตรวจ PlaybackStatus และการเปลี่ยนเพลงจาก Windows จำตัวเล่น Windows/Chrome ที่ใช้จริงเพื่อให้คำสั่งต่อเนื่องไม่สลับไปผิดตัว ยังตรวจเสียงลำโพงไม่ได้ ถ้ายังไม่มี session จะลองเปิด Spotify หนึ่งครั้ง คำสั่งระบุเว็บ เพลย์ลิสต์ และ Liked Songs ยังใช้เส้นทางเว็บเดิม ปิดสวิตช์ Spotify Windows ในเมนู Chrome และเพลงเพื่อใช้เว็บสำหรับคำสั่งตัวเล่นได้
 
 **แก้สถานะข้อความซ้ำ** ระหว่างรอใช้ข้อความสถานะเดียวแทนต่อบรรทัดเดิมซ้ำ แสดงเวอร์ชันในหัวแชต และแสดงสาเหตุเมื่ออ่านตัวเล่นผิดพลาดซ้ำ
 
@@ -18,7 +20,7 @@
 
 **เพิ่มบริบทและตรวจความกำกวม** ใช้ URL/title ของแท็บ Chrome ที่อนุญาตแล้วโดยตัด query/fragment ไม่อ่านหน้าต่างหรือจับจอเพิ่มเอง ให้ AI ระบุผลลัพธ์ที่ต้องการ/ข้อมูลที่ขาดแบบสั้น หยุดเมื่อระบุว่าเป้าหมายกำกวม และอ้าง URL จากข้อความผู้ใช้ล่าสุดได้เมื่อเป็นคำขอต่อเนื่องชัดเจน เพิ่มเงื่อนไขแยกเปิดเว็บ เปิดแอป และโฟกัสหน้าต่างเดิม
 
-[ดาวน์โหลดชุดทดลองฝึกโมเดลเจตนา](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.16/Caprii-0.8.16-training.zip) — ฝึก CNN 8 route จากศูนย์บน CPU ด้วยข้อความแต่ง train 124/dev 18/test 42 ได้ 32/42 (76.19%) ยังไม่ใช้สั่งงานจริงและไม่ได้เปลี่ยนน้ำหนัก Gemini มี weights/scripts/data/รายงานข้อผิดครบ การ fine-tune โมเดลสำเร็จรูปยังไม่ได้รันเพราะสิทธิ์ดาวน์โหลด มี JSONL สำหรับ route-only เตรียมไว้โดยไม่อัปโหลดหรือเปิด paid job [วิธีรันและข้อจำกัด](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.16/caprii/training/intent/README-TH.md)
+[ดาวน์โหลดชุดทดลองฝึกโมเดลเจตนา](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.17/Caprii-0.8.17-training.zip) — ฝึก CNN 8 route จากศูนย์บน CPU ด้วยข้อความแต่ง train 124/dev 18/test 42 ได้ 32/42 (76.19%) ยังไม่ใช้สั่งงานจริงและไม่ได้เปลี่ยนน้ำหนัก Gemini มี weights/scripts/data/รายงานข้อผิดครบ การ fine-tune โมเดลสำเร็จรูปยังไม่ได้รันเพราะสิทธิ์ดาวน์โหลด มี JSONL สำหรับ route-only เตรียมไว้โดยไม่อัปโหลดหรือเปิด paid job [วิธีรันและข้อจำกัด](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.17/caprii/training/intent/README-TH.md)
 
 **แก้เปิด Spotify แล้วไม่ต่อถึงการเล่น** ใช้เส้นทางสื่อโดยตรง ไม่ถามยืนยันเปิดเว็บซ้ำ คำสั่ง “เปิดเพลง” และ “turn on some music” ให้ AI เลือกเล่นเพลงที่ค้างอยู่ ส่วนการเปิด Spotify อย่างเดียวใช้สวิตช์ autoplay จากแอปโดยตรง สั่งเล่นชัดเจนยังเล่นได้แม้ปิดสวิตช์ ต้องเชื่อม Chrome และล็อกอิน Spotify ไว้
 
@@ -28,7 +30,7 @@
 
 **เมนูคลิกขวาจัดใหม่** คำสั่งคุย ดูจอ ย้ายตัวละคร และซ่อน/แสดงอยู่ด้านบน ที่เหลือแบ่งห้าหมวด: นิสัยและเสียง, Chrome และเพลง, AI และงาน, ตัวละครและหน้าจอ, ตั้งค่าและช่วยเหลือ เมนูหลักประมาณ 14 แถว เก็บฟังก์ชัน ค่าสวิตช์ และทางลัดเดิมครบ
 
-[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.16/Caprii-0.8.16-menu.png)
+[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.17/Caprii-0.8.17-menu.png)
 
 **AI เลือกตอบหรือเรียกเครื่องมือในรอบเดียว** แชตทั่วไปได้คำตอบสุดท้ายจากรอบตัดสินใจ ไม่แยกประเภทแล้วเรียก AI ตอบซ้ำ ส่งประวัติคุยแบบจำกัดและความจำที่เปิดบันทึกไว้ พร้อมนิสัย ภาษา และความยาวคำตอบ คำสั่งใช้เครื่องมือจริงแล้วตรวจผลก่อนตอบ คำขอดูจออย่างเดียวจับภาพจริงตามสิทธิ์เดิมก่อนวิเคราะห์ ไม่แต่งว่าทำงานแล้วจากข้อความของโมเดล งานหลายขั้นตอน การวิเคราะห์ภาพ โมเดลสำรอง หรือการแก้ถ้อยคำยังอาจต้องเรียก AI เพิ่มตามความจำเป็น โหมด Claude Code ใช้ Agent เดิม
 
