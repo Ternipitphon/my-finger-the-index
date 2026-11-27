@@ -83,3 +83,8 @@ test('the actual media backend becomes continuation context and late results can
  c.host.mediaRun=async()=>({backend:'chrome',text:'fixture'});await c.send('เล่นเพลงในเว็บ');assert.equal(captured.player,'desktop');assert.equal(c.lastMedia.player,'web');
  let resolve;c.host.mediaRun=()=>new Promise(r=>resolve=r);const p=c.send('เล่นต่อ');await new Promise(setImmediate);c.turn=0;c.open=false;resolve({backend:'windows-smtc',text:'late'});await p;assert.notEqual(c.lastMedia.player,'desktop');
 });
+
+test('a new bare song title chosen by AI retains its current name without inheriting an old artist or URL',async()=>{
+ const r=await call({route:'media',confidence:.99,continuation:true,media:{service:'spotify',action:'play',collection:'track',query:'weathergirl'}},{text:'weathergirl',history:[{role:'assistant',content:'อยากฟังเพลงอะไร?'}],media:{service:'spotify',player:'desktop',action:'play',collection:'current'}});
+ assert.equal(r.media.collection,'track');assert.equal(r.media.query,'weathergirl');assert.equal(r.media.artist,undefined);assert.equal(r.media.url,undefined);
+});

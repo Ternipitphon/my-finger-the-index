@@ -86,5 +86,54 @@
         "ambiguous": false
       }
     }
+  },
+  {
+    "input": "Midnight City",
+    "history": [
+      {
+        "role": "user",
+        "content": "อยากฟังเพลงหน่อย"
+      },
+      {
+        "role": "assistant",
+        "content": "อยากฟังเพลงอะไร?"
+      }
+    ],
+    "result": {
+      "route": "media",
+      "confidence": 1,
+      "continuation": true,
+      "media": {
+        "service": "spotify",
+        "action": "play",
+        "collection": "track",
+        "query": "Midnight City"
+      },
+      "assessment": {
+        "outcome": "เล่นเพลงชื่อที่ผู้ใช้ตอบ",
+        "targetSource": "current-message",
+        "missing": [],
+        "ambiguous": false
+      }
+    }
+  },
+  {
+    "input": "เล่นเพลง Echo",
+    "result": {
+      "route": "media",
+      "confidence": 1,
+      "media": {
+        "service": "spotify",
+        "action": "play",
+        "collection": "track",
+        "query": "Echo"
+      },
+      "assessment": {
+        "outcome": "เล่นผลเพลงชื่อตรงบนสุดจาก Spotify ไม่ระบุศิลปิน",
+        "targetSource": "current-message",
+        "missing": [],
+        "ambiguous": false
+      }
+    }
   }
 ]
