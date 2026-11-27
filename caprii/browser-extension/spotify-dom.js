@@ -10,9 +10,14 @@ function createSpotifyDOMBridge(){
  const playable=el=>!el.disabled&&el.getAttribute('aria-disabled')!=='true';
  const clock=text=>/^\d+(?::\d{1,2}){1,2}$/.test(String(text||'').trim())?String(text).trim().split(':').reduce((total,n)=>total*60+Number(n),0):null;
  const localDevices=()=>all('[role="dialog"] button,[role="menu"] button,[role="menuitem"],[data-testid="connect-device-list"] button,[data-testid="connect-device-picker"] button').filter(b=>/^(?:this web browser|this browser|เว็บเบราว์เซอร์นี้|เบราว์เซอร์นี้)$/i.test(label(b)));
+ function playerControls(){
+  const known=all('button[data-testid="control-button-playpause"]');if(known.length)return known;
+  const roots=all('footer,[role="contentinfo"],[data-testid="now-playing-bar"]');
+  return [...new Set(roots.filter(root=>root.querySelector('[data-testid="playback-position"],[data-testid="playback-progressbar"],[aria-label="Playback position"]')).flatMap(root=>all('button',root).filter(b=>/^(?:play|pause|เล่น|หยุดชั่วคราว)$/i.test(label(b)))))];
+ }
  function inspect(){
   if(location.origin!=='https://open.spotify.com')throw Error('แท็บนี้ไม่ใช่ Spotify');
-  const control=all('button[data-testid="control-button-playpause"]')[0];
+  const candidates=playerControls(),control=candidates.length===1?candidates[0]:null;
   const widgets=all('[data-testid="now-playing-widget"]');
   const widget=widgets.length===1?widgets[0]:null;
   const bar=control?.closest('footer,[role="contentinfo"],[data-testid="now-playing-bar"]');
@@ -47,12 +52,12 @@ function createSpotifyDOMBridge(){
   let controls;
   if(a.action==='pause'){
    if(!before.playing)return{clicked:false,alreadyPaused:true,observed:before};
-   controls=all('button[data-testid="control-button-playpause"]');
+   controls=playerControls();
    if(controls.length===1&&!playing(controls[0]))throw Error('สถานะปุ่มหยุดไม่ตรงกับตัวเล่น อ่านใหม่ก่อน');
   }else if(a.action==='next'||a.action==='previous')controls=all('button[data-testid="'+(a.action==='next'?'control-button-skip-forward':'control-button-skip-back')+'"]');
   else if(a.action==='open-device-picker')controls=all('button[data-testid="control-button-connect"],button[data-testid="connect-device-button"],button[aria-label="Connect to a device"],button[aria-label="เชื่อมต่อกับอุปกรณ์"]');
   else if(a.action==='choose-local')controls=localDevices();
-  else if(a.current)controls=all('button[data-testid="control-button-playpause"]');
+  else if(a.current)controls=playerControls();
   else{
    controls=all('main [data-testid="action-bar-row"] button[data-testid="play-button"]');
    if(!controls.length)controls=all('main button[data-testid="play-button"]').filter(b=>!b.closest('[data-testid="tracklist-row"],[role="row"]'));

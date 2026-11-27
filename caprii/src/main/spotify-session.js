@@ -6,7 +6,7 @@ async function connectSpotify({broker,open,signal,alreadyOpened=false,onProgress
  for(let i=0;i<maxChecks;i++){
   signal?.throwIfAborted();const status=broker.status();
   if(spotify(status)){
-   if(!status.media||!status.worker||status.mediaVersion!==undefined&&status.mediaVersion<2)throw Error('อัปเดตส่วนขยาย Caprii เป็น 0.7.6 แล้วกด Reload และเชื่อม Spotify ใหม่ก่อน');
+   if(!status.media||!status.worker||status.mediaVersion!==undefined&&status.mediaVersion<2)throw Error('อัปเดตส่วนขยาย Caprii เป็นรุ่นล่าสุด แล้วกด Reload และเชื่อม Spotify ใหม่ก่อน');
    try{const browser=broker.browser(),page=await browser.spotify({action:'inspect'},signal);if(page.loggedOut)throw Object.assign(Error('กรุณาเข้าสู่ระบบ Spotify ก่อน'),{login:true});if((!page.documentReady||page.documentReady==='complete')&&(!opened||page.tabActive!==false))return browser;}catch(error){if(error.login||signal?.aborted)throw error;}
   }
   if(!opened){await open();opened=true;}
