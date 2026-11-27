@@ -62,6 +62,10 @@ app.whenReady().then(async()=>{
  await page(`window.decisionCalls=0;window.remembered=[];fixtureChat.brain.lang='th';fixtureChat.host.chatRemember=h=>remembered.push(h);fixtureChat.host.chatSend=()=>{throw Error('Unexpected second answer request');};fixtureChat.host.commandInterpret=async()=>{decisionCalls++;return{ok:true,route:'chat',reply:'สวัสดี choom'};};fixturePanel.chatInput.value='สวัสดี';fixturePanel.chatForm.requestSubmit();void 0`);
  for(let i=0;i<80&&await page('fixtureChat.turn!==0');i++)await wait(10);
  assert.equal(await page('decisionCalls'),1);assert.equal(await page('fixtureChat.history.at(-1).content'),'สวัสดี choom');assert.equal(await page('fixturePanel.chatInput.disabled'),false);assert.equal(await page('fixturePanel.streamTo.join("")'),'สวัสดี choom');
+ await page(`fixtureChat.turn=7654;fixtureChat.answer='';fixtureChat.statusLine='';for(let i=0;i<50;i++)fixtureChat.onDelta(7654,'กำลังรอ Spotify','status');void 0`);
+ assert.equal(await page('fixturePanel.streamTo.join("")'),'กำลังรอ Spotify');assert.equal(await page('fixtureChat.answer'),'');
+ await page(`fixtureChat.onDelta(7654,'กำลังกดเล่น','status');void 0`);assert.equal(await page('fixturePanel.streamTo.join("")'),'กำลังกดเล่น');await page('fixtureChat.turn=0;void 0');
+ console.log('PASS real chat progress snapshots: 50 identical wait updates display once, changed status replaces it, answer buffer remains empty');
  await page(`window.actionResults=0;fixtureChat.host.commandInterpret=async()=>({ok:true,route:'media',media:{service:'spotify',action:'play',collection:'current'}});fixtureChat.host.mediaRun=async()=>{actionResults++;return{ok:false,text:'fixture: ยังไม่ยืนยันเวลาเพลง'};};fixturePanel.chatInput.value='เปิดเพลง';fixturePanel.chatForm.requestSubmit();void 0`);
  for(let i=0;i<80&&await page('fixtureChat.turn!==0');i++)await wait(10);
  assert.equal(await page('actionResults'),1);assert.match(await page('fixturePanel.streamTo.join("")'),/ยังไม่ยืนยัน/);

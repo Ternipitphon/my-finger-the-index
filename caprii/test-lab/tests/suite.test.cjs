@@ -37,3 +37,5 @@ test('interpretation training review does not award a DOM or production model sc
 test('persistent pairing review is separate from DOM scores',()=>{assert.equal(suite.persistentPairing.id,'chrome-restart-pairing');assert.equal(suite.persistentPairing.verification,'requires-native-and-extension-review-not-measured-by-this-page');});
 
 test('Spotify footer resume is an external playback review rather than a DOM pass score',()=>{const c=suite.externalMedia.find(x=>x.id==='spotify-footer-current');assert.ok(c);assert.match(c.expected,/ไม่เปิดเพลง cache/);assert.equal(suite.cases.length,8);});
+
+test('progress display review is distinct from DOM scoring',()=>{assert.equal(suite.progressDisplay.id,'single-status-snapshot');assert.equal(suite.progressDisplay.verification,'requires-ui-and-playback-review-not-measured-by-this-page');});

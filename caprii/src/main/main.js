@@ -790,7 +790,7 @@ function registerIpc() {
     const model = pickModel();
     llm.warm(provider, model); // loading while you type your first message
     const local = llm.isLocal(provider, cfg, model);
-    return { ok: true, provider, model, agent: provider === 'claude', local, warmup: provider === 'ollama' && local };
+    return { ok: true, version:app.getVersion(), provider, model, agent: provider === 'claude', local, warmup: provider === 'ollama' && local };
   });
   // her answer, streamed to the overlay piece by piece as `chat:delta`
   require('./agent-window').registerAgentWindowIpc(ipcMain);
@@ -1105,7 +1105,8 @@ function registerIpc() {
     try{media=validateMedia(request.autoOpen===true?{service:'spotify',action:'play',collection:'current'}:request.media);}catch(error){return{ok:false,text:error.message};}
     const abort=new AbortController();chats.set(request.id,abort);const signal=AbortSignal.any([abort.signal,AbortSignal.timeout(90000)]);
     try{
-      const onProgress=text=>overlay?.webContents.send('chat:delta',{id:request.id,text:text+'\n'});
+      let lastProgress='';
+      const onProgress=text=>{if(text===lastProgress)return;lastProgress=text;overlay?.webContents.send('chat:delta',{id:request.id,text,kind:'status'});};
       spotifyConnecting=true;
       let browser;
       try{browser=await require('./spotify-session').connectSpotify({broker:chromeBroker,open:()=>require('./launch').site(destination(media)),signal,alreadyOpened:request.alreadyOpened===true,onProgress});}

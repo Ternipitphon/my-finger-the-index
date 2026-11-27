@@ -172,7 +172,7 @@ export class Chat {
     this.jealousy = null;  // and how she takes your other AIs
     this.onMessage = null; // () => void: you said something to her
     this.waitingWhen = null; // a reminder you asked for without saying when: { text, until }
-    host.onChatDelta(({ id, text }) => this.onDelta(id, text));
+    host.onChatDelta(({ id, text, kind }) => this.onDelta(id, text, kind));
   }
 
   get t() {
@@ -236,7 +236,7 @@ export class Chat {
     this.cold = status.warmup && !this.warm;
     this.agent = Boolean(status.agent); // Claude Code answers, as her, and really works in your project
     this.listApps();
-    const shortModel = status.model.replace(/:latest$/, '').replace(/^models\//, ''); // Ollama's tag, Gemini's prefix
+    const shortModel = status.model.replace(/:latest$/, '').replace(/^models\//, '')+(status.version?' · '+status.version:''); // Ollama's tag, Gemini's prefix
     const tiny = status.provider === 'ollama' && TINY.test(status.model) && this.onBetterModel;
     // angry, sulking, dizzy…: she greets you the way she feels, and her model is told she did
     const feeling = this.bond?.feeling;
@@ -306,6 +306,7 @@ export class Chat {
     const id = Date.now();
     this.turn = id;
     this.answer = '';
+    this.statusLine = '';
     this.history.push({ role: 'user', content: text });
     this.panel.setChatBusy(true);
     this.panel.setActions([]); // a close button she offered before goes with a new message
@@ -923,8 +924,12 @@ export class Chat {
     ].filter(Boolean);
   }
 
-  onDelta(id, piece) {
+  onDelta(id, piece, kind) {
     if (id !== this.turn) return;
+    if(kind==='status'){
+      if(piece===this.statusLine)return;
+      this.statusLine=piece;this.panel.stream(String(piece).trimEnd(),{speak:false});return;
+    }
     this.answer += piece;
     this.panel.stream(clean(this.answer));
     this.voice.play('blip'); // her blips as the words come in

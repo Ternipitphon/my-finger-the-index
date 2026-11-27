@@ -68,3 +68,12 @@ test('a direct reply remembers context once; missing or late replies do not run 
  const c=fixture(Chat,{commandInterpret:async r=>{seen=r;return{ok:true,route:'chat',reply:'จำได้ว่าเลือกเลข 26 นะ choom'};},chatSend(){throw Error('No second model');},mediaRun(){throw Error('No music from history');}});c.history=[{role:'user',content:'จำเลข 26'}];c.opening='สวัสดี choom';c.remember=m=>saved.push(m);c.panel.stream=(s,o)=>{if(o?.done)replies.push(s);};await c.send('จำได้ไหม');assert.equal(saved.length,1);assert.ok(seen.history.some(m=>m.content.includes('26')));assert.ok(seen.history.some(m=>m.content.includes('สวัสดี')));assert.equal(c.turn,0);assert.equal(c.opening,null);
  let resolve;c.host.commandInterpret=()=>new Promise(r=>resolve=r);const p=c.send('เล่าต่อ');c.turn=0;c.open=false;resolve({ok:true,route:'chat',reply:'late'});await p;assert.equal(saved.length,1);assert.equal(replies.length,1);
 });
+test('repeated progress snapshots replace the status instead of appending to the answer or repeating voice blips',async()=>{
+ const {Chat}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/chat.js')));let receive,blips=0;const streams=[];
+ const c=fixture(Chat,{onChatDelta:fn=>receive=fn});c.turn=42;c.answer='';c.panel.stream=(s,o)=>streams.push({s,o});c.voice.play=()=>blips++;
+ for(let i=0;i<50;i++)receive({id:42,text:'กำลังรอ Spotify',kind:'status'});
+ assert.equal(streams.length,1);assert.equal(c.answer,'');assert.equal(blips,0);assert.equal(streams[0].o.speak,false);
+ receive({id:42,text:'กำลังกดเล่น',kind:'status'});assert.equal(streams[1].s,'กำลังกดเล่น');assert.equal(c.answer,'');
+ receive({id:42,text:'คำตอบจริง'});assert.equal(c.answer,'คำตอบจริง');assert.equal(blips,1);
+ receive({id:41,text:'เก่า',kind:'status'});assert.equal(streams.length,3);
+});

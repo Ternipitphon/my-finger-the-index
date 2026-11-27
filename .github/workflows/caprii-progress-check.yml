@@ -1,0 +1,32 @@
+name: Verify pending Spotify status fix without publishing
+on:
+  push:
+    branches: [caprii-0.8.15]
+permissions:
+  contents: read
+concurrency:
+  group: caprii-progress-check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: caprii
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24.22.1'
+          package-manager-cache: false
+      - run: npm ci
+      - run: node scripts/stamp-build.cjs
+      - run: npm test
+      - run: npm run test:lab
+      - run: npm run test:talk-ui
+      - run: npm run test:media-ui
+      - run: npm run test:media-transport
+      - run: npm run test:lab-ui
