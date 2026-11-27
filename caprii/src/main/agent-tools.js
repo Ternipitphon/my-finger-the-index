@@ -85,7 +85,7 @@ function createAgentTools({ browser, desktop, screen, openExternal, launcher, ui
       },
     });
     if (desktop.supportedInput) tools.add('desktop.open_app', {
-      description: { app: 'vscode, notepad, explorer', purpose: 'Open the selected project in VS Code or Explorer, or open Notepad' },
+      description: { app: 'vscode, notepad, explorer', purpose: 'Use only for vscode/notepad/explorer. Inspect desktop.windows first; focus an observed matching existing window instead of opening duplicates. Do not use for websites (desktop.open_url) or other installed apps/games (launcher.search then launcher.open).' },
       validate: a => { if (!['vscode', 'notepad', 'explorer'].includes(a.app)) throw new Error('Unsupported app'); },
       run: async (a, c) => { await c.permission({ tool: a.tool, app: a.app, project: c.projectEnabled ? c.root : null }); return desktop.openApp(a.app, c.projectEnabled ? c.root : null, c.signal); },
     });

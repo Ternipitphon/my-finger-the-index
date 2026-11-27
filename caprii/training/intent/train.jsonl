@@ -1,0 +1,124 @@
+{"id": "train-chat-00", "family": "train-chat-00", "split": "train", "input": {"text": "สวัสดี", "connected": false}, "expected": {"route": "chat"}}
+{"id": "train-chat-01", "family": "train-chat-01", "split": "train", "input": {"text": "วันนี้เป็นไงบ้าง", "connected": true}, "expected": {"route": "chat"}}
+{"id": "train-chat-02", "family": "train-chat-02", "split": "train", "input": {"text": "คุยเป็นเพื่อนหน่อย", "connected": false}, "expected": {"route": "chat"}}
+{"id": "train-chat-03", "family": "train-chat-03", "split": "train", "input": {"text": "อธิบายว่า playlist คืออะไร", "connected": true}, "expected": {"route": "chat"}}
+{"id": "train-chat-04", "family": "train-chat-04", "split": "train", "input": {"text": "เปิดเพลงหมายถึงอะไร", "connected": false}, "expected": {"route": "chat"}}
+{"id": "train-chat-05", "family": "train-chat-05", "split": "train", "input": {"text": "Spotify ใช้ทำอะไร", "connected": true}, "expected": {"route": "chat"}}
+{"id": "train-chat-06", "family": "train-chat-06", "split": "train", "input": {"text": "Liked Songs อยู่ตรงไหน", "connected": false}, "expected": {"route": "chat"}}
+{"id": "train-chat-07", "family": "train-chat-07", "split": "train", "input": {"text": "อย่าเปิดเว็บนะ แค่ถามว่า YouTube คืออะไร", "connected": true}, "expected": {"route": "chat"}}
+{"id": "train-chat-08", "family": "train-chat-08", "split": "train", "input": {"text": "Hello there", "connected": false}, "expected": {"route": "chat"}}
+{"id": "train-chat-09", "family": "train-chat-09", "split": "train", "input": {"text": "How are you today?", "connected": true}, "expected": {"route": "chat"}}
+{"id": "train-chat-10", "family": "train-chat-10", "split": "train", "input": {"text": "Explain what a playlist means", "connected": false}, "expected": {"route": "chat"}}
+{"id": "train-chat-11", "family": "train-chat-11", "split": "train", "input": {"text": "What does play music mean?", "connected": true}, "expected": {"route": "chat"}}
+{"id": "train-chat-12", "family": "train-chat-12", "split": "train", "input": {"text": "Where are my saved songs?", "connected": false}, "expected": {"route": "chat"}}
+{"id": "train-chat-13", "family": "train-chat-13", "split": "train", "input": {"text": "Can you explain browser tabs?", "connected": true}, "expected": {"route": "chat"}}
+{"id": "train-chat-14", "family": "train-chat-14", "split": "train", "input": {"text": "Just explain, do not click anything", "connected": false}, "expected": {"route": "chat"}}
+{"id": "train-chat-15", "family": "train-chat-15", "split": "train", "input": {"text": "Thanks, that helped", "connected": true}, "expected": {"route": "chat"}}
+{"id": "train-look-00", "family": "train-look-00", "split": "train", "input": {"text": "ดูหน้าจอให้หน่อย", "connected": false}, "expected": {"route": "look"}}
+{"id": "train-look-01", "family": "train-look-01", "split": "train", "input": {"text": "อ่านข้อความบนจอนี้", "connected": true}, "expected": {"route": "look"}}
+{"id": "train-look-02", "family": "train-look-02", "split": "train", "input": {"text": "ช่วยอธิบายภาพบนหน้าจอ", "connected": false}, "expected": {"route": "look"}}
+{"id": "train-look-03", "family": "train-look-03", "split": "train", "input": {"text": "เห็นอะไรบนจอตอนนี้บ้าง", "connected": true}, "expected": {"route": "look"}}
+{"id": "train-look-04", "family": "train-look-04", "split": "train", "input": {"text": "ดูเกมที่อยู่บนจอให้หน่อย", "connected": false}, "expected": {"route": "look"}}
+{"id": "train-look-05", "family": "train-look-05", "split": "train", "input": {"text": "อ่านรหัสบนจอให้ที", "connected": true}, "expected": {"route": "look"}}
+{"id": "train-look-06", "family": "train-look-06", "split": "train", "input": {"text": "ช่วยดูข้อความผิดพลาดบนหน้าจอ", "connected": false}, "expected": {"route": "look"}}
+{"id": "train-look-07", "family": "train-look-07", "split": "train", "input": {"text": "ขอดูว่าหน้าจอเขียนอะไร", "connected": true}, "expected": {"route": "look"}}
+{"id": "train-look-08", "family": "train-look-08", "split": "train", "input": {"text": "Look at my screen", "connected": false}, "expected": {"route": "look"}}
+{"id": "train-look-09", "family": "train-look-09", "split": "train", "input": {"text": "Read the error on my display", "connected": true}, "expected": {"route": "look"}}
+{"id": "train-look-10", "family": "train-look-10", "split": "train", "input": {"text": "Describe what is visible on screen", "connected": false}, "expected": {"route": "look"}}
+{"id": "train-look-11", "family": "train-look-11", "split": "train", "input": {"text": "What is on my screen right now?", "connected": true}, "expected": {"route": "look"}}
+{"id": "train-look-12", "family": "train-look-12", "split": "train", "input": {"text": "Read this screen without clicking", "connected": false}, "expected": {"route": "look"}}
+{"id": "train-look-13", "family": "train-look-13", "split": "train", "input": {"text": "Tell me what the current display shows", "connected": true}, "expected": {"route": "look"}}
+{"id": "train-media-00", "family": "train-media-00", "split": "train", "input": {"text": "เปิดเพลง", "connected": false}, "expected": {"route": "media"}}
+{"id": "train-media-01", "family": "train-media-01", "split": "train", "input": {"text": "เล่นเพลงต่อ", "connected": true}, "expected": {"route": "media"}}
+{"id": "train-media-02", "family": "train-media-02", "split": "train", "input": {"text": "หยุดเพลงหน่อย", "connected": false}, "expected": {"route": "media"}}
+{"id": "train-media-03", "family": "train-media-03", "split": "train", "input": {"text": "ข้ามเพลงนี้", "connected": true}, "expected": {"route": "media"}}
+{"id": "train-media-04", "family": "train-media-04", "split": "train", "input": {"text": "กลับเพลงก่อนหน้า", "connected": false}, "expected": {"route": "media"}}
+{"id": "train-media-05", "family": "train-media-05", "split": "train", "input": {"text": "เอาเพลงที่กดหัวใจมาฟัง", "connected": true}, "expected": {"route": "media"}}
+{"id": "train-media-06", "family": "train-media-06", "split": "train", "input": {"text": "เล่น Liked Songs", "connected": false}, "expected": {"route": "media"}}
+{"id": "train-media-07", "family": "train-media-07", "split": "train", "input": {"text": "เล่นเพลงในเพลย์ลิสต์นี้", "connected": true}, "expected": {"route": "media"}}
+{"id": "train-media-08", "family": "train-media-08", "split": "train", "input": {"text": "เปิด Spotify แล้วเล่นเพลง", "connected": false}, "expected": {"route": "media"}}
+{"id": "train-media-09", "family": "train-media-09", "split": "train", "input": {"text": "เล่นเพลงชื่อ Harpy Hare", "connected": true}, "expected": {"route": "media"}}
+{"id": "train-media-10", "family": "train-media-10", "split": "train", "input": {"text": "ค้นหา limbus ใน YouTube", "connected": false}, "expected": {"route": "media"}}
+{"id": "train-media-11", "family": "train-media-11", "split": "train", "input": {"text": "อยากฟังเพลงที่เคยกดชอบ", "connected": true}, "expected": {"route": "media"}}
+{"id": "train-media-12", "family": "train-media-12", "split": "train", "input": {"text": "Play my liked songs", "connected": false}, "expected": {"route": "media"}}
+{"id": "train-media-13", "family": "train-media-13", "split": "train", "input": {"text": "Resume the music", "connected": true}, "expected": {"route": "media"}}
+{"id": "train-media-14", "family": "train-media-14", "split": "train", "input": {"text": "Pause Spotify", "connected": false}, "expected": {"route": "media"}}
+{"id": "train-media-15", "family": "train-media-15", "split": "train", "input": {"text": "Skip this song", "connected": true}, "expected": {"route": "media"}}
+{"id": "train-media-16", "family": "train-media-16", "split": "train", "input": {"text": "Go to the previous track", "connected": false}, "expected": {"route": "media"}}
+{"id": "train-media-17", "family": "train-media-17", "split": "train", "input": {"text": "Play my Night Drive playlist", "connected": true}, "expected": {"route": "media"}}
+{"id": "train-media-18", "family": "train-media-18", "split": "train", "input": {"text": "Put on some music", "connected": false}, "expected": {"route": "media"}}
+{"id": "train-media-19", "family": "train-media-19", "split": "train", "input": {"text": "Search YouTube for limbus", "connected": true}, "expected": {"route": "media"}}
+{"id": "train-website-00", "family": "train-website-00", "split": "train", "input": {"text": "เปิด Google", "connected": false}, "expected": {"route": "website"}}
+{"id": "train-website-01", "family": "train-website-01", "split": "train", "input": {"text": "เปิดเว็บ Spotify", "connected": true}, "expected": {"route": "website"}}
+{"id": "train-website-02", "family": "train-website-02", "split": "train", "input": {"text": "พาไป YouTube", "connected": false}, "expected": {"route": "website"}}
+{"id": "train-website-03", "family": "train-website-03", "split": "train", "input": {"text": "เปิดเว็บ github.com", "connected": true}, "expected": {"route": "website"}}
+{"id": "train-website-04", "family": "train-website-04", "split": "train", "input": {"text": "เข้าเว็บไซต์ https://example.org/help", "connected": false}, "expected": {"route": "website"}}
+{"id": "train-website-05", "family": "train-website-05", "split": "train", "input": {"text": "เปิด Gmail ให้หน่อย", "connected": true}, "expected": {"route": "website"}}
+{"id": "train-website-06", "family": "train-website-06", "split": "train", "input": {"text": "ไปหน้า Discord ในเว็บ", "connected": false}, "expected": {"route": "website"}}
+{"id": "train-website-07", "family": "train-website-07", "split": "train", "input": {"text": "เปิด Google Maps", "connected": true}, "expected": {"route": "website"}}
+{"id": "train-website-08", "family": "train-website-08", "split": "train", "input": {"text": "เปิด Notion", "connected": false}, "expected": {"route": "website"}}
+{"id": "train-website-09", "family": "train-website-09", "split": "train", "input": {"text": "เปิด Facebook", "connected": true}, "expected": {"route": "website"}}
+{"id": "train-website-10", "family": "train-website-10", "split": "train", "input": {"text": "Open Spotify", "connected": false}, "expected": {"route": "website"}}
+{"id": "train-website-11", "family": "train-website-11", "split": "train", "input": {"text": "Take me to YouTube", "connected": true}, "expected": {"route": "website"}}
+{"id": "train-website-12", "family": "train-website-12", "split": "train", "input": {"text": "Open the Google website", "connected": false}, "expected": {"route": "website"}}
+{"id": "train-website-13", "family": "train-website-13", "split": "train", "input": {"text": "Go to github.com", "connected": true}, "expected": {"route": "website"}}
+{"id": "train-website-14", "family": "train-website-14", "split": "train", "input": {"text": "Open https://example.org/docs", "connected": false}, "expected": {"route": "website"}}
+{"id": "train-website-15", "family": "train-website-15", "split": "train", "input": {"text": "Visit Wikipedia", "connected": true}, "expected": {"route": "website"}}
+{"id": "train-agent-00", "family": "train-agent-00", "split": "train", "input": {"text": "เปิดโปรแกรม Notepad", "connected": false}, "expected": {"route": "agent"}}
+{"id": "train-agent-01", "family": "train-agent-01", "split": "train", "input": {"text": "ช่วยหาไฟล์รายงานใน Downloads", "connected": true}, "expected": {"route": "agent"}}
+{"id": "train-agent-02", "family": "train-agent-02", "split": "train", "input": {"text": "หาเกม Limbus แล้วเปิด", "connected": false}, "expected": {"route": "agent"}}
+{"id": "train-agent-03", "family": "train-agent-03", "split": "train", "input": {"text": "โฟกัสหน้าต่าง VS Code ที่เปิดอยู่", "connected": true}, "expected": {"route": "agent"}}
+{"id": "train-agent-04", "family": "train-agent-04", "split": "train", "input": {"text": "เปิดโฟลเดอร์ Documents", "connected": false}, "expected": {"route": "agent"}}
+{"id": "train-agent-05", "family": "train-agent-05", "split": "train", "input": {"text": "อ่านไฟล์ README ในโปรเจกต์ที่เลือก", "connected": true}, "expected": {"route": "agent"}}
+{"id": "train-agent-06", "family": "train-agent-06", "split": "train", "input": {"text": "ช่วยแก้ไฟล์ในโฟลเดอร์โปรเจกต์", "connected": false}, "expected": {"route": "agent"}}
+{"id": "train-agent-07", "family": "train-agent-07", "split": "train", "input": {"text": "คลิกปุ่มในโปรแกรมบนจอ", "connected": true}, "expected": {"route": "agent"}}
+{"id": "train-agent-08", "family": "train-agent-08", "split": "train", "input": {"text": "เปิด YouTube แล้วจดผลลงไฟล์", "connected": false}, "expected": {"route": "agent"}}
+{"id": "train-agent-09", "family": "train-agent-09", "split": "train", "input": {"text": "Open the Notepad app", "connected": true}, "expected": {"route": "agent"}}
+{"id": "train-agent-10", "family": "train-agent-10", "split": "train", "input": {"text": "Find my report in Downloads", "connected": false}, "expected": {"route": "agent"}}
+{"id": "train-agent-11", "family": "train-agent-11", "split": "train", "input": {"text": "Launch the Limbus game", "connected": true}, "expected": {"route": "agent"}}
+{"id": "train-agent-12", "family": "train-agent-12", "split": "train", "input": {"text": "Focus the existing VS Code window", "connected": false}, "expected": {"route": "agent"}}
+{"id": "train-agent-13", "family": "train-agent-13", "split": "train", "input": {"text": "Read the project README", "connected": true}, "expected": {"route": "agent"}}
+{"id": "train-agent-14", "family": "train-agent-14", "split": "train", "input": {"text": "Fix the selected project file", "connected": false}, "expected": {"route": "agent"}}
+{"id": "train-agent-15", "family": "train-agent-15", "split": "train", "input": {"text": "Open the website and save a note in my project", "connected": true}, "expected": {"route": "agent"}}
+{"id": "train-selected-tab-00", "family": "train-selected-tab-00", "split": "train", "input": {"text": "กรอกชื่อฟ้าใสในแท็บที่เชื่อมอยู่ แต่ห้ามส่ง", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-01", "family": "train-selected-tab-01", "split": "train", "input": {"text": "อ่านแท็บ Chrome ที่เชื่อมให้หน่อย", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-02", "family": "train-selected-tab-02", "split": "train", "input": {"text": "ใส่อีเมล meow@example.test ในแท็บนี้", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-03", "family": "train-selected-tab-03", "split": "train", "input": {"text": "ติ๊กยอมรับในฟอร์มแท็บที่เชื่อม", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-04", "family": "train-selected-tab-04", "split": "train", "input": {"text": "เลือกไทยในช่องประเทศในแท็บนี้", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-05", "family": "train-selected-tab-05", "split": "train", "input": {"text": "อ่านค่าในช่องชื่อของแท็บที่เชื่อม", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-06", "family": "train-selected-tab-06", "split": "train", "input": {"text": "Type Sky in the connected tab, do not submit", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-07", "family": "train-selected-tab-07", "split": "train", "input": {"text": "Read the connected Chrome tab", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-08", "family": "train-selected-tab-08", "split": "train", "input": {"text": "Select Thailand in this connected form", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-09", "family": "train-selected-tab-09", "split": "train", "input": {"text": "Check the consent box in the connected tab", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-10", "family": "train-selected-tab-10", "split": "train", "input": {"text": "Fill the email in this paired tab", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-selected-tab-11", "family": "train-selected-tab-11", "split": "train", "input": {"text": "Verify the name field in the connected page", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "train-public-web-00", "family": "train-public-web-00", "split": "train", "input": {"text": "ค้นข้อมูลพยากรณ์อากาศพร้อมแหล่งอ้างอิง", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-01", "family": "train-public-web-01", "split": "train", "input": {"text": "ค้นข่าวล่าสุดเกี่ยวกับพลังงาน", "connected": true}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-02", "family": "train-public-web-02", "split": "train", "input": {"text": "หาข้อมูลสาธารณะเรื่องดาวอังคาร", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-03", "family": "train-public-web-03", "split": "train", "input": {"text": "ช่วยค้นข้อมูลเรื่องแผงโซลาร์จากเว็บ", "connected": true}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-04", "family": "train-public-web-04", "split": "train", "input": {"text": "อ่านบทความสาธารณะที่ https://example.org/article", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-05", "family": "train-public-web-05", "split": "train", "input": {"text": "หาคำบรรยายวิดีโอ YouTube สาธารณะ", "connected": true}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-06", "family": "train-public-web-06", "split": "train", "input": {"text": "Research solar energy with sources", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-07", "family": "train-public-web-07", "split": "train", "input": {"text": "Find recent public news about space", "connected": true}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-08", "family": "train-public-web-08", "split": "train", "input": {"text": "Search the web for weather information", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-09", "family": "train-public-web-09", "split": "train", "input": {"text": "Read the public article at https://example.org/article", "connected": true}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-10", "family": "train-public-web-10", "split": "train", "input": {"text": "Find public sources about Mars", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "train-public-web-11", "family": "train-public-web-11", "split": "train", "input": {"text": "Fetch the public captions for this YouTube video", "connected": true}, "expected": {"route": "public-web"}}
+{"id": "train-clarify-00", "family": "train-clarify-00", "split": "train", "input": {"text": "เปิดอันนั้นให้หน่อย", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-01", "family": "train-clarify-01", "split": "train", "input": {"text": "เปิดเกมให้ที", "connected": true}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-02", "family": "train-clarify-02", "split": "train", "input": {"text": "ช่วยส่งให้เพื่อนหน่อย", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-03", "family": "train-clarify-03", "split": "train", "input": {"text": "เอาอันเมื่อกี้", "connected": true}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-04", "family": "train-clarify-04", "split": "train", "input": {"text": "เปลี่ยนให้หน่อย", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-05", "family": "train-clarify-05", "split": "train", "input": {"text": "เปิดเว็บร้านแมวบิน", "connected": true}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-06", "family": "train-clarify-06", "split": "train", "input": {"text": "ใส่ชื่อลงไปสิ", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-07", "family": "train-clarify-07", "split": "train", "input": {"text": "จัดการอันนี้", "connected": true}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-08", "family": "train-clarify-08", "split": "train", "input": {"text": "Open that one", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-09", "family": "train-clarify-09", "split": "train", "input": {"text": "Launch a game", "connected": true}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-10", "family": "train-clarify-10", "split": "train", "input": {"text": "Send it to my friend", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-11", "family": "train-clarify-11", "split": "train", "input": {"text": "Change it for me", "connected": true}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-12", "family": "train-clarify-12", "split": "train", "input": {"text": "Do the thing from before", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-13", "family": "train-clarify-13", "split": "train", "input": {"text": "Open Flying Cat Shop website", "connected": true}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-14", "family": "train-clarify-14", "split": "train", "input": {"text": "Put it there", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "train-clarify-15", "family": "train-clarify-15", "split": "train", "input": {"text": "Pick one of those", "connected": true}, "expected": {"route": "clarify"}}
+{"id": "train-reference-0", "family": "train-reference-pair", "split": "train", "input": {"text": "เปิดอันนั้น", "history": [{"role": "user", "content": "กำลังคุยเรื่องเปิดเว็บ https://example.org/docs"}], "connected": false}, "expected": {"route": "website", "target": "https://example.org/docs"}}
+{"id": "train-reference-1", "family": "train-reference-pair", "split": "train", "input": {"text": "เปิดอันนั้น", "history": [], "connected": true}, "expected": {"route": "clarify"}}

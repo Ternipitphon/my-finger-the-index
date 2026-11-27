@@ -1,0 +1,4 @@
+# Install CPU torch separately from https://download.pytorch.org/whl/cpu.
+torch==2.5.1+cpu
+numpy==1.26.4
+safetensors==0.4.5

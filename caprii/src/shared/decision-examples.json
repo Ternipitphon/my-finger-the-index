@@ -1,0 +1,90 @@
+[
+  {
+    "input": "เปิดเพลงหมายถึงอะไร",
+    "result": {
+      "route": "chat",
+      "confidence": 1,
+      "reply": "เป็นคำขอให้เริ่มเล่นเพลง"
+    }
+  },
+  {
+    "input": "เปิดเพลง",
+    "result": {
+      "route": "media",
+      "confidence": 1,
+      "media": {
+        "service": "spotify",
+        "action": "play",
+        "collection": "current"
+      }
+    }
+  },
+  {
+    "input": "เปิดเว็บร้านแมวบิน",
+    "result": {
+      "route": "clarify",
+      "confidence": 1,
+      "question": "ส่ง URL ของเว็บไซต์นี้ให้หน่อย"
+    }
+  },
+  {
+    "input": "ดูหน้าจอให้หน่อย",
+    "result": {
+      "route": "look",
+      "confidence": 1
+    }
+  },
+  {
+    "input": "เปิดโปรแกรม Notepad",
+    "result": {
+      "route": "agent",
+      "confidence": 1
+    }
+  },
+  {
+    "input": "กรอกชื่อฟ้าใสในแท็บที่เชื่อมอยู่ แต่ห้ามส่ง",
+    "connected": true,
+    "result": {
+      "route": "selected-tab",
+      "confidence": 1
+    }
+  },
+  {
+    "input": "เปิดอันนั้นให้หน่อย",
+    "history": [],
+    "result": {
+      "route": "clarify",
+      "confidence": 1,
+      "question": "หมายถึงสิ่งไหน?"
+    }
+  },
+  {
+    "input": "Open Spotify",
+    "result": {
+      "route": "website",
+      "confidence": 1,
+      "target": "spotify"
+    }
+  },
+  {
+    "input": "เปิดอันนั้น",
+    "history": [
+      {
+        "role": "user",
+        "content": "กำลังคุยเรื่องเปิดเว็บ https://example.org/docs"
+      }
+    ],
+    "result": {
+      "route": "website",
+      "confidence": 1,
+      "target": "https://example.org/docs",
+      "continuation": true,
+      "assessment": {
+        "outcome": "เปิด URL ที่ผู้ใช้เพิ่งระบุ",
+        "targetSource": "conversation",
+        "missing": [],
+        "ambiguous": false
+      }
+    }
+  }
+]

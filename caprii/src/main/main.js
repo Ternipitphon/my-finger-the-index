@@ -899,7 +899,7 @@ function registerIpc() {
         return llm.chat(cfg.provider,llmConfig(cfg),{model,messages,jsonMode},()=>{},bounded);
       };
       const result=await require('./command-interpreter').interpretCommand({
-        text:request.text,history:request.history,profile:cfg,previous:request.previous||'',media:request.media,
+        text:request.text,environment:chromeBroker.status(),history:request.history,profile:cfg,previous:request.previous||'',media:request.media,
         connected:chromeBroker.status().connected===true,lang:resolveLang(cfg.lang),personality:cfg,signal,
         timeoutMs:cfg.modelProfile==='quality'?60000:30000,
         request:async(messages,bounded)=>{

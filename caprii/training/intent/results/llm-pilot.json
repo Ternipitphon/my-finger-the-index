@@ -1,0 +1,206 @@
+{
+  "schema": 1,
+  "model": "models/gemini-3.1-flash-lite",
+  "baselineCommit": "4e32e113068eb91b502b2c74732477ff04a40e66",
+  "candidateCommit": "working-tree-frozen-before-run",
+  "datasetSha256": "31c7437c81c77e0fb4c8f7532ae8eae277a9cc8fa768e6ce7300d5e41ba0c950",
+  "scope": "Exploratory 10-case pilot BEFORE follow-up history-URL fix; not a final held-out quality guarantee. Provider/format/validation failures all count as failures.",
+  "apiRequests": 20,
+  "variants": {
+    "baseline": {
+      "correct": 7,
+      "total": 10,
+      "accuracy": 0.7,
+      "providerOrFormatFailures": 3
+    },
+    "candidate": {
+      "correct": 9,
+      "total": 10,
+      "accuracy": 0.9,
+      "providerOrFormatFailures": 1
+    }
+  },
+  "results": [
+    {
+      "id": "test-chat-00",
+      "variant": "baseline",
+      "expected": "chat",
+      "actual": "chat",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 1372
+    },
+    {
+      "id": "test-chat-00",
+      "variant": "candidate",
+      "expected": "chat",
+      "actual": "chat",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 11530
+    },
+    {
+      "id": "test-look-00",
+      "variant": "baseline",
+      "expected": "look",
+      "actual": "look",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 1442
+    },
+    {
+      "id": "test-look-00",
+      "variant": "candidate",
+      "expected": "look",
+      "actual": "look",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 4751
+    },
+    {
+      "id": "test-media-00",
+      "variant": "baseline",
+      "expected": "media",
+      "actual": "clarify",
+      "correct": false,
+      "reason": "interpretation-timeout",
+      "latencyMs": 30003
+    },
+    {
+      "id": "test-media-00",
+      "variant": "candidate",
+      "expected": "media",
+      "actual": "media",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 4702
+    },
+    {
+      "id": "test-website-00",
+      "variant": "baseline",
+      "expected": "website",
+      "actual": "clarify",
+      "correct": false,
+      "reason": "interpretation-failed",
+      "latencyMs": 1152
+    },
+    {
+      "id": "test-website-00",
+      "variant": "candidate",
+      "expected": "website",
+      "actual": "website",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 1324
+    },
+    {
+      "id": "test-agent-00",
+      "variant": "baseline",
+      "expected": "agent",
+      "actual": "agent",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 1884
+    },
+    {
+      "id": "test-agent-00",
+      "variant": "candidate",
+      "expected": "agent",
+      "actual": "agent",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 1178
+    },
+    {
+      "id": "test-selected-tab-00",
+      "variant": "baseline",
+      "expected": "selected-tab",
+      "actual": "selected-tab",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 1881
+    },
+    {
+      "id": "test-selected-tab-00",
+      "variant": "candidate",
+      "expected": "selected-tab",
+      "actual": "selected-tab",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 1886
+    },
+    {
+      "id": "test-public-web-00",
+      "variant": "baseline",
+      "expected": "public-web",
+      "actual": "public-web",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 7525
+    },
+    {
+      "id": "test-public-web-00",
+      "variant": "candidate",
+      "expected": "public-web",
+      "actual": "public-web",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 2603
+    },
+    {
+      "id": "test-clarify-00",
+      "variant": "baseline",
+      "expected": "clarify",
+      "actual": "clarify",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 1682
+    },
+    {
+      "id": "test-clarify-00",
+      "variant": "candidate",
+      "expected": "clarify",
+      "actual": "clarify",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 1062
+    },
+    {
+      "id": "test-reference-0",
+      "variant": "baseline",
+      "expected": "website",
+      "actual": "clarify",
+      "correct": false,
+      "reason": "interpretation-failed",
+      "latencyMs": 1197
+    },
+    {
+      "id": "test-reference-0",
+      "variant": "candidate",
+      "expected": "website",
+      "actual": "clarify",
+      "correct": false,
+      "reason": "interpretation-failed",
+      "latencyMs": 1601
+    },
+    {
+      "id": "test-reference-1",
+      "variant": "baseline",
+      "expected": "clarify",
+      "actual": "clarify",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 12016
+    },
+    {
+      "id": "test-reference-1",
+      "variant": "candidate",
+      "expected": "clarify",
+      "actual": "clarify",
+      "correct": true,
+      "reason": null,
+      "latencyMs": 1475
+    }
+  ],
+  "candidateSourceSha256": "bfe43c8e81cd32acc79001fca5816a15dae5f89f3fe1638b30fc668914240a42"
+}

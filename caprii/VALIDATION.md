@@ -1,3 +1,7 @@
+# Caprii 0.8.12 validation
+
+Covers consent-scoped Chrome metadata, stripped query/fragment, absent/stale/credentialed connections, structured uncertainty blocking action, latest-user-only URL continuation, train/dev/test separation, trained checkpoint metrics and no production deployment. Exploratory Gemini pilot 7/10 vs 9/10 was before the URL fix and is not an independent final quality estimate. Neural route model held-out 32/42; all-connected stress 34/42. Existing native/browser/media/Lab checks remain required. No real account actions in training or benchmarks.
+
 # Caprii 0.8.11 validation
 
 Actual renderer and main IPC tests count one model call for ordinary chat, preserve bounded conversation/profile context, reject malformed context/replies, isolate wording repair without repeating routing, and dispatch screen-only requests to the existing capture path. Native Talk UI smoke submits the real chat form, checks remembered/displayed replies and one media dispatch with its actual failure message. Existing permission, cancellation, exact-name media and eight DOM lab checks remain required. Model and Spotify-account behavior is not proven by fixtures alone.

@@ -1,0 +1,42 @@
+{"id": "test-chat-00", "family": "test-chat-00", "split": "test", "input": {"text": "เวลาเราพูดว่าเปิดเพลง มันแปลว่าอะไร", "connected": false}, "expected": {"route": "chat"}}
+{"id": "test-chat-01", "family": "test-chat-01", "split": "test", "input": {"text": "ขอบใจนะ choom", "connected": false}, "expected": {"route": "chat"}}
+{"id": "test-chat-02", "family": "test-chat-02", "split": "test", "input": {"text": "อยากรู้วิธีใช้ Spotify เฉยๆ ไม่ต้องเปิด", "connected": false}, "expected": {"route": "chat"}}
+{"id": "test-chat-03", "family": "test-chat-03", "split": "test", "input": {"text": "What is the difference between pause and stop?", "connected": false}, "expected": {"route": "chat"}}
+{"id": "test-chat-04", "family": "test-chat-04", "split": "test", "input": {"text": "Do not open YouTube, just explain what it is", "connected": false}, "expected": {"route": "chat"}}
+{"id": "test-chat-05", "family": "test-chat-05", "split": "test", "input": {"text": "How do people organize playlists?", "connected": false}, "expected": {"route": "chat"}}
+{"id": "test-look-00", "family": "test-look-00", "split": "test", "input": {"text": "ช่วยอ่านสิ่งที่อยู่บนหน้าจอปัจจุบันอย่างเดียว", "connected": false}, "expected": {"route": "look"}}
+{"id": "test-look-01", "family": "test-look-01", "split": "test", "input": {"text": "จอตอนนี้แสดงข้อผิดพลาดอะไร", "connected": false}, "expected": {"route": "look"}}
+{"id": "test-look-02", "family": "test-look-02", "split": "test", "input": {"text": "Can you inspect the visible screen and tell me what you see?", "connected": false}, "expected": {"route": "look"}}
+{"id": "test-look-03", "family": "test-look-03", "split": "test", "input": {"text": "Read the text in my current display, no clicks", "connected": false}, "expected": {"route": "look"}}
+{"id": "test-media-00", "family": "test-media-00", "split": "test", "input": {"text": "อยากฟังเพลงที่ค้างเอาไว้", "connected": false}, "expected": {"route": "media"}}
+{"id": "test-media-01", "family": "test-media-01", "split": "test", "input": {"text": "ขอฟังบรรดาเพลงที่เคยจิ้มถูกใจ", "connected": false}, "expected": {"route": "media"}}
+{"id": "test-media-02", "family": "test-media-02", "split": "test", "input": {"text": "พักเพลงไว้แป๊บ", "connected": false}, "expected": {"route": "media"}}
+{"id": "test-media-03", "family": "test-media-03", "split": "test", "input": {"text": "ลองเปลี่ยนไปเพลงถัดจากนี้", "connected": false}, "expected": {"route": "media"}}
+{"id": "test-media-04", "family": "test-media-04", "split": "test", "input": {"text": "Could you put on the songs I marked as favorites?", "connected": false}, "expected": {"route": "media"}}
+{"id": "test-media-05", "family": "test-media-05", "split": "test", "input": {"text": "Carry on playing the current music", "connected": false}, "expected": {"route": "media"}}
+{"id": "test-media-06", "family": "test-media-06", "split": "test", "input": {"text": "Move to the next Spotify track", "connected": false}, "expected": {"route": "media"}}
+{"id": "test-media-07", "family": "test-media-07", "split": "test", "input": {"text": "Find YouTube results for cats", "connected": false}, "expected": {"route": "media"}}
+{"id": "test-website-00", "family": "test-website-00", "split": "test", "input": {"text": "พาเข้าเว็บ Wikipedia ที", "connected": false}, "expected": {"route": "website"}}
+{"id": "test-website-01", "family": "test-website-01", "split": "test", "input": {"text": "เปิด https://example.org/search?q=cats#results", "connected": false}, "expected": {"route": "website"}}
+{"id": "test-website-02", "family": "test-website-02", "split": "test", "input": {"text": "Visit the Spotify website", "connected": false}, "expected": {"route": "website"}}
+{"id": "test-website-03", "family": "test-website-03", "split": "test", "input": {"text": "Take me to the GitHub homepage", "connected": false}, "expected": {"route": "website"}}
+{"id": "test-agent-00", "family": "test-agent-00", "split": "test", "input": {"text": "ช่วยเปิดทางลัดเกม Cyberpunk จากเครื่อง", "connected": false}, "expected": {"route": "agent"}}
+{"id": "test-agent-01", "family": "test-agent-01", "split": "test", "input": {"text": "ย้ายไปหน้าต่าง Notepad ที่เปิดค้าง", "connected": false}, "expected": {"route": "agent"}}
+{"id": "test-agent-02", "family": "test-agent-02", "split": "test", "input": {"text": "Find my homework document on the desktop", "connected": false}, "expected": {"route": "agent"}}
+{"id": "test-agent-03", "family": "test-agent-03", "split": "test", "input": {"text": "Open Chrome then write a note in my chosen project", "connected": false}, "expected": {"route": "agent"}}
+{"id": "test-selected-tab-00", "family": "test-selected-tab-00", "split": "test", "input": {"text": "ช่วยกรอกแมวนอนในช่องชื่อของแท็บ Chrome ที่เชื่อม ห้ามกดส่ง", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "test-selected-tab-01", "family": "test-selected-tab-01", "split": "test", "input": {"text": "เลือกประเทศญี่ปุ่นในฟอร์มที่จับคู่ไว้นี้", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "test-selected-tab-02", "family": "test-selected-tab-02", "split": "test", "input": {"text": "Enter Cloud in the name field of the connected tab and leave it unsubmitted", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "test-selected-tab-03", "family": "test-selected-tab-03", "split": "test", "input": {"text": "Inspect this paired Chrome page and read back the filled email", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "test-public-web-00", "family": "test-public-web-00", "split": "test", "input": {"text": "ค้นบทความเกี่ยวกับวงแหวนดาวเสาร์จากแหล่งสาธารณะ", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "test-public-web-01", "family": "test-public-web-01", "split": "test", "input": {"text": "หาข้อมูลใหม่เรื่องรถไฟพร้อมลิงก์อ้างอิง", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "test-public-web-02", "family": "test-public-web-02", "split": "test", "input": {"text": "Find public sources explaining ocean tides", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "test-public-web-03", "family": "test-public-web-03", "split": "test", "input": {"text": "Search for current public research about batteries", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "test-clarify-00", "family": "test-clarify-00", "split": "test", "input": {"text": "เปิดตัวนั้นดิ", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "test-clarify-01", "family": "test-clarify-01", "split": "test", "input": {"text": "อันที่สองน่ะเอามาเลย", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "test-clarify-02", "family": "test-clarify-02", "split": "test", "input": {"text": "ส่งให้เขาหน่อย", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "test-clarify-03", "family": "test-clarify-03", "split": "test", "input": {"text": "Bring up the one I am thinking of", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "test-clarify-04", "family": "test-clarify-04", "split": "test", "input": {"text": "Use the second thing", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "test-clarify-05", "family": "test-clarify-05", "split": "test", "input": {"text": "Send this to someone", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "test-reference-0", "family": "test-reference-pair", "split": "test", "input": {"text": "ช่วยเปิดอันที่พูดถึงหน่อย", "history": [{"role": "user", "content": "กำลังคุยเรื่องเปิดเว็บ https://example.org/docs"}], "connected": false}, "expected": {"route": "website", "target": "https://example.org/docs"}}
+{"id": "test-reference-1", "family": "test-reference-pair", "split": "test", "input": {"text": "ช่วยเปิดอันที่พูดถึงหน่อย", "history": [], "connected": false}, "expected": {"route": "clarify"}}

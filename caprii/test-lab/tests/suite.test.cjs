@@ -31,3 +31,5 @@ test('choom is a Playful style review without altering DOM score contracts',()=>
 test('Spotify no-confirm review separates explicit play from opening-only autoplay without DOM score claims',()=>{const c=suite.externalMedia.find(x=>x.id==='spotify-no-confirm');assert.ok(c);assert.match(c.expected,/backend/);assert.match(c.expected,/สั่งเล่นยังต้องเล่น/);assert.match(suite.externalMedia.find(x=>x.id==='spotify-auto').prompt,/^เปิด Spotify$/);});
 
 test('unified reply/action decision is reviewed separately from DOM evidence',()=>{assert.equal(suite.unifiedDecision.id,'one-ai-decision');assert.equal(suite.unifiedDecision.requests.length,4);assert.equal(suite.unifiedDecision.verification,'requires-model-and-action-review-not-measured-by-this-page');assert.equal(suite.cases.length,8);});
+
+test('interpretation training review does not award a DOM or production model score',()=>{assert.equal(suite.interpretationPractice.id,'context-and-ambiguity');assert.equal(suite.interpretationPractice.verification,'requires-model-and-action-review-not-measured-by-this-page');});

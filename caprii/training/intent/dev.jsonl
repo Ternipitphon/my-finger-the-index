@@ -1,0 +1,18 @@
+{"id": "dev-chat-00", "family": "dev-chat-00", "split": "dev", "input": {"text": "หวัดดี choom", "connected": false}, "expected": {"route": "chat"}}
+{"id": "dev-chat-01", "family": "dev-chat-01", "split": "dev", "input": {"text": "What is Spotify autoplay?", "connected": true}, "expected": {"route": "chat"}}
+{"id": "dev-look-00", "family": "dev-look-00", "split": "dev", "input": {"text": "ดูหน้าจอตอนนี้แล้วบอกว่ามีโปรแกรมอะไร", "connected": false}, "expected": {"route": "look"}}
+{"id": "dev-look-01", "family": "dev-look-01", "split": "dev", "input": {"text": "Please describe my desktop without changing it", "connected": true}, "expected": {"route": "look"}}
+{"id": "dev-media-00", "family": "dev-media-00", "split": "dev", "input": {"text": "เพลงที่เซฟหัวใจไว้น่ะ เปิดให้ที", "connected": false}, "expected": {"route": "media"}}
+{"id": "dev-media-01", "family": "dev-media-01", "split": "dev", "input": {"text": "Could you continue what I was listening to?", "connected": true}, "expected": {"route": "media"}}
+{"id": "dev-website-00", "family": "dev-website-00", "split": "dev", "input": {"text": "เข้าเว็บ Canva", "connected": false}, "expected": {"route": "website"}}
+{"id": "dev-website-01", "family": "dev-website-01", "split": "dev", "input": {"text": "Please visit https://example.org/start", "connected": true}, "expected": {"route": "website"}}
+{"id": "dev-agent-00", "family": "dev-agent-00", "split": "dev", "input": {"text": "เปิดแอป Explorer ให้ที", "connected": false}, "expected": {"route": "agent"}}
+{"id": "dev-agent-01", "family": "dev-agent-01", "split": "dev", "input": {"text": "Find a PDF in my Documents folder", "connected": true}, "expected": {"route": "agent"}}
+{"id": "dev-selected-tab-00", "family": "dev-selected-tab-00", "split": "dev", "input": {"text": "พิมพ์ชื่อแมวบินในช่องชื่อของแท็บที่เชื่อม", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "dev-selected-tab-01", "family": "dev-selected-tab-01", "split": "dev", "input": {"text": "Read the values of this paired browser form", "connected": true}, "expected": {"route": "selected-tab"}}
+{"id": "dev-public-web-00", "family": "dev-public-web-00", "split": "dev", "input": {"text": "หาข้อมูลสาธารณะเกี่ยวกับภูเขาไฟพร้อมที่มา", "connected": false}, "expected": {"route": "public-web"}}
+{"id": "dev-public-web-01", "family": "dev-public-web-01", "split": "dev", "input": {"text": "Look up public information about volcanoes", "connected": true}, "expected": {"route": "public-web"}}
+{"id": "dev-clarify-00", "family": "dev-clarify-00", "split": "dev", "input": {"text": "กดอันที่บอกหน่อย", "connected": false}, "expected": {"route": "clarify"}}
+{"id": "dev-clarify-01", "family": "dev-clarify-01", "split": "dev", "input": {"text": "Open whichever I meant", "connected": true}, "expected": {"route": "clarify"}}
+{"id": "dev-reference-0", "family": "dev-reference-pair", "split": "dev", "input": {"text": "เปิดที่คุยกันไว้", "history": [{"role": "user", "content": "กำลังคุยเรื่องเปิดเว็บ https://example.org/docs"}], "connected": false}, "expected": {"route": "website", "target": "https://example.org/docs"}}
+{"id": "dev-reference-1", "family": "dev-reference-pair", "split": "dev", "input": {"text": "เปิดที่คุยกันไว้", "history": [], "connected": true}, "expected": {"route": "clarify"}}

@@ -1,0 +1,526 @@
+{
+  "schema": 1,
+  "experiment": "synthetic-char-cnn-from-scratch",
+  "seed": 712,
+  "device": "cpu",
+  "base_model": null,
+  "pretrained_model_fine_tuned": false,
+  "gemini_weights_changed": false,
+  "deployed_to_caprii": false,
+  "parameters": 29816,
+  "splits": {
+    "train": 124,
+    "dev": 18,
+    "test": 42
+  },
+  "dataset_sha256": {
+    "train": "507fcaf434d4cb0d6e08a79ed695ba210cf4b7850f1e4764f2699c7cb400db36",
+    "dev": "6949ecb6b21a53291c33e0a0d149e03d343503953c7d99ebea45992d4c633b3a",
+    "test": "31c7437c81c77e0fb4c8f7532ae8eae277a9cc8fa768e6ce7300d5e41ba0c950"
+  },
+  "test_majority_baseline": {
+    "accuracy": 0.19047619047619047,
+    "macro_f1": 0.04,
+    "per_class": {
+      "chat": {
+        "support": 6,
+        "f1": 0.0
+      },
+      "look": {
+        "support": 4,
+        "f1": 0.0
+      },
+      "media": {
+        "support": 8,
+        "f1": 0.32
+      },
+      "website": {
+        "support": 5,
+        "f1": 0.0
+      },
+      "agent": {
+        "support": 4,
+        "f1": 0.0
+      },
+      "selected-tab": {
+        "support": 4,
+        "f1": 0.0
+      },
+      "public-web": {
+        "support": 4,
+        "f1": 0.0
+      },
+      "clarify": {
+        "support": 7,
+        "f1": 0.0
+      }
+    }
+  },
+  "test_before_training": {
+    "accuracy": 0.09523809523809523,
+    "macro_f1": 0.021739130434782608,
+    "per_class": {
+      "chat": {
+        "support": 6,
+        "f1": 0.0
+      },
+      "look": {
+        "support": 4,
+        "f1": 0.0
+      },
+      "media": {
+        "support": 8,
+        "f1": 0.0
+      },
+      "website": {
+        "support": 5,
+        "f1": 0.0
+      },
+      "agent": {
+        "support": 4,
+        "f1": 0.0
+      },
+      "selected-tab": {
+        "support": 4,
+        "f1": 0.17391304347826086
+      },
+      "public-web": {
+        "support": 4,
+        "f1": 0.0
+      },
+      "clarify": {
+        "support": 7,
+        "f1": 0.0
+      }
+    }
+  },
+  "test_after_training": {
+    "accuracy": 0.7619047619047619,
+    "macro_f1": 0.7894570707070707,
+    "per_class": {
+      "chat": {
+        "support": 6,
+        "f1": 0.5
+      },
+      "look": {
+        "support": 4,
+        "f1": 0.8888888888888888
+      },
+      "media": {
+        "support": 8,
+        "f1": 0.5454545454545454
+      },
+      "website": {
+        "support": 5,
+        "f1": 0.9090909090909091
+      },
+      "agent": {
+        "support": 4,
+        "f1": 0.8888888888888888
+      },
+      "selected-tab": {
+        "support": 4,
+        "f1": 1.0
+      },
+      "public-web": {
+        "support": 4,
+        "f1": 0.75
+      },
+      "clarify": {
+        "support": 7,
+        "f1": 0.8333333333333334
+      }
+    }
+  },
+  "test_all_connected_stress": {
+    "accuracy": 0.8095238095238095,
+    "macro_f1": 0.8205808080808081,
+    "per_class": {
+      "chat": {
+        "support": 6,
+        "f1": 0.6666666666666666
+      },
+      "look": {
+        "support": 4,
+        "f1": 0.8
+      },
+      "media": {
+        "support": 8,
+        "f1": 0.6666666666666666
+      },
+      "website": {
+        "support": 5,
+        "f1": 0.9090909090909091
+      },
+      "agent": {
+        "support": 4,
+        "f1": 1.0
+      },
+      "selected-tab": {
+        "support": 4,
+        "f1": 0.8
+      },
+      "public-web": {
+        "support": 4,
+        "f1": 0.8888888888888888
+      },
+      "clarify": {
+        "support": 7,
+        "f1": 0.8333333333333334
+      }
+    }
+  },
+  "data_revision": 2,
+  "runtime_versions": {
+    "torch": "2.5.1+cpu"
+  },
+  "training_seconds": 9.66,
+  "checkpoint_selection": "dev macro F1 only; earliest tie",
+  "trace": [
+    {
+      "epoch": 1,
+      "train_loss": 2.224183976650238,
+      "dev_macro_f1": 0.15416666666666667
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.8623862043023109,
+      "dev_macro_f1": 0.6626984126984127
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.17589678149670362,
+      "dev_macro_f1": 0.7196428571428571
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.03084802138619125,
+      "dev_macro_f1": 0.8208333333333333
+    },
+    {
+      "epoch": 20,
+      "train_loss": 0.013573839038144797,
+      "dev_macro_f1": 0.7458333333333333
+    },
+    {
+      "epoch": 25,
+      "train_loss": 0.010493442241568118,
+      "dev_macro_f1": 0.7047619047619047
+    },
+    {
+      "epoch": 30,
+      "train_loss": 0.006709011111524887,
+      "dev_macro_f1": 0.6791666666666667
+    },
+    {
+      "epoch": 35,
+      "train_loss": 0.001913229683850659,
+      "dev_macro_f1": 0.6708333333333334
+    },
+    {
+      "epoch": 40,
+      "train_loss": 0.0026293413538951427,
+      "dev_macro_f1": 0.7208333333333333
+    },
+    {
+      "epoch": 45,
+      "train_loss": 0.0030939425560063682,
+      "dev_macro_f1": 0.6416666666666666
+    },
+    {
+      "epoch": 50,
+      "train_loss": 0.0032404088124167174,
+      "dev_macro_f1": 0.45416666666666666
+    },
+    {
+      "epoch": 55,
+      "train_loss": 0.001039597780618351,
+      "dev_macro_f1": 0.8113095238095238
+    },
+    {
+      "epoch": 60,
+      "train_loss": 0.0037171086951275356,
+      "dev_macro_f1": 0.6583333333333333
+    },
+    {
+      "epoch": 65,
+      "train_loss": 0.0026355884547228925,
+      "dev_macro_f1": 0.8113095238095238
+    },
+    {
+      "epoch": 70,
+      "train_loss": 0.0011887225282407599,
+      "dev_macro_f1": 0.6583333333333333
+    },
+    {
+      "epoch": 75,
+      "train_loss": 0.0005065817495051306,
+      "dev_macro_f1": 0.8113095238095238
+    },
+    {
+      "epoch": 80,
+      "train_loss": 0.000919378579055774,
+      "dev_macro_f1": 0.6797619047619048
+    }
+  ],
+  "test_predictions": [
+    {
+      "id": "test-chat-00",
+      "expected": "chat",
+      "predicted": "chat",
+      "correct": true
+    },
+    {
+      "id": "test-chat-01",
+      "expected": "chat",
+      "predicted": "look",
+      "correct": false
+    },
+    {
+      "id": "test-chat-02",
+      "expected": "chat",
+      "predicted": "chat",
+      "correct": true
+    },
+    {
+      "id": "test-chat-03",
+      "expected": "chat",
+      "predicted": "agent",
+      "correct": false
+    },
+    {
+      "id": "test-chat-04",
+      "expected": "chat",
+      "predicted": "chat",
+      "correct": true
+    },
+    {
+      "id": "test-chat-05",
+      "expected": "chat",
+      "predicted": "chat",
+      "correct": true
+    },
+    {
+      "id": "test-look-00",
+      "expected": "look",
+      "predicted": "look",
+      "correct": true
+    },
+    {
+      "id": "test-look-01",
+      "expected": "look",
+      "predicted": "look",
+      "correct": true
+    },
+    {
+      "id": "test-look-02",
+      "expected": "look",
+      "predicted": "look",
+      "correct": true
+    },
+    {
+      "id": "test-look-03",
+      "expected": "look",
+      "predicted": "look",
+      "correct": true
+    },
+    {
+      "id": "test-media-00",
+      "expected": "media",
+      "predicted": "media",
+      "correct": true
+    },
+    {
+      "id": "test-media-01",
+      "expected": "media",
+      "predicted": "media",
+      "correct": true
+    },
+    {
+      "id": "test-media-02",
+      "expected": "media",
+      "predicted": "media",
+      "correct": true
+    },
+    {
+      "id": "test-media-03",
+      "expected": "media",
+      "predicted": "chat",
+      "correct": false
+    },
+    {
+      "id": "test-media-04",
+      "expected": "media",
+      "predicted": "chat",
+      "correct": false
+    },
+    {
+      "id": "test-media-05",
+      "expected": "media",
+      "predicted": "chat",
+      "correct": false
+    },
+    {
+      "id": "test-media-06",
+      "expected": "media",
+      "predicted": "website",
+      "correct": false
+    },
+    {
+      "id": "test-media-07",
+      "expected": "media",
+      "predicted": "public-web",
+      "correct": false
+    },
+    {
+      "id": "test-website-00",
+      "expected": "website",
+      "predicted": "website",
+      "correct": true
+    },
+    {
+      "id": "test-website-01",
+      "expected": "website",
+      "predicted": "website",
+      "correct": true
+    },
+    {
+      "id": "test-website-02",
+      "expected": "website",
+      "predicted": "website",
+      "correct": true
+    },
+    {
+      "id": "test-website-03",
+      "expected": "website",
+      "predicted": "website",
+      "correct": true
+    },
+    {
+      "id": "test-agent-00",
+      "expected": "agent",
+      "predicted": "agent",
+      "correct": true
+    },
+    {
+      "id": "test-agent-01",
+      "expected": "agent",
+      "predicted": "agent",
+      "correct": true
+    },
+    {
+      "id": "test-agent-02",
+      "expected": "agent",
+      "predicted": "agent",
+      "correct": true
+    },
+    {
+      "id": "test-agent-03",
+      "expected": "agent",
+      "predicted": "agent",
+      "correct": true
+    },
+    {
+      "id": "test-selected-tab-00",
+      "expected": "selected-tab",
+      "predicted": "selected-tab",
+      "correct": true
+    },
+    {
+      "id": "test-selected-tab-01",
+      "expected": "selected-tab",
+      "predicted": "selected-tab",
+      "correct": true
+    },
+    {
+      "id": "test-selected-tab-02",
+      "expected": "selected-tab",
+      "predicted": "selected-tab",
+      "correct": true
+    },
+    {
+      "id": "test-selected-tab-03",
+      "expected": "selected-tab",
+      "predicted": "selected-tab",
+      "correct": true
+    },
+    {
+      "id": "test-public-web-00",
+      "expected": "public-web",
+      "predicted": "public-web",
+      "correct": true
+    },
+    {
+      "id": "test-public-web-01",
+      "expected": "public-web",
+      "predicted": "chat",
+      "correct": false
+    },
+    {
+      "id": "test-public-web-02",
+      "expected": "public-web",
+      "predicted": "public-web",
+      "correct": true
+    },
+    {
+      "id": "test-public-web-03",
+      "expected": "public-web",
+      "predicted": "public-web",
+      "correct": true
+    },
+    {
+      "id": "test-clarify-00",
+      "expected": "clarify",
+      "predicted": "clarify",
+      "correct": true
+    },
+    {
+      "id": "test-clarify-01",
+      "expected": "clarify",
+      "predicted": "chat",
+      "correct": false
+    },
+    {
+      "id": "test-clarify-02",
+      "expected": "clarify",
+      "predicted": "clarify",
+      "correct": true
+    },
+    {
+      "id": "test-clarify-03",
+      "expected": "clarify",
+      "predicted": "clarify",
+      "correct": true
+    },
+    {
+      "id": "test-clarify-04",
+      "expected": "clarify",
+      "predicted": "clarify",
+      "correct": true
+    },
+    {
+      "id": "test-clarify-05",
+      "expected": "clarify",
+      "predicted": "clarify",
+      "correct": true
+    },
+    {
+      "id": "test-reference-0",
+      "expected": "website",
+      "predicted": "website",
+      "correct": true
+    },
+    {
+      "id": "test-reference-1",
+      "expected": "clarify",
+      "predicted": "chat",
+      "correct": false
+    }
+  ],
+  "limitations": [
+    "Small synthetic dataset, not user traffic",
+    "Predicts route only; cannot extract targets or reason about a screen",
+    "Not a Gemini or general LLM fine-tune",
+    "No production integration, regardless of score"
+  ]
+}
