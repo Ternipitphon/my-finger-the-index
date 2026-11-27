@@ -1,3 +1,7 @@
+# Caprii 0.8.16 / Test Lab 1.24.0 — จำตัวเล่นที่ใช้จริง
+
+รวมการควบคุมแอป Spotify บน Windows โดยตรงจาก 0.8.15 เพิ่มการจำว่าเล่นผ่าน Windows หรือ Chrome จริง เพื่อให้คำสั่งต่อเนื่องหยุด/ข้ามใช้ตัวเล่นเดิม ไม่เอา URL ของเพลงไปใส่คำสั่ง pause/current และไม่บังคับ named/liked request ใหม่ไปแอปที่ยังไม่รองรับ ผลคำสั่งที่กลับหลังยกเลิกไม่เปลี่ยนตัวเล่นปัจจุบัน
+
 # Caprii 0.8.15 / Test Lab 1.23.0 — ควบคุม Spotify บน Windows
 
 คำสั่งเล่นต่อ/หยุด/ข้าม/เพลงก่อนหน้าใน Windows ใช้ System Media Transport Controls ของแอป Spotify เป็นค่าเริ่มต้น ไม่ต้องเชื่อม Chrome และไม่ส่ง Space หรือ media key ไปโปรแกรมที่กำลังใช้ เลือกเฉพาะ source ID ของ Spotify Store/desktop ที่รู้จัก ไม่ควบคุม Chrome/YouTube หรือ session อื่น ถ้าไม่พบ session เมื่อสั่งเล่น จะเปิด spotify: หนึ่งครั้งและรอ หากยังไม่พบให้เปิดแอปและเล่นเพลงครั้งแรก การยืนยันมาจาก Windows PlaybackStatus/metadata เปลี่ยน ไม่ใช่เสียงลำโพง

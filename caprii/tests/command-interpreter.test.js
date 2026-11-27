@@ -77,3 +77,9 @@ test('repeated progress snapshots replace the status instead of appending to the
  receive({id:42,text:'คำตอบจริง'});assert.equal(c.answer,'คำตอบจริง');assert.equal(blips,1);
  receive({id:41,text:'เก่า',kind:'status'});assert.equal(streams.length,3);
 });
+test('the actual media backend becomes continuation context and late results cannot change the current player',async()=>{
+ const {Chat}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/chat.js')));let captured;
+ const c=fixture(Chat,{commandInterpret:async r=>{captured=r.media;return{ok:true,route:'media',media:{service:'spotify',action:'play',collection:'current'}};},mediaRun:async()=>({backend:'windows-smtc',text:'fixture'})});await c.send('เล่นเพลงต่อ');assert.equal(c.lastMedia.player,'desktop');
+ c.host.mediaRun=async()=>({backend:'chrome',text:'fixture'});await c.send('เล่นเพลงในเว็บ');assert.equal(captured.player,'desktop');assert.equal(c.lastMedia.player,'web');
+ let resolve;c.host.mediaRun=()=>new Promise(r=>resolve=r);const p=c.send('เล่นต่อ');await new Promise(setImmediate);c.turn=0;c.open=false;resolve({backend:'windows-smtc',text:'late'});await p;assert.notEqual(c.lastMedia.player,'desktop');
+});

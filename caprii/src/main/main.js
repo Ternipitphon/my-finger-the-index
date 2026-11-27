@@ -1118,6 +1118,7 @@ function registerIpc() {
       try{browser=await require('./spotify-session').connectSpotify({broker:chromeBroker,open:()=>require('./launch').site(destination(media)),signal,alreadyOpened:request.alreadyOpened===true,onProgress});}
       finally{spotifyConnecting=false;}
       const result=await runSpotify({request:media,browser,signal,onProgress,fallbackTrack:config.load().spotifyLastTrack});
+      result.backend='chrome';
       if(result.ok&&result.track&&result.trackUrl){try{const trackURL=new URL(result.trackUrl);trackURL.search='';trackURL.hash='';const last=validateMedia({service:'spotify',action:'play',collection:'track',query:result.track,url:trackURL.href,...(result.artists?.[0]?{artist:result.artists[0]}:{})});config.save({spotifyLastTrack:last});}catch{}}
       if(resolveLang(config.load().lang)==='en'&&result.verified&&media.action==='play')result.text='Spotify playback is advancing '+(result.track?'for “'+result.track+'”. ':'in the current player (track name unavailable). ')+(result.audioVerified?'Chrome reports audio from this tab; speaker output is not verified.':'Audio output could not be verified.');
       return result;

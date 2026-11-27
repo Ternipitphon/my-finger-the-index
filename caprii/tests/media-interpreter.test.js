@@ -44,3 +44,9 @@ test('a bare artist/playlist answer and a brief continuation still reach AI inte
  const {needsMediaInterpretation}=await import(moduleUrl(path.join(__dirname,'../src/renderer/js/media-interpretation.js')));
  assert.equal(needsMediaInterpretation('Yaelokre',{awaiting:'artist'}),true);assert.equal(needsMediaInterpretation('Night Drive',{awaiting:'playlist'}),true);assert.equal(needsMediaInterpretation('อีกที',{service:'spotify'}),true);assert.equal(needsMediaInterpretation('สวัสดี'),false);
 });
+test('current controls inherit the actual player without inheriting a track URL; new collections do not inherit an unsupported desktop target',()=>{
+ const {validateMediaIntent}=require('../src/main/media-interpreter');
+ const pause=validateMediaIntent({continuation:true,media:{service:'spotify',action:'pause',collection:'current'}},{text:'หยุดเพลง',previous:{service:'spotify',action:'play',collection:'track',query:'Song',url:'https://open.spotify.com/track/abc',player:'web'}});
+ assert.equal(pause.media.player,'web');assert.equal(pause.media.url,undefined);
+ const liked=validateMediaIntent({continuation:true,media:{service:'spotify',action:'play',collection:'liked'}},{text:'เล่นเพลงที่กดชอบ',previous:{service:'spotify',action:'play',collection:'current',player:'desktop'}});assert.equal(liked.media.player,undefined);
+});

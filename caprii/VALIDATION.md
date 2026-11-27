@@ -1,3 +1,7 @@
+# Caprii 0.8.16 validation
+
+Adds actual-backend continuation context, late-result rejection, current controls without stale track URL and named/liked requests without an inherited unsupported desktop player. Retains native Windows API read-only smoke, direct Spotify command tests, permissions and browser/player regressions from 0.8.15.
+
 # Caprii 0.8.15 validation
 
 Tests Windows Spotify-only identity selection, play/pause/skip/previous readback, disabled/rejected/ambiguous sessions, no global keys/focus, JSON-only stdin, one mutation without retry, cancellation and explicit-web routing. Native Windows smoke parses the PowerShell AST and performs read-only WinRT inspection; a runner without a Spotify session cannot verify real account playback or speaker audio. Native controls require Windows 10 1809 or newer/Windows 11 and a Spotify app exposing a media session. Also verifies repeated progress snapshots in the actual chat form.

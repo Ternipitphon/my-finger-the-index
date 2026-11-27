@@ -362,7 +362,9 @@ export class Chat {
           this.panel.stream(opened?(this.brain.lang==='en'?`Sent search results for “${media.query}” to your browser.`:`ส่งคำขอเปิดผลค้นหา “${media.query}” ใน ${media.service==='youtube'?'YouTube':'Spotify'} แล้ว`):'ยังไม่ได้เปิดผลค้นหา — ถูกยกเลิกหรือเปิดไม่สำเร็จ',{done:true});
         }else{
           const result=await this.host.mediaRun({id,media});
-          if(result.clarification)this.lastMedia={...media,awaiting:result.clarification,choices:result.choices||[]};
+          if(this.turn!==id||!this.open)return;
+          if(result.backend==='windows-smtc'||result.backend==='chrome')this.lastMedia={...media,player:result.backend==='windows-smtc'?'desktop':'web'};
+          if(result.clarification)this.lastMedia={...this.lastMedia,awaiting:result.clarification,choices:result.choices||[]};
           if(this.turn===id)this.panel.stream(result.text+(result.choices?.length?'\n'+result.choices.map(x=>typeof x==='string'?x:x.title+(x.artists?.length?' — '+x.artists.join(', '):'')).join('\n'):''),{done:true});
         }
       }catch(error){if(this.turn===id)this.panel.stream('คำสั่งสื่อยังไม่สำเร็จ: '+error.message,{done:true});}
@@ -374,14 +376,14 @@ export class Chat {
       if(website.question){this.panel.stream(this.brain.lang==='en'?'Please provide the website URL or domain so I can open the correct site.':website.question,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
       try {
         if(new URL(website.url).origin==='https://open.spotify.com'&&new URL(website.url).pathname==='/'){
-          this.lastMedia={service:'spotify',action:'play',collection:'current'};
+          this.lastMedia={service:'spotify',action:'play',collection:'current',player:'web'};
           const result=await this.host.mediaRun({id,media:this.lastMedia,autoOpen:true});
           if(this.turn===id)this.panel.stream(result.text,{done:true});
           return;
         }
         const opened = await this.host.openSite(website.url);
         if(opened&&new URL(website.url).hostname==='open.spotify.com'){
-          this.lastMedia={service:'spotify',action:'play',collection:'current'};
+          this.lastMedia={service:'spotify',action:'play',collection:'current',player:'web'};
         }
         if (this.turn === id) this.panel.stream(this.brain.lang==='en'?(opened?`Sent ${website.name} to your default browser.`:`${website.name} was not opened — canceled or failed.`):(opened ? `ส่งคำขอเปิด ${website.name} ในเบราว์เซอร์แล้ว` : `ยังไม่ได้เปิด ${website.name} — ถูกยกเลิกหรือเปิดไม่สำเร็จ`), { done: true });
       } catch {
