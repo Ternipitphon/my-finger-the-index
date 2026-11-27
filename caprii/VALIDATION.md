@@ -1,3 +1,7 @@
+# Caprii 0.8.14 validation
+
+Unit cases cover a loaded unnamed paused player, old-driver position evidence, no cached-track navigation and frozen-clock failure. Native Spotify DOM smoke reproduces Home with a footer lacking the old widget ID, weathergirl at 2:05, hidden stale widget and misleading main recommendation; checks title/artist extraction, one resume, unnamed-player continuation and unloaded-player rejection. Transport smoke poisons the old driver cache and verifies fresh driver injection. Existing pairing, permissions, named-song, audio/mute, controls and Lab tests remain required. No real Spotify account/speaker output verified.
+
 # Caprii 0.8.13 validation
 
 Tests persistent encrypted key storage, fresh HTTP broker/store with remembered worker after app restart, Chrome session-storage reset, more than six offline failures, stale-session recovery, revoked token rejection, permission removal, incognito rejection and no background DOM injection. Native Windows pairing smoke uses actual Electron safeStorage and fresh store/server instances; physical Chrome restart and the user Spotify account remain outside the fixture. Existing Windows/menu/chat/browser/media/Lab checks required.

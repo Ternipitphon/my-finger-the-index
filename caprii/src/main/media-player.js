@@ -13,6 +13,7 @@ function validateMedia(request){
 function destination(r){return r.collection==='current'?'https://open.spotify.com/':r.collection==='liked'?'https://open.spotify.com/collection/tracks':r.url||(r.query&&r.collection==='track'?'https://open.spotify.com/search/'+encodeURIComponent(r.query):'https://open.spotify.com/collection');}
 async function runSpotify({request,browser,signal,onProgress=()=>{},sleep=wait,maxChecks=12,fallbackTrack=null}){
  const r=validateMedia(request);let observed,clicked=false,expectedTrack=null,recovered=false;
+ const hasCurrentItem=o=>!!o.track||o.playerLoaded===true||o.playerLoaded===undefined&&o.ready&&Number.isFinite(o.position)&&o.position>0;
  const inspect=()=>browser.spotify({action:'inspect'},signal);
  async function go(url,force=false){url=spotifyURL(url);const oldDocument=observed.documentId;onProgress('กำลังเปิดหน้า Spotify ที่ต้องการ');if(force||spotifyPath(observed.url)!==spotifyPath(url))await browser.mediaNavigate(url,signal);for(let i=0;i<20;i++){signal?.throwIfAborted();observed=await inspect();if(spotifyPath(observed.url)===spotifyPath(url)&&observed.documentReady!=='loading'&&(!force||!oldDocument||observed.documentId!==oldDocument)){if(observed.loggedOut)throw Error('กรุณาเข้าสู่ระบบ Spotify ก่อน ยังไม่ได้กดเล่น');return observed;}await sleep(350,signal);}throw Error('หน้า Spotify ยังไม่พร้อม ยังไม่ได้กดเล่น');}
  try{
@@ -62,15 +63,15 @@ async function runSpotify({request,browser,signal,onProgress=()=>{},sleep=wait,m
     }
    }
   }
-  for(let i=0;i<(r.collection==='current'?30:10);i++){signal?.throwIfAborted();observed=await inspect();if(observed.loggedOut)throw Error('กรุณาเข้าสู่ระบบ Spotify ก่อน ยังไม่ได้กดเล่น');const headingOK=r.collection==='liked'?/liked songs|เพลงที่(?:กด)?(?:ถูกใจ|ชอบ)|เพลงโปรด/i.test(observed.heading):r.collection==='track'||r.collection==='playlist'&&r.query?normalize(observed.heading)===normalize(r.query):true;if((r.collection==='current'?observed.ready&&!!observed.track:observed.canPlayCollection)&&headingOK)break;await sleep(350,signal);}
-  if(r.collection==='current'&&!observed.track&&fallbackTrack){
+  for(let i=0;i<(r.collection==='current'?30:10);i++){signal?.throwIfAborted();observed=await inspect();if(observed.loggedOut)throw Error('กรุณาเข้าสู่ระบบ Spotify ก่อน ยังไม่ได้กดเล่น');const headingOK=r.collection==='liked'?/liked songs|เพลงที่(?:กด)?(?:ถูกใจ|ชอบ)|เพลงโปรด/i.test(observed.heading):r.collection==='track'||r.collection==='playlist'&&r.query?normalize(observed.heading)===normalize(r.query):true;if((r.collection==='current'?observed.ready&&hasCurrentItem(observed):observed.canPlayCollection)&&headingOK)break;await sleep(350,signal);}
+  if(r.collection==='current'&&!hasCurrentItem(observed)&&fallbackTrack){
    let saved;try{saved=validateMedia(fallbackTrack);}catch{}
    if(saved?.action==='play'&&saved.collection==='track'&&saved.url){
     onProgress('ตัวเล่นยังไม่มีเพลง กำลังเปิดเพลงล่าสุดที่ Caprii เคยตรวจไว้');
     return runSpotify({request:saved,browser,signal,onProgress,sleep,maxChecks});
    }
   }
-  if(r.collection==='current'&&!observed.track)return{ok:false,verified:false,text:'ยังไม่มีเพลงในตัวเล่น บอกชื่อเพลงหรือสั่งเล่น Liked Songs ได้เลยครับ'};
+  if(r.collection==='current'&&!hasCurrentItem(observed))return{ok:false,verified:false,text:'ยังอ่านเพลงหรือตำแหน่งเวลาในตัวเล่น Spotify ไม่ได้ จึงยังไม่กดเล่น ลองรีโหลดส่วนขยายและหน้า Spotify'};
   if(r.collection==='liked'&&!/liked songs|เพลงที่(?:กด)?(?:ถูกใจ|ชอบ)|เพลงโปรด/i.test(observed.heading))throw Error('ยังไม่พบหน้า Liked Songs ที่พร้อมเล่น ยังไม่ได้กดเล่น');
   if((r.collection==='track'||r.collection==='playlist'&&r.query)&&normalize(observed.heading)!==normalize(r.query))throw Error('หน้าที่เปิดไม่ตรงกับชื่อเพลง ยังไม่ได้กดเล่น');
   onProgress('พบรายการแล้ว กำลังกดเล่นและตรวจตัวเล่น');
@@ -82,7 +83,7 @@ async function runSpotify({request,browser,signal,onProgress=()=>{},sleep=wait,m
    const correct=r.collection!=='track'||normalize(observed.track)===normalize(r.query)&&(!r.artist||(observed.artists||[]).some(n=>normalize(n)===normalize(r.artist)))&&(!observed.trackUrl||spotifyPath(observed.trackUrl)===spotifyPath(expectedTrack));
    if(observed.tabAudio?.muted||observed.localAudio?.muted||observed.localAudio?.volume===0)throw Error('แท็บหรือตัวเล่นปิดเสียงอยู่ ยังไม่ยืนยันว่ามีเสียง');
    if(observed.playing&&observed.tabAudio?.audible===false)silentChecks++;else silentChecks=0;
-   if(silentChecks>=3&&played.alreadyPlaying===true&&correct&&!recovered&&observed.trackUrl){
+   if(silentChecks>=3&&played.alreadyPlaying===true&&correct&&!recovered&&observed.track&&observed.trackUrl){
     recovered=true;const target=spotifyURL(observed.trackUrl);const title=observed.track;
     onProgress('เวลาเดินแต่ Chrome ยังไม่พบเสียง กำลังเปิดเพลงเดิมใหม่หนึ่งครั้ง');
     await go(target,true);
@@ -90,8 +91,8 @@ async function runSpotify({request,browser,signal,onProgress=()=>{},sleep=wait,m
     const retry=await browser.spotify({action:'play',current:false,expectedUrl:observed.url,expectedHeading:observed.heading,expectedDocumentId:observed.documentId},signal);
     clicked=clicked||retry.clicked===true;baseline=null;continue;
    }
-   if(observed.playing&&observed.track&&correct&&Number.isFinite(observed.position)){
-    if(baseline&&baseline.documentId===observed.documentId&&baseline.kind===observed.positionKind&&normalize(baseline.track)===normalize(observed.track)&&observed.position>baseline.position&&observed.tabAudio?.audible!==false)return{ok:true,verified:true,audioVerified:observed.tabAudio?.audible===true,recoveryAttempted:recovered,text:'ตัวเล่น Spotify แสดงว่ากำลังเล่น '+observed.track+' และเวลาเพลงเดินแล้ว'+(observed.tabAudio?.audible===true?' Chrome รายงานเสียงจากแท็บนี้ แต่ยังตรวจเสียงลำโพงไม่ได้':' ยังตรวจเสียงจากแท็บไม่ได้'),...details(),collection:r.collection,evidence:{playing:true,positionBefore:baseline.position,positionAfter:observed.position,kind:observed.positionKind}};
+   if(observed.playing&&(observed.track||r.collection==='current'&&hasCurrentItem(observed))&&correct&&Number.isFinite(observed.position)){
+    if(baseline&&baseline.documentId===observed.documentId&&baseline.kind===observed.positionKind&&normalize(baseline.track)===normalize(observed.track)&&observed.position>baseline.position&&observed.tabAudio?.audible!==false)return{ok:true,verified:true,audioVerified:observed.tabAudio?.audible===true,recoveryAttempted:recovered,trackNameRead:!!observed.track,text:'ตัวเล่น Spotify แสดงว่ากำลังเล่น '+(observed.track||'เพลงที่ค้างอยู่ (ยังอ่านชื่อเพลงไม่ได้)')+' และเวลาเพลงเดินแล้ว'+(observed.tabAudio?.audible===true?' Chrome รายงานเสียงจากแท็บนี้ แต่ยังตรวจเสียงลำโพงไม่ได้':' ยังตรวจเสียงจากแท็บไม่ได้'),...details(),collection:r.collection,evidence:{playing:true,positionBefore:baseline.position,positionAfter:observed.position,kind:observed.positionKind}};
     baseline={documentId:observed.documentId,position:observed.position,kind:observed.positionKind,track:observed.track};
    }else baseline=null;
   }

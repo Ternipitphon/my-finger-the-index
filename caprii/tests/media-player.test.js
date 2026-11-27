@@ -33,3 +33,13 @@ test('no current song and invalid saved data never invent a song or choose a col
 test('Stop during player hydration prevents cached fallback and playback',async()=>{
  const f=fixture(),a=new AbortController();await assert.rejects(runSpotify({request:{service:'spotify',action:'play',collection:'current'},browser:f.browser,signal:a.signal,sleep:async()=>a.abort(Error('stopped'))}),/stopped/);assert.equal(f.clicks,0);assert.deepEqual(f.navigation,[]);
 });
+function unnamedPlayer({frozen=false,legacy=false}={}){
+ let position=125,plays=0;const navigation=[];
+ return{navigation,get plays(){return plays;},browser:{mediaNavigate:async url=>navigation.push(url),spotify:async a=>{if(a.action==='play'){assert.equal(a.current,true);plays++;return{clicked:true};}return{url:'https://open.spotify.com/',heading:'Home',ready:true,...(legacy?{}:{playerLoaded:true}),track:'',trackUrl:'',playing:plays>0,position:plays&&!frozen?++position:position,positionKind:'clock',documentId:'current',tabAudio:{audible:plays>0,muted:false}};}}};
+}
+test('resume uses a loaded paused player even when its track metadata cannot be read, without navigating to a cached song',async()=>{
+ for(const legacy of [false,true]){const f=unnamedPlayer({legacy});const r=await runSpotify({request:{service:'spotify',action:'play',collection:'current'},fallbackTrack:{service:'spotify',action:'play',collection:'track',query:'Old',url:'https://open.spotify.com/track/old'},browser:f.browser,sleep:async()=>{}});assert.equal(r.verified,true);assert.equal(r.trackNameRead,false);assert.equal(f.plays,1);assert.deepEqual(f.navigation,[]);assert.match(r.text,/ยังอ่านชื่อเพลงไม่ได้/);}
+});
+test('a loaded unnamed player with a frozen clock still fails verification after one play request',async()=>{
+ const f=unnamedPlayer({frozen:true});const r=await runSpotify({request:{service:'spotify',action:'play',collection:'current'},browser:f.browser,sleep:async()=>{},maxChecks:4});assert.equal(r.verified,false);assert.equal(f.plays,1);assert.deepEqual(f.navigation,[]);
+});

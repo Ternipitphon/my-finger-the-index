@@ -45,8 +45,8 @@ async function execute(c,command){
  }
  if(command.op==='spotify'&&c.origin!=='https://open.spotify.com')throw Error('ต้องเชื่อมแท็บ Spotify ก่อน');
  const run=()=>chrome.scripting.executeScript({target:{tabId:c.tabId},func:async(op,args)=>{
-  if(typeof globalThis.createCapriiDOMBridge!=='function'||typeof globalThis.createCapriiSpotifyDOMBridge!=='function'||globalThis.__capriiSpotifyDriver!==6)return{needsInjection:true};
-  const state=globalThis.__capriiBridges076||(globalThis.__capriiBridges076={dom:createCapriiDOMBridge(),spotify:createCapriiSpotifyDOMBridge()});
+  if(typeof globalThis.createCapriiDOMBridge!=='function'||typeof globalThis.createCapriiSpotifyDOMBridge!=='function'||globalThis.__capriiSpotifyDriver!==7)return{needsInjection:true};
+  const state=globalThis.__capriiBridges0814||(globalThis.__capriiBridges0814={dom:createCapriiDOMBridge(),spotify:createCapriiSpotifyDOMBridge()});
   return{value:await(op==='spotify'?state.spotify.execute(args):state.dom.execute(op,args))};
  },args:[command.op,command.args||{}]});
  let result=await run();if(result[0]?.result?.needsInjection){await inject(c.tabId);await checkTab(c);result=await run();}

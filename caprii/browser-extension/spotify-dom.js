@@ -8,12 +8,22 @@ function createSpotifyDOMBridge(){
  const norm=s=>String(s||'').normalize('NFKC').toLocaleLowerCase().replace(/[\s“”"']+/g,' ').trim();
  const playing=el=>/pause|หยุดชั่วคราว/i.test(label(el));
  const playable=el=>!el.disabled&&el.getAttribute('aria-disabled')!=='true';
+ const clock=text=>/^\d+(?::\d{1,2}){1,2}$/.test(String(text||'').trim())?String(text).trim().split(':').reduce((total,n)=>total*60+Number(n),0):null;
  const localDevices=()=>all('[role="dialog"] button,[role="menu"] button,[role="menuitem"],[data-testid="connect-device-list"] button,[data-testid="connect-device-picker"] button').filter(b=>/^(?:this web browser|this browser|เว็บเบราว์เซอร์นี้|เบราว์เซอร์นี้)$/i.test(label(b)));
  function inspect(){
   if(location.origin!=='https://open.spotify.com')throw Error('แท็บนี้ไม่ใช่ Spotify');
   const control=all('button[data-testid="control-button-playpause"]')[0];
-  const widget=document.querySelector('[data-testid="now-playing-widget"]');
-  const title=widget?.querySelector('a[href*="/track/"]')?.textContent?.trim()||document.querySelector('[data-testid="context-item-info-title"]')?.textContent?.trim()||'';
+  const widgets=all('[data-testid="now-playing-widget"]');
+  const widget=widgets.length===1?widgets[0]:null;
+  const bar=control?.closest('footer,[role="contentinfo"],[data-testid="now-playing-bar"]');
+  const scope=bar||widget;
+  // Read only the player, never a recommendation/search result or the large right-hand detail panel.
+  const links=scope?all('a[href*="/track/"]',scope).filter(a=>{try{const u=new URL(a.href);return u.origin===location.origin&&/^\/(?:intl-[a-z]{2}\/)?track\/[A-Za-z0-9]+\/?$/.test(u.pathname);}catch{return false;}}):[];
+  const unique=[...new Set(links.map(a=>{const u=new URL(a.href);u.search='';u.hash='';return u.href;}))];
+  const trackLink=unique.length===1?links.find(a=>a.textContent.trim()||a.getAttribute('title'))||links[0]:null;
+  const titleNode=scope?all('[data-testid="context-item-info-title"],[data-testid="context-item-link"],[data-testid="nowplaying-track-link"]',scope).find(el=>el.textContent.trim()):null;
+  const title=trackLink?(trackLink.textContent.trim()||trackLink.getAttribute('title')||''):links.length===0?titleNode?.textContent?.trim()||'':'';
+  const trackURL=trackLink?unique[0]:'';
   const media=Array.from(document.querySelectorAll('audio'));const audio=media.find(a=>!a.paused&&!a.ended);const localMedia=audio||(media.length===1?media[0]:null);
   const deviceText=all('[data-testid="connect-bar"],[data-testid="connect-bar-player"]').map(label).join(' ');
   const progress=document.querySelector('[data-testid="playback-progressbar"] input[type="range"], [data-testid="playback-progressbar"] [aria-valuenow], [data-testid="playback-progressbar"][aria-valuenow], input[aria-label="Playback position"], [aria-label="Playback position"][aria-valuenow]');
@@ -21,9 +31,11 @@ function createSpotifyDOMBridge(){
   const seconds=document.querySelector('[data-testid="playback-position"]')?.textContent?.trim();
   const time=seconds&&/^(?:\d+:)?\d+:\d+$/.test(seconds)?seconds.split(':').reduce((a,n)=>a*60+Number(n),0):null;
   const position=audio?audio.currentTime:raw!=null&&raw!==''&&Number.isFinite(Number(raw))?Number(raw):time;
+  const duration=clock(document.querySelector('[data-testid="playback-duration"]')?.textContent);
+  const playerLoaded=!!control&&playable(control)&&(!!title||!!trackURL||Number.isFinite(position)&&position>0||Number.isFinite(duration)&&duration>0);
   const rows=all('[data-testid="tracklist-row"], [role="row"]').map(row=>{const link=row.querySelector('a[href*="/track/"]');if(!link)return null;return{title:link.textContent.trim(),url:link.href,artists:Array.from(row.querySelectorAll('a[href*="/artist/"]')).map(a=>a.textContent.trim())};}).filter(Boolean).slice(0,100);
   const playlists=all('a[href*="/playlist/"]').map(a=>({title:label(a),url:a.href})).filter(a=>a.title).filter((a,i,list)=>list.findIndex(b=>b.url===a.url)===i).slice(0,80);
-  return{documentId,documentReady:document.readyState,remoteDevice:/listening on|กำลังฟังบน|กำลังเล่นบน/i.test(deviceText),canChooseLocal:localDevices().length===1,localAudio:localMedia?{paused:localMedia.paused,muted:localMedia.muted,volume:localMedia.volume,readyState:localMedia.readyState,error:localMedia.error?.code||null}:null,canPlayCollection:all('main button[data-testid="play-button"]').filter(b=>!b.closest('[data-testid="tracklist-row"],[role="row"]')).length===1,ready:!!control&&playable(control),url:location.href,heading:document.querySelector('main h1')?.textContent?.trim()||'',loggedOut:all('[data-testid="login-button"],a[href*="accounts.spotify.com/login"],a[href^="/login"]').length>0,track:title,trackUrl:widget?.querySelector('a[href*="/track/"]')?.href||'',artists:widget?Array.from(widget.querySelectorAll('a[href*="/artist/"]')).map(a=>a.textContent.trim()):[],playing:!!(audio||control&&playing(control)),position,positionKind:audio?'audio':raw!=null?'progress':time!=null?'clock':null,rows,playlists,alerts:all('[role="alert"]').map(label).join(' ').slice(0,500)};
+  return{documentId,documentReady:document.readyState,remoteDevice:/listening on|กำลังฟังบน|กำลังเล่นบน/i.test(deviceText),canChooseLocal:localDevices().length===1,localAudio:localMedia?{paused:localMedia.paused,muted:localMedia.muted,volume:localMedia.volume,readyState:localMedia.readyState,error:localMedia.error?.code||null}:null,canPlayCollection:all('main button[data-testid="play-button"]').filter(b=>!b.closest('[data-testid="tracklist-row"],[role="row"]')).length===1,ready:!!control&&playable(control),playerLoaded,duration,url:location.href,heading:document.querySelector('main h1')?.textContent?.trim()||'',loggedOut:all('[data-testid="login-button"],a[href*="accounts.spotify.com/login"],a[href^="/login"]').length>0,track:title,trackUrl:trackURL,artists:scope?all('a[href*="/artist/"]',scope).map(a=>a.textContent.trim()).filter(Boolean):[],playing:!!(audio||control&&playing(control)),position,positionKind:audio?'audio':raw!=null?'progress':time!=null?'clock':null,rows,playlists,alerts:all('[role="alert"]').map(label).join(' ').slice(0,500)};
  }
  async function execute(a={}){
   const before=inspect();if(a.action==='inspect')return before;
@@ -54,5 +66,5 @@ function createSpotifyDOMBridge(){
  }
  return{execute};
 }
-if(typeof module!=='undefined')module.exports=createSpotifyDOMBridge;else{globalThis.createCapriiSpotifyDOMBridge=createSpotifyDOMBridge;globalThis.__capriiSpotifyDriver=6;}
+if(typeof module!=='undefined')module.exports=createSpotifyDOMBridge;else{globalThis.createCapriiSpotifyDOMBridge=createSpotifyDOMBridge;globalThis.__capriiSpotifyDriver=7;}
 void 0;

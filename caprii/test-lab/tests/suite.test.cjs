@@ -17,7 +17,7 @@ test('test server serves the lab, rejects writes, and never exposes repository f
  assert.equal((await fetch(base+'/server.mjs')).status,404);assert.equal((await fetch(base+'/../package.json')).status,404);assert.equal((await fetch(base,{method:'POST'})).status,405);
 });
 
-test('external media examples have stable IDs and never claim DOM playback verification',()=>{assert.equal(suite.browserConnection.id,'remember-chrome');assert.equal(suite.browserConnection.status,'not-measured-by-this-page');assert.equal(suite.externalMedia.length,9);assert.equal(new Set(suite.externalMedia.map(x=>x.id)).size,9);for(const e of suite.externalMedia)assert.ok(e.prompt&&e.expected);});
+test('external media examples have stable IDs and never claim DOM playback verification',()=>{assert.equal(suite.browserConnection.id,'remember-chrome');assert.equal(suite.browserConnection.status,'not-measured-by-this-page');assert.equal(suite.externalMedia.length,10);assert.equal(new Set(suite.externalMedia.map(x=>x.id)).size,10);for(const e of suite.externalMedia)assert.ok(e.prompt&&e.expected);});
 
 test('agent execution contracts remain distinct from observed DOM scores',()=>{assert.equal(suite.agentExecution.length,4);for(const item of suite.agentExecution)assert.equal(item.verification,'requires-agent-run-not-measured-by-this-page');});
 test('personality review remains separate from DOM scores',()=>{assert.equal(suite.personality.id,'normal');assert.equal(suite.personality.verification,'requires-chat-review-not-measured-by-this-page');assert.equal(suite.cases.some(c=>c.id==='normal'),false);});
@@ -35,3 +35,5 @@ test('unified reply/action decision is reviewed separately from DOM evidence',()
 test('interpretation training review does not award a DOM or production model score',()=>{assert.equal(suite.interpretationPractice.id,'context-and-ambiguity');assert.equal(suite.interpretationPractice.verification,'requires-model-and-action-review-not-measured-by-this-page');});
 
 test('persistent pairing review is separate from DOM scores',()=>{assert.equal(suite.persistentPairing.id,'chrome-restart-pairing');assert.equal(suite.persistentPairing.verification,'requires-native-and-extension-review-not-measured-by-this-page');});
+
+test('Spotify footer resume is an external playback review rather than a DOM pass score',()=>{const c=suite.externalMedia.find(x=>x.id==='spotify-footer-current');assert.ok(c);assert.match(c.expected,/ไม่เปิดเพลง cache/);assert.equal(suite.cases.length,8);});
