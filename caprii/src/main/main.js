@@ -1111,7 +1111,7 @@ function registerIpc() {
       const nativeRequested=media.player==='desktop'||process.platform==='win32'&&config.load().spotifyDesktop!==false&&(media.collection==='current'||media.collection==='track'&&media.query&&!media.url)&&media.player!=='web'&&request.autoOpen!==true;
       if(nativeRequested){
         if(media.collection==='track'&&media.action==='play'&&media.query&&!media.url)return await require('./windows-spotify-search').searchWindowsSpotify({query:media.query,artist:media.artist,lang:resolveLang(config.load().lang),signal,onProgress,open:uri=>shell.openExternal(uri)});
-        if(media.collection!=='current')return{ok:false,verified:false,text:'แอป Spotify บน Windows รองรับเล่นต่อ หยุด ข้าม และเพลงก่อนหน้าในรุ่นนี้ การเลือกชื่อเพลงหรือ Liked Songs ยังใช้เว็บ'};
+        if(media.collection!=='current')return{ok:false,verified:false,text:'แอป Spotify บน Windows รองรับเล่นต่อ หยุด ข้าม เพลงก่อนหน้า และทดลองค้นชื่อเพลงพร้อมศิลปิน การเลือกเพลย์ลิสต์ Liked Songs หรือ URL เพลงยังใช้เว็บ'};
         return await require('./windows-spotify').runWindowsSpotify({action:media.action,lang:resolveLang(config.load().lang),signal,onProgress,open:()=>shell.openExternal('spotify:')});
       }
       spotifyConnecting=true;
