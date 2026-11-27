@@ -95,7 +95,7 @@ function Test-CapriiSpotifyPlayerRegion($node,$root) {
 }
 function Get-CapriiSpotifyCandidates($root,[string]$query) {
  $results=New-Object System.Collections.ArrayList
- $rows=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::DataItem))
+ $rows=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.OrCondition]::new([System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::DataItem),[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::ListItem)))
  foreach ($row in $rows) {
   if ($results.Count -ge 60) { break }
   if ($row.Current.IsOffscreen -or -not $row.Current.IsEnabled -or (Test-CapriiSpotifyPlayerRegion $row $root)) { continue }
@@ -114,7 +114,7 @@ function Get-CapriiSpotifyCandidates($root,[string]$query) {
    $node=$walker.GetParent($node)
    if ($null -eq $node -or $node.Equals($root)) { break }
    $type=$node.Current.ControlType
-   if ($type -eq [System.Windows.Automation.ControlType]::DataItem -or $type -eq [System.Windows.Automation.ControlType]::Document -or $type -eq [System.Windows.Automation.ControlType]::Window) { break }
+   if ($type -eq [System.Windows.Automation.ControlType]::DataItem -or $type -eq [System.Windows.Automation.ControlType]::ListItem -or $type -eq [System.Windows.Automation.ControlType]::Document -or $type -eq [System.Windows.Automation.ControlType]::Window) { break }
    $parts=Get-CapriiSpotifyParts $node $query
    if ($parts.transport -or $parts.detailsPanel -or $parts.size -gt 80) { break }
    $sameTitle=@($parts.texts | Where-Object { (ConvertTo-CapriiSongTitle $_) -ceq (ConvertTo-CapriiSongTitle $query) })
