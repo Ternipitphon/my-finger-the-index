@@ -79,7 +79,7 @@ function New-CapriiSpotifyCandidate($node,$parts,$kind,[string]$query) {
  $titlePositions=@($parts.positions | Where-Object { (ConvertTo-CapriiSongTitle $_.text) -ceq (ConvertTo-CapriiSongTitle $query) } | Sort-Object top,left)
  if ($parts.texts.Count -lt 2 -or $titlePositions.Count -eq 0) { return $null }
  # A container spanning several same-title songs is not one selectable song.
- if ($titlePositions[-1].top-$titlePositions[0].top -gt 24) { return $null }
+ if ($titlePositions[-1].top - $titlePositions[0].top -gt 24) { return $null }
  $anchor=@($titlePositions | Select-Object -First 1)
  if ($anchor.Count -ne 1) { return $null }
  return @{id=($node.GetRuntimeId() -join ',');kind=$kind;action=$action;defaultAction=$defaultAction;texts=@($parts.texts);button=$buttonId;buttonName=$buttonName;top=$anchor[0].top;left=$anchor[0].left;playNode=$button}
