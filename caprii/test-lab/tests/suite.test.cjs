@@ -39,3 +39,5 @@ test('persistent pairing review is separate from DOM scores',()=>{assert.equal(s
 test('Spotify footer resume is an external playback review rather than a DOM pass score',()=>{const c=suite.externalMedia.find(x=>x.id==='spotify-footer-current');assert.ok(c);assert.match(c.expected,/ไม่เปิดเพลง cache/);assert.equal(suite.cases.length,8);});
 
 test('progress display review is distinct from DOM scoring',()=>{assert.equal(suite.progressDisplay.id,'single-status-snapshot');assert.equal(suite.progressDisplay.verification,'requires-ui-and-playback-review-not-measured-by-this-page');});
+
+test('Windows Spotify control review is not a DOM or speaker-output score',()=>{assert.equal(suite.spotifyDesktop.id,'windows-spotify-session');assert.equal(suite.spotifyDesktop.verification,'requires-windows-spotify-review-not-measured-by-this-page');});

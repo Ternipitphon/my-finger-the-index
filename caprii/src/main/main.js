@@ -447,6 +447,7 @@ function rebuildTray() {
         { label: t.apiKey, click: () => sendCommand('setupKey') },
       ],
     },
+    {id:'caprii-spotify-desktop',label:resolveLang(cfg.lang)==='en'?'Control current music in the Spotify Windows app':'เล่นต่อ/หยุด/ข้ามผ่านแอป Spotify บน Windows',type:'checkbox',enabled:process.platform==='win32',checked:cfg.spotifyDesktop!==false,click:item=>updateConfig({spotifyDesktop:item.checked})},
     {id:'caprii-spotify-auto',label:resolveLang(cfg.lang)==='en'?'Play music automatically when opening Spotify':'เล่นเพลงอัตโนมัติเมื่อเปิด Spotify',type:'checkbox',checked:cfg.spotifyAutoPlay!==false,click:item=>updateConfig({spotifyAutoPlay:item.checked})},
     { id:'caprii-idle-chatter',label:resolveLang(cfg.lang)==='en'?'Idle small talk':'พูดเล่นตอนว่าง',type:'checkbox',checked:cfg.idleChatter===true,click:item=>updateConfig({idleChatter:item.checked}) },
     { id:'caprii-wander', label: t.wander, type: 'checkbox', checked: cfg.wander, click: (item) => updateConfig({ wander: item.checked }) },
@@ -1107,6 +1108,11 @@ function registerIpc() {
     try{
       let lastProgress='';
       const onProgress=text=>{if(text===lastProgress)return;lastProgress=text;overlay?.webContents.send('chat:delta',{id:request.id,text,kind:'status'});};
+      const nativeRequested=media.player==='desktop'||process.platform==='win32'&&config.load().spotifyDesktop!==false&&media.collection==='current'&&media.player!=='web'&&request.autoOpen!==true;
+      if(nativeRequested){
+        if(media.collection!=='current')return{ok:false,verified:false,text:'แอป Spotify บน Windows รองรับเล่นต่อ หยุด ข้าม และเพลงก่อนหน้าในรุ่นนี้ การเลือกชื่อเพลงหรือ Liked Songs ยังใช้เว็บ'};
+        return await require('./windows-spotify').runWindowsSpotify({action:media.action,lang:resolveLang(config.load().lang),signal,onProgress,open:()=>shell.openExternal('spotify:')});
+      }
       spotifyConnecting=true;
       let browser;
       try{browser=await require('./spotify-session').connectSpotify({broker:chromeBroker,open:()=>require('./launch').site(destination(media)),signal,alreadyOpened:request.alreadyOpened===true,onProgress});}

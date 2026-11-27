@@ -37,7 +37,8 @@ function validateMediaIntent(result,{text,previous=null}){
   }
   // The model cannot invent a URL. Only a link actually supplied in this message is accepted.
   const supplied=text.match(/https:\/\/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(?:playlist|track)\/[A-Za-z0-9]+/i)?.[0];
-  const value=validateMedia({service:media.service,action:media.action,collection:media.collection,...(media.query?{query:media.query}:{}),...(media.artist?{artist:media.artist}:{}),...(supplied?{url:supplied}:result.continuation===true&&old?.url?{url:old.url}:{})});
+  const player=media.player||(result.continuation===true?old?.player:null);
+  const value=validateMedia({service:media.service,action:media.action,collection:media.collection,...(player?{player}:{}),...(media.query?{query:media.query}:{}),...(media.artist?{artist:media.artist}:{}),...(supplied?{url:supplied}:result.continuation===true&&old?.url?{url:old.url}:{})});
   return{route:'media',media:value};
 }
 module.exports={interpretMedia,validateMediaIntent,previousMedia};

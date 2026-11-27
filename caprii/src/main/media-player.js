@@ -5,10 +5,11 @@ const wait=(ms,signal)=>new Promise((resolve,reject)=>{signal?.throwIfAborted();
 function validateMedia(request){
  if(!request||request.service!=='spotify'||!['play','pause','next','previous'].includes(request.action)||!['liked','playlist','track','current'].includes(request.collection))throw Error('Invalid media request');
  for(const key of ['query','artist'])if(request[key]!==undefined&&(typeof request[key]!=='string'||!request[key].trim()||request[key].length>300))throw Error('Invalid media query');
+ if(request.player!==undefined&&!['desktop','web'].includes(request.player))throw Error('Invalid Spotify player');
  if(request.collection==='track'&&!request.query)throw Error('ต้องระบุชื่อเพลงก่อน');
  if(request.action!=='play'&&request.collection!=='current')throw Error('Playback controls require current player');
  if(request.url!==undefined){const u=new URL(spotifyURL(request.url));if(!['playlist','track'].includes(request.collection)||!spotifyPath(u.href).startsWith('/'+request.collection+'/'))throw Error('Invalid media URL');}
- return{service:'spotify',action:request.action,collection:request.collection,...(request.query?{query:request.query}:{}),...(request.artist?{artist:request.artist}:{}),...(request.url?{url:request.url}:{})};
+ return{service:'spotify',action:request.action,collection:request.collection,...(request.player?{player:request.player}:{}),...(request.query?{query:request.query}:{}),...(request.artist?{artist:request.artist}:{}),...(request.url?{url:request.url}:{})};
 }
 function destination(r){return r.collection==='current'?'https://open.spotify.com/':r.collection==='liked'?'https://open.spotify.com/collection/tracks':r.url||(r.query&&r.collection==='track'?'https://open.spotify.com/search/'+encodeURIComponent(r.query):'https://open.spotify.com/collection');}
 async function runSpotify({request,browser,signal,onProgress=()=>{},sleep=wait,maxChecks=12,fallbackTrack=null}){

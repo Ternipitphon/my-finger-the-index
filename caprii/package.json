@@ -37,7 +37,8 @@
     "test:talk-ui": "electron scripts/talk-button-smoke.cjs",
     "check:agent": "node scripts/check-agent.cjs",
     "test:menu": "electron scripts/context-menu-smoke.cjs",
-    "test:pairing": "electron scripts/pairing-smoke.cjs"
+    "test:pairing": "electron scripts/pairing-smoke.cjs",
+    "test:spotify-desktop": "electron scripts/windows-spotify-smoke.cjs"
   },
   "keywords": [
     "claude-code",
@@ -76,7 +77,8 @@
     "asarUnpack": [
       "hooks/**",
       "src/main/windows.ps1",
-      "src/main/agent-desktop.ps1"
+      "src/main/agent-desktop.ps1",
+      "src/main/windows-spotify.ps1"
     ],
     "win": {
       "target": "nsis",

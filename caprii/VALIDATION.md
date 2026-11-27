@@ -1,6 +1,6 @@
-# Caprii 0.8.15 work-in-progress validation
+# Caprii 0.8.15 validation
 
-Covers 50 duplicate reconnect notifications rendered/emitted once, unchanged actual answer deltas, no repeated voice blips, late-status rejection, one wait notice and surfacing a stable player-read failure after three read-only attempts. Spotify playback root cause remains pending the user response; do not report this as a verified account playback fix.
+Tests Windows Spotify-only identity selection, play/pause/skip/previous readback, disabled/rejected/ambiguous sessions, no global keys/focus, JSON-only stdin, one mutation without retry, cancellation and explicit-web routing. Native Windows smoke parses the PowerShell AST and performs read-only WinRT inspection; a runner without a Spotify session cannot verify real account playback or speaker audio. Native controls require Windows 10 1809 or newer/Windows 11 and a Spotify app exposing a media session. Also verifies repeated progress snapshots in the actual chat form.
 
 # Caprii 0.8.14 validation
 

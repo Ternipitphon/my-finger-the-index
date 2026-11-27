@@ -44,6 +44,7 @@ const DEFAULTS = {
   reminders: [],     // the reminders she keeps: [{ id, at, text, made }] (reminders.js)
   bond: null,        // how close she is to you: { xp, first, last, days, streak, caps } (bond.js)
   pcReact: true,     // she reacts to your PC: the processor at full tilt, the battery, the network, a USB stick, a game (pc.js)
+  spotifyDesktop: true, // current play/pause/next/previous prefer the Windows Spotify media session
   spotifyAutoPlay: true, // play the last known song when the user opens Spotify; can be disabled
   spotifyLastTrack: null, // validated public track metadata only, never account credentials
   idleChatter: false, // opt-in random lines; independent of grounded screen observations
