@@ -58,7 +58,7 @@ test('plus-encoded search input is repaired once, then only the requested long s
  const card={...row(),kind:'card',buttonName:'เล่นเพลง',texts:[title,'Rosa Walton','Hallie Coggins']};
  const r=await searchWindowsSpotify({query:title,platform:'win32',open:async()=>{},sleep:async()=>{},run:async(_f,_a,options)=>{
   const q=JSON.parse(options.input);calls.push(q);
-  let data;if(q.kind==='inspect')data={ok:true,window:'1:2:3',rows:[card],search:corrected?null:{id:'field',value:title.replaceAll(' ','+'),needsCorrection:true}};
+  let data;if(q.kind==='inspect')data={ok:true,window:'1:2:3',rows:corrected?[card]:[],search:corrected?null:{id:'field',value:title.replaceAll(' ','+'),needsCorrection:true}};
   else if(q.kind==='prepare'){corrected=true;data={ok:true,confirmed:true};}
   else if(q.kind==='invoke'){invoked=true;data={ok:true,invoked:true};}
   else data={ok:true,session:session(invoked?{title,artist:'Rosa Walton, Hallie Coggins'}:{title:'Magnolia',artist:'Magnolia Celebration'})};
@@ -68,4 +68,8 @@ test('plus-encoded search input is repaired once, then only the requested long s
 });
 test('an uncertain query correction is never retried or followed by playback',async()=>{
  const calls=[];const r=await searchWindowsSpotify({query:'long song',platform:'win32',open:async()=>{},sleep:async()=>{},run:async(_f,_a,options)=>{const q=JSON.parse(options.input);calls.push(q);return{passed:true,stdout:JSON.stringify(q.kind==='inspect'?{ok:true,window:'w',rows:[],search:{id:'field',value:'long+song',needsCorrection:true}}:{ok:false})};}});assert.equal(r.code,'spotify_search_input_unconfirmed');assert.deepEqual(calls.map(q=>q.kind),['inspect','prepare']);
+});
+
+test('an already visible matching song can play immediately without editing an encoded search field',async()=>{
+ const calls=[];let invoked=false;const r=await searchWindowsSpotify({query:'long song',platform:'win32',open:async()=>{},sleep:async()=>{},run:async(_f,_a,o)=>{const q=JSON.parse(o.input);calls.push(q);if(q.kind==='invoke')invoked=true;return{passed:true,stdout:JSON.stringify(q.kind==='inspect'?{ok:true,window:'w',rows:[{...row(),texts:['long song','Artist']}],search:{id:'field',value:'long+song',needsCorrection:true}}:q.kind==='invoke'?{ok:true,invoked:true}:{ok:true,session:session(invoked?{title:'long song',artist:'Artist'}:{title:'Magnolia',artist:'Magnolia Celebration'})})};}});assert.equal(r.verified,true);assert.equal(calls.filter(q=>q.kind==='prepare').length,0);assert.equal(calls.filter(q=>q.kind==='invoke').length,1);
 });

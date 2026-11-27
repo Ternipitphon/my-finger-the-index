@@ -28,7 +28,7 @@ app.whenReady().then(async()=>{
  await w.webContents.executeJavaScript('document.body.innerHTML='+JSON.stringify(html)+';window.plays=0');
  const before=await call('inspect',null,false,longTitle);assert.equal(before.ok,true);assert.equal(before.search?.needsCorrection,true,JSON.stringify(before));
  assert.equal((await call('prepare',null,true,longTitle,before.search)).ok,false);assert.equal(await w.webContents.executeJavaScript("document.getElementById('main-search').value"),longTitle.replaceAll(' ','+'));
- assert.equal((await call('prepare',null,false,longTitle,before.search)).confirmed,true);assert.equal(await w.webContents.executeJavaScript("document.getElementById('main-search').value"),longTitle);
+ const prepared=await call('prepare',null,false,longTitle,before.search);assert.equal(prepared.confirmed,true,JSON.stringify(prepared));assert.equal(await w.webContents.executeJavaScript("document.getElementById('main-search').value"),longTitle);
  assert.equal(await w.webContents.executeJavaScript("document.getElementById('playlist-title').value"),longTitle.replaceAll(' ','+'),'unrelated edit must remain unchanged');
  const longSnapshot=await call('inspect',null,false,longTitle);const longTarget=select(longSnapshot.rows,longTitle,'Rosa Walton, Hallie Coggins');assert.equal(longTarget?.kind,'card',JSON.stringify(longSnapshot));assert.equal(longTarget.buttonName,'เล่นเพลง');assert.equal(longSnapshot.rows.filter(r=>r.kind==='card').length,1);
  assert.equal((await call('invoke',longTarget,false,longTitle)).ok,true);await new Promise(r=>setTimeout(r,200));assert.equal(await w.webContents.executeJavaScript('window.plays'),1);

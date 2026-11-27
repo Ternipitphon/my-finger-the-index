@@ -31,13 +31,13 @@ async function searchWindowsSpotify({query,artist,lang='th',platform=process.pla
   for(let i=0;i<8;i++){
    signal?.throwIfAborted();await sleep(500);snapshot=await call('windows-spotify-search.ps1',{kind:'inspect',query,searchQuery});
    if(snapshot.ok===true&&typeof snapshot.window==='string'){
-    if(snapshot.search?.needsCorrection===true){
+    row=select(snapshot.rows,query,artist);if(row?.button)break;
+    if(!row&&snapshot.search?.needsCorrection===true){
      if(prepared)return fail('spotify_search_input_unconfirmed','Spotify ยังไม่ยืนยันคำค้นแบบมีช่องว่าง จึงไม่กรอกซ้ำ','Spotify has not confirmed the spaced search query. It was not typed again.');
      prepared=true;const corrected=await call('windows-spotify-search.ps1',{kind:'prepare',query,searchQuery,window:snapshot.window,field:snapshot.search});
      if(corrected.ok!==true||corrected.confirmed!==true)return fail('spotify_search_input_unconfirmed','ยังยืนยันคำค้นใน Spotify ไม่ได้ จึงยังไม่สั่งเล่นและไม่กรอกซ้ำ','The Spotify search query could not be confirmed. Playback was not requested and typing was not repeated.');
      row=null;continue;
     }
-    row=select(snapshot.rows,query,artist);if(row?.button)break;
    }
   }
   if(!row)return fail('spotify_search_no_match','ยังไม่พบเพลงชื่อตรงในผลค้นหา Spotify ลองตรวจชื่อเพลงอีกครั้ง','No matching song title was found in Spotify. Check the song name.');

@@ -27,7 +27,7 @@ function Get-CapriiSpotifyPlayAction($node) {
 }
 function Get-CapriiSpotifySearchField($root,[string]$query) {
  if ($query -notmatch '\s') { return $null }
- $matches=@();$edits=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Edit))
+ $fields=@();$edits=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Edit))
  foreach ($edit in $edits) {
   $info=$edit.Current
   if ($info.IsPassword -or $info.IsOffscreen -or -not $info.IsEnabled) { continue }
@@ -39,9 +39,9 @@ function Get-CapriiSpotifySearchField($root,[string]$query) {
   $plus=$query -replace '\s+','+'
   $encoded=[Uri]::EscapeDataString($query)
   if ($value -ine $plus -and $value -ine $encoded) { continue }
-  $matches+=@{id=($edit.GetRuntimeId() -join ',');value=$value;needsCorrection=$true;node=$edit}
+  $fields+=@{id=($edit.GetRuntimeId() -join ',');value=$value;needsCorrection=$true;node=$edit}
  }
- if ($matches.Count -eq 1) { return $matches[0] }
+ if ($fields.Count -eq 1) { return $fields[0] }
  return $null
 }
 function Set-CapriiSpotifySearch($root,$expected,[string]$query,[scriptblock]$guard) {
@@ -50,7 +50,13 @@ function Set-CapriiSpotifySearch($root,$expected,[string]$query,[scriptblock]$gu
  & $guard
  $pattern=$field.node.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
  $pattern.SetValue($query)
- if ($pattern.Current.Value -cne $query) { throw 'Search input unconfirmed' }
+ # The accessibility provider may apply SetValue asynchronously. Read only; never type twice.
+ for ($i=0;$i -lt 10;$i++) {
+  $freshPattern=$field.node.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+  if ($freshPattern.Current.Value -ceq $query) { return }
+  Start-Sleep -Milliseconds 80
+ }
+ throw 'Search input unconfirmed'
 }
 function Get-CapriiSpotifyParts($container) {
  $children = $container.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
