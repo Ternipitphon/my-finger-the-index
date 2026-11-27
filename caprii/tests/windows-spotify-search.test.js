@@ -45,3 +45,27 @@ test('an already Playing requested track is confirmed twice without requiring Pl
 test('a different artist or paused track cannot bypass a missing search Play control',async()=>{
  for(const change of [{artist:'Different Artist'},{status:'Paused'}]){const f=fixture({rows:[{...row(),button:null,buttonName:null}],alreadyPlaying:true,sessionValue:session(change)});assert.equal((await f.run()).code,'spotify_search_control_unavailable');assert.equal(f.calls.filter(c=>c.payload.kind==='invoke').length,0);}
 });
+
+test('long title spacing and multiple artists match the selected song without admitting another recording or artist',()=>{
+ const {titleKey,artistEvidence}=require('../src/main/windows-spotify-search');
+ const title='I Really Want to Stay at Your House',card={...row(),texts:[title,'Rosa Walton','Hallie Coggins']};
+ assert.equal(select([card],'ireallywanttostayatyourhouse'),card);assert.equal(select([card],title,'Rosa Walton, Hallie Coggins'),card);
+ assert.equal(artistEvidence(card,'Rosa Walton, Hallie Coggins'),true);assert.equal(artistEvidence(card,'Rosa Walton, Different Artist'),false);
+ assert.notEqual(titleKey(title),titleKey(title+' - Instrumental'));assert.notEqual(titleKey(title),titleKey(title+' 1 HOUR'));
+});
+test('plus-encoded search input is repaired once, then only the requested long song is accepted over current Magnolia',async()=>{
+ const title='I Really Want to Stay at Your House',calls=[];let corrected=false,invoked=false;
+ const card={...row(),kind:'card',buttonName:'เล่นเพลง',texts:[title,'Rosa Walton','Hallie Coggins']};
+ const r=await searchWindowsSpotify({query:title,platform:'win32',open:async()=>{},sleep:async()=>{},run:async(_f,_a,options)=>{
+  const q=JSON.parse(options.input);calls.push(q);
+  let data;if(q.kind==='inspect')data={ok:true,window:'1:2:3',rows:[card],search:corrected?null:{id:'field',value:title.replaceAll(' ','+'),needsCorrection:true}};
+  else if(q.kind==='prepare'){corrected=true;data={ok:true,confirmed:true};}
+  else if(q.kind==='invoke'){invoked=true;data={ok:true,invoked:true};}
+  else data={ok:true,session:session(invoked?{title,artist:'Rosa Walton, Hallie Coggins'}:{title:'Magnolia',artist:'Magnolia Celebration'})};
+  return{passed:true,stdout:JSON.stringify(data)};
+ }});
+ assert.equal(r.verified,true);assert.equal(r.track,title);assert.equal(calls.filter(q=>q.kind==='prepare').length,1);assert.equal(calls.filter(q=>q.kind==='invoke').length,1);assert.equal(calls.find(q=>q.kind==='prepare').field.id,'field');
+});
+test('an uncertain query correction is never retried or followed by playback',async()=>{
+ const calls=[];const r=await searchWindowsSpotify({query:'long song',platform:'win32',open:async()=>{},sleep:async()=>{},run:async(_f,_a,options)=>{const q=JSON.parse(options.input);calls.push(q);return{passed:true,stdout:JSON.stringify(q.kind==='inspect'?{ok:true,window:'w',rows:[],search:{id:'field',value:'long+song',needsCorrection:true}}:{ok:false})};}});assert.equal(r.code,'spotify_search_input_unconfirmed');assert.deepEqual(calls.map(q=>q.kind),['inspect','prepare']);
+});
