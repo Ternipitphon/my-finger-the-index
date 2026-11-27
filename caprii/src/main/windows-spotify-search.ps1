@@ -58,19 +58,20 @@ function Set-CapriiSpotifySearch($root,$expected,[string]$query,[scriptblock]$gu
  }
  throw 'Search input unconfirmed'
 }
-function Get-CapriiSpotifyParts($container) {
+function Get-CapriiSpotifyParts($container,[string]$query) {
  $children = $container.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
- $texts = @(); $buttons = @(); $transport = $false; $textPositions=@()
+ $texts = @(); $buttons = @(); $transport = $false; $detailsPanel=$false; $textPositions=@()
  foreach ($child in $children) {
   $info = $child.Current
   if ($info.IsPassword -or $info.IsOffscreen -or -not $info.IsEnabled) { continue }
+  if ($info.Name -match '^(Credits|เครดิต|Lyrics|เนื้อเพลง|About the artist|เกี่ยวกับศิลปิน)$' -and (ConvertTo-CapriiSongTitle $info.Name) -cne (ConvertTo-CapriiSongTitle $query)) { $detailsPanel=$true }
   if ($info.ControlType -eq [System.Windows.Automation.ControlType]::Slider -or ($info.ControlType -eq [System.Windows.Automation.ControlType]::Button -and $info.Name -match '^(Next|Previous|Shuffle|Repeat|Mute|Volume|เพลงถัดไป|เพลงก่อนหน้า|สุ่ม|เล่นซ้ำ|ระดับเสียง)')) { $transport = $true }
   if ($info.ControlType -eq [System.Windows.Automation.ControlType]::Text -or $info.ControlType -eq [System.Windows.Automation.ControlType]::Hyperlink) {
    if ($info.Name -and $info.Name.Length -le 500) { $texts += $info.Name;$box=$info.BoundingRectangle;if (-not $box.IsEmpty -and $box.Width -gt 0 -and $box.Height -gt 0 -and -not [double]::IsInfinity($box.Top)) { $textPositions+=@{text=$info.Name;top=$box.Top;left=$box.Left} } }
   }
   if ($info.ControlType -eq [System.Windows.Automation.ControlType]::Button -or $info.ControlType -eq [System.Windows.Automation.ControlType]::Custom) { if ($null -ne (Get-CapriiSpotifyPlayAction $child)) { $buttons += $child } }
  }
- return @{texts=@($texts | Select-Object -Unique);buttons=@($buttons);transport=$transport;positions=@($textPositions);size=$children.Count}
+ return @{texts=@($texts | Select-Object -Unique);buttons=@($buttons);transport=$transport;detailsPanel=$detailsPanel;positions=@($textPositions);size=$children.Count}
 }
 function New-CapriiSpotifyCandidate($node,$parts,$kind,[string]$query) {
  $button=$null;$buttonId=$null;$buttonName=$null;$action=$null;$defaultAction=''
@@ -87,7 +88,7 @@ function Test-CapriiSpotifyPlayerRegion($node,$root) {
  $walker=[System.Windows.Automation.TreeWalker]::ControlViewWalker
  for ($i=0;$i -lt 16 -and $null -ne $node -and -not $node.Equals($root);$i++) {
   $info=$node.Current
-  if ($info.ControlType -ne [System.Windows.Automation.ControlType]::Window -and ($info.Name -match '^(Now playing|Currently playing|กำลังเล่น|Lyrics|เนื้อเพลง|Credits|เครดิต|About the artist|เกี่ยวกับศิลปิน)(\b|$)' -or $info.AutomationId -match 'now.?playing|lyrics|credits')) { return $true }
+  if ($info.ControlType -ne [System.Windows.Automation.ControlType]::Window -and ($info.Name -match '^(Now playing|Currently playing|(?:มุมมอง|แถบ|แผง)?\s*กำลังเล่น|Lyrics|เนื้อเพลง|Credits|เครดิต|About the artist|เกี่ยวกับศิลปิน)(\b|$)' -or $info.AutomationId -match 'now.?playing|lyrics|credits')) { return $true }
   $node=$walker.GetParent($node)
  }
  return $false
@@ -98,7 +99,7 @@ function Get-CapriiSpotifyCandidates($root,[string]$query) {
  foreach ($row in $rows) {
   if ($results.Count -ge 60) { break }
   if ($row.Current.IsOffscreen -or -not $row.Current.IsEnabled -or (Test-CapriiSpotifyPlayerRegion $row $root)) { continue }
-  $parts=Get-CapriiSpotifyParts $row
+  $parts=Get-CapriiSpotifyParts $row $query
   if ($parts.texts.Count) { $candidate=New-CapriiSpotifyCandidate $row $parts 'row' $query;if ($null -ne $candidate) { [void]$results.Add($candidate) } }
  }
  # Top-result cards expose their Play outside the DataItem song rows.
@@ -114,8 +115,8 @@ function Get-CapriiSpotifyCandidates($root,[string]$query) {
    if ($null -eq $node -or $node.Equals($root)) { break }
    $type=$node.Current.ControlType
    if ($type -eq [System.Windows.Automation.ControlType]::DataItem -or $type -eq [System.Windows.Automation.ControlType]::Document -or $type -eq [System.Windows.Automation.ControlType]::Window) { break }
-   $parts=Get-CapriiSpotifyParts $node
-   if ($parts.transport -or $parts.size -gt 80) { break }
+   $parts=Get-CapriiSpotifyParts $node $query
+   if ($parts.transport -or $parts.detailsPanel -or $parts.size -gt 80) { break }
    $sameTitle=@($parts.texts | Where-Object { (ConvertTo-CapriiSongTitle $_) -ceq (ConvertTo-CapriiSongTitle $query) })
    if ($sameTitle.Count -eq 0) { continue }
    if ($parts.buttons.Count -ne 1 -or -not $parts.buttons[0].Equals($button)) { break }
