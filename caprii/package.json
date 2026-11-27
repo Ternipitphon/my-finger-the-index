@@ -1,6 +1,6 @@
 {
   "name": "capri-desktop",
-  "version": "0.8.16",
+  "version": "0.8.17",
   "description": "Caprii: Thai/English desktop and project AI agent with confirmed tools, bounded chat, browser automation and Windows controls.",
   "author": "mochiiwuff",
   "repository": "github:mochiiwuff/capri-desktop",
@@ -78,7 +78,8 @@
       "hooks/**",
       "src/main/windows.ps1",
       "src/main/agent-desktop.ps1",
-      "src/main/windows-spotify.ps1"
+      "src/main/windows-spotify.ps1",
+      "src/main/windows-spotify-search.ps1"
     ],
     "win": {
       "target": "nsis",

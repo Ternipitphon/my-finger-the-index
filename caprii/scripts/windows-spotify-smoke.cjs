@@ -8,6 +8,8 @@ const timer=setTimeout(()=>app.exit(1),20000);
 app.whenReady().then(async()=>{
  assert.equal(process.platform,'win32');
  const checked=await runProcess('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',parse],{input:JSON.stringify({path:helper}),env:scriptEnvironment(),timeoutMs:8000});assert.equal(checked.passed,true,checked.stderr);assert.equal(checked.stdout.trim(),'syntax-ok');
+ const searchHelper=path.resolve(__dirname,'../src/main/windows-spotify-search.ps1');
+ const searchChecked=await runProcess('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',parse],{input:JSON.stringify({path:searchHelper}),env:scriptEnvironment(),timeoutMs:8000});assert.equal(searchChecked.passed,true,searchChecked.stderr);console.log('PASS desktop search PowerShell syntax; no real Spotify search test');
  const r=await runProcess('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',helper],{input:JSON.stringify({action:'inspect'}),env:scriptEnvironment(),timeoutMs:10000});assert.equal(r.passed,true,r.stderr);
  const data=JSON.parse(r.stdout.replace(/^\uFEFF/,'').trim());
  if(data.ok){assert.equal(spotifySource(data.session.sourceAppId),true);console.log('PASS read-only Windows Spotify session observation; no control command or audio test executed');}
