@@ -1,10 +1,14 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.8.20 — รุ่นหลักจาก Caprii ตัวเดิม
+## ดาวน์โหลด Caprii 0.8.21 — รุ่นหลักจาก Caprii ตัวเดิม
 
-[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.20 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.20/Caprii-Agent-Setup-0.8.20.exe)
+[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.21 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.21/Caprii-Agent-Setup-0.8.21.exe)
 
-[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.20/Caprii-0.8.20-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.20) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.20/caprii/CAPRII-TH.md)
+[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.21/Caprii-0.8.21-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.21) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.21/caprii/CAPRII-TH.md)
+
+**แก้ Spotify ชื่อยาว/หลายศิลปิน/ปุ่มไทย** ทดสอบกรณี “I Really Want to Stay at Your House” ที่มี Rosa Walton และ Hallie Coggins ปุ่ม “เล่นเพลง” ในการ์ดซ้อนหลายชั้นรองรับเพิ่ม ตรวจวิธี Invoke หรือ MSAA default action ของปุ่มที่ระบุชัดก่อนกดหนึ่งครั้ง หากยังไม่พบผลตรงและช่องค้นหามี plus/percent encoding ของคำค้นนี้พอดี จะแก้เป็นข้อความมีช่องว่างครั้งเดียวพร้อมตรวจ field/window/readback ไม่แก้ช่องอื่นหรือกรอกซ้ำเมื่อไม่แน่ใจ
+
+เทียบชื่อแบบไม่ติดตัวพิมพ์/ช่องว่างและยังแยก Instrumental/1 HOUR ยืนยันศิลปินหลายคนจากผลที่เลือกและ Windows Playing สองครั้ง ไม่ใช้เพลง Magnolia ที่กำลังเล่นเป็นหลักฐานสำเร็จ การค้นในแอปยังต้องลองกับ Spotify รุ่นจริง ชุด Windows UIA ใช้หน้าจำลอง ไม่ใช่บัญชี Spotify ของผู้ใช้ อนิเมชันและวิธีดูจอเดิมคงอยู่
 
 **ท่าทางประกอบงานจริง** ใช้ท่า curious/look และแยกร่างสั้นระหว่างคิด รอคำตอบหรือขออนุญาตใช้ท่าอยากรู้ งานเพลง/Agent ต้องมี verified จริงก่อนดีใจ งาน Agent ที่ผ่านและใช้เวลาตั้งแต่สองนาทีใช้ท่าฉลองเต็ม แค่เปิดเบราว์เซอร์หรือ AI เลือกเครื่องมือยังไม่ฉลอง ผลเก่าหลังปิดแชต/ยกเลิก/ปิดท่าจะไม่กระตุ้นอนิเมชัน ลดการเคลื่อนไหวตามตัวเลือกเดิม เปิด–ปิดได้ที่ ตัวละครและหน้าจอ → ลูกเล่นตัวละคร → ท่าทางประกอบงาน AI
 
@@ -28,7 +32,7 @@
 
 **เพิ่มบริบทและตรวจความกำกวม** ใช้ URL/title ของแท็บ Chrome ที่อนุญาตแล้วโดยตัด query/fragment ไม่อ่านหน้าต่างหรือจับจอเพิ่มเอง ให้ AI ระบุผลลัพธ์ที่ต้องการ/ข้อมูลที่ขาดแบบสั้น หยุดเมื่อระบุว่าเป้าหมายกำกวม และอ้าง URL จากข้อความผู้ใช้ล่าสุดได้เมื่อเป็นคำขอต่อเนื่องชัดเจน เพิ่มเงื่อนไขแยกเปิดเว็บ เปิดแอป และโฟกัสหน้าต่างเดิม
 
-[ดาวน์โหลดชุดทดลองฝึกโมเดลเจตนา](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.20/Caprii-0.8.20-training.zip) — ฝึก CNN 8 route จากศูนย์บน CPU ด้วยข้อความแต่ง train 124/dev 18/test 42 ได้ 32/42 (76.19%) ยังไม่ใช้สั่งงานจริงและไม่ได้เปลี่ยนน้ำหนัก Gemini มี weights/scripts/data/รายงานข้อผิดครบ การ fine-tune โมเดลสำเร็จรูปยังไม่ได้รันเพราะสิทธิ์ดาวน์โหลด มี JSONL สำหรับ route-only เตรียมไว้โดยไม่อัปโหลดหรือเปิด paid job [วิธีรันและข้อจำกัด](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.20/caprii/training/intent/README-TH.md)
+[ดาวน์โหลดชุดทดลองฝึกโมเดลเจตนา](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.21/Caprii-0.8.21-training.zip) — ฝึก CNN 8 route จากศูนย์บน CPU ด้วยข้อความแต่ง train 124/dev 18/test 42 ได้ 32/42 (76.19%) ยังไม่ใช้สั่งงานจริงและไม่ได้เปลี่ยนน้ำหนัก Gemini มี weights/scripts/data/รายงานข้อผิดครบ การ fine-tune โมเดลสำเร็จรูปยังไม่ได้รันเพราะสิทธิ์ดาวน์โหลด มี JSONL สำหรับ route-only เตรียมไว้โดยไม่อัปโหลดหรือเปิด paid job [วิธีรันและข้อจำกัด](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.21/caprii/training/intent/README-TH.md)
 
 **แก้เปิด Spotify แล้วไม่ต่อถึงการเล่น** ใช้เส้นทางสื่อโดยตรง ไม่ถามยืนยันเปิดเว็บซ้ำ คำสั่ง “เปิดเพลง” และ “turn on some music” ให้ AI เลือกเล่นเพลงที่ค้างอยู่ ส่วนการเปิด Spotify อย่างเดียวใช้สวิตช์ autoplay จากแอปโดยตรง สั่งเล่นชัดเจนยังเล่นได้แม้ปิดสวิตช์ ต้องเชื่อม Chrome และล็อกอิน Spotify ไว้
 
@@ -38,7 +42,7 @@
 
 **เมนูคลิกขวาจัดใหม่** คำสั่งคุย ดูจอ ย้ายตัวละคร และซ่อน/แสดงอยู่ด้านบน ที่เหลือแบ่งห้าหมวด: นิสัยและเสียง, Chrome และเพลง, AI และงาน, ตัวละครและหน้าจอ, ตั้งค่าและช่วยเหลือ เมนูหลักประมาณ 14 แถว เก็บฟังก์ชัน ค่าสวิตช์ และทางลัดเดิมครบ
 
-[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.20/Caprii-0.8.20-menu.png)
+[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.21/Caprii-0.8.21-menu.png)
 
 **AI เลือกตอบหรือเรียกเครื่องมือในรอบเดียว** แชตทั่วไปได้คำตอบสุดท้ายจากรอบตัดสินใจ ไม่แยกประเภทแล้วเรียก AI ตอบซ้ำ ส่งประวัติคุยแบบจำกัดและความจำที่เปิดบันทึกไว้ พร้อมนิสัย ภาษา และความยาวคำตอบ คำสั่งใช้เครื่องมือจริงแล้วตรวจผลก่อนตอบ คำขอดูจออย่างเดียวจับภาพจริงตามสิทธิ์เดิมก่อนวิเคราะห์ ไม่แต่งว่าทำงานแล้วจากข้อความของโมเดล งานหลายขั้นตอน การวิเคราะห์ภาพ โมเดลสำรอง หรือการแก้ถ้อยคำยังอาจต้องเรียก AI เพิ่มตามความจำเป็น โหมด Claude Code ใช้ Agent เดิม
 
