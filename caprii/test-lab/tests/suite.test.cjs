@@ -27,3 +27,5 @@ test('three personality styles remain separate from DOM scores and keep the Play
 test('native context menu review does not award DOM scores',()=>{assert.equal(suite.contextMenu.id,'compact-native-menu');assert.equal(suite.contextMenu.verification,'requires-native-menu-review-not-measured-by-this-page');});
 test('reply repair review does not claim a DOM score',()=>{assert.equal(suite.replyRepair.id,'isolated-style-repair');assert.equal(suite.replyRepair.verification,'requires-model-review-not-measured-by-this-page');});
 test('choom is a Playful style review without altering DOM score contracts',()=>{assert.equal(suite.personality.playfulAddress,'choom');assert.equal(suite.personality.verification,'requires-chat-review-not-measured-by-this-page');});
+
+test('Spotify no-confirm review separates explicit play from opening-only autoplay without DOM score claims',()=>{const c=suite.externalMedia.find(x=>x.id==='spotify-no-confirm');assert.ok(c);assert.match(c.expected,/backend/);assert.match(c.expected,/สั่งเล่นยังต้องเล่น/);assert.match(suite.externalMedia.find(x=>x.id==='spotify-auto').prompt,/^เปิด Spotify$/);});
