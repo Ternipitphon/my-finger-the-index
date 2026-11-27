@@ -10,15 +10,19 @@ function ConvertTo-CapriiSongTitle([string]$value) {
 function Get-CapriiSpotifyPlayAction($node) {
  $info=$node.Current
  if ($info.IsPassword -or $info.IsOffscreen -or -not $info.IsEnabled) { return $null }
+ $label=[string]$info.Name
+ # Normal Invoke must not depend on optional legacy pattern types in a particular .NET runtime.
+ if ($info.ControlType -eq [System.Windows.Automation.ControlType]::Button -and $label -match '^(Play(\s|$)|เล่น(?:เพลง)?(?:\s|$))') {
+  $invoke=$null
+  if ($node.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)) { return @{method='invoke';defaultAction='';label=$label} }
+ }
+ $legacyType='System.Windows.Automation.LegacyIAccessiblePattern' -as [type]
+ if ($null -eq $legacyType) { return $null }
  $legacy=$null
- $hasLegacy=$node.TryGetCurrentPattern([System.Windows.Automation.LegacyIAccessiblePattern]::Pattern,[ref]$legacy)
- $label=[string]$info.Name;if (-not $label -and $hasLegacy) { $label=[string]$legacy.Current.Name }
+ if (-not $node.TryGetCurrentPattern($legacyType::Pattern,[ref]$legacy) -or $legacy.Current.Role -ne 43) { return $null }
+ if (-not $label) { $label=[string]$legacy.Current.Name }
  if ($label -notmatch '^(Play(\s|$)|เล่น(?:เพลง)?(?:\s|$))') { return $null }
- if ($info.ControlType -ne [System.Windows.Automation.ControlType]::Button -and -not ($hasLegacy -and $legacy.Current.Role -eq 43)) { return $null }
- $invoke=$null
- if ($node.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)) { return @{method='invoke';defaultAction='';label=$label} }
- # Explicit MSAA button default action only; never keyboard/mouse fallback or a row selection.
- if ($hasLegacy -and $legacy.Current.Role -eq 43 -and $legacy.Current.DefaultAction -match 'Press|Click|Play|กด|คลิก|เล่น') { return @{method='legacy';defaultAction=[string]$legacy.Current.DefaultAction;label=$label} }
+ if ($legacy.Current.DefaultAction -match 'Press|Click|Play|กด|คลิก|เล่น') { return @{method='legacy';defaultAction=[string]$legacy.Current.DefaultAction;label=$label} }
  return $null
 }
 function Get-CapriiSpotifySearchField($root,[string]$query) {
@@ -27,6 +31,7 @@ function Get-CapriiSpotifySearchField($root,[string]$query) {
  foreach ($edit in $edits) {
   $info=$edit.Current
   if ($info.IsPassword -or $info.IsOffscreen -or -not $info.IsEnabled) { continue }
+  if ($info.Name -notmatch 'Search|ค้นหา|ต้องการ.*(?:เล่น|ฟัง)|อยาก.*(?:เล่น|ฟัง)' -and $info.AutomationId -notmatch 'search') { continue }
   $pattern=$null
   if (-not $edit.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$pattern) -or $pattern.Current.IsReadOnly) { continue }
   $value=[string]$pattern.Current.Value
