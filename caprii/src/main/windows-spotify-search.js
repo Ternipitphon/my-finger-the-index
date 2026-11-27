@@ -5,8 +5,9 @@ const {state}=require('./windows-spotify');
 const norm=s=>String(s||'').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase();
 function select(rows,query,artist){
  if(!Array.isArray(rows)||rows.length>60)throw Error('Invalid search results');
- const matches=rows.filter(r=>r&&typeof r.id==='string'&&typeof r.button==='string'&&typeof r.buttonName==='string'&&Array.isArray(r.texts)&&r.texts.length<=200&&r.texts.every(t=>typeof t==='string'&&t.length<=500)&&r.texts.some(t=>norm(t)===norm(query))&&(!artist||r.texts.some(t=>norm(t)===norm(artist))));
- return matches.length===1?matches[0]:null;
+ const matches=rows.filter(r=>r&&typeof r.id==='string'&&((typeof r.button==='string'&&typeof r.buttonName==='string')||(r.button===null&&r.buttonName===null))&&Array.isArray(r.texts)&&r.texts.length<=200&&r.texts.every(t=>typeof t==='string'&&t.length<=500)&&r.texts.some(t=>norm(t)===norm(query))&&(!artist||r.texts.some(t=>norm(t)===norm(artist))));
+ // Keep Spotify's visible top-to-bottom result order; an explicit artist is a constraint.
+ return matches[0]||null;
 }
 async function searchWindowsSpotify({query,artist,lang='th',platform=process.platform,open,signal,onProgress=()=>{},run=runProcess,sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}){
  const en=lang==='en';
@@ -18,8 +19,9 @@ async function searchWindowsSpotify({query,artist,lang='th',platform=process.pla
   onProgress(en?'Searching in the Spotify app…':'กำลังค้นเพลงในแอป Spotify…');
   signal?.throwIfAborted();await open('spotify:search:'+encodeURIComponent(query+(artist?' '+artist:'')));
   let snapshot,row;
-  for(let i=0;i<8;i++){signal?.throwIfAborted();await sleep(500);snapshot=await call('windows-spotify-search.ps1',{kind:'inspect'});if(snapshot.ok===true&&typeof snapshot.window==='string'){row=select(snapshot.rows,query,artist);if(row)break;}}
-  if(!row)return fail('spotify_search_no_unique_match','ยังเลือกเพลงที่ตรงอย่างชัดเจนไม่ได้ ลองระบุชื่อเพลงและศิลปินให้ครบ หรือเปิดผลค้นหาใน Spotify ตรวจดูก่อน','No unique playable match was found. Specify the exact song and artist, or check the search results in Spotify.');
+  for(let i=0;i<8;i++){signal?.throwIfAborted();await sleep(500);snapshot=await call('windows-spotify-search.ps1',{kind:'inspect'});if(snapshot.ok===true&&typeof snapshot.window==='string'){row=select(snapshot.rows,query,artist);if(row?.button)break;}}
+  if(!row)return fail('spotify_search_no_match','ยังไม่พบเพลงชื่อตรงในผลค้นหา Spotify ลองตรวจชื่อเพลงอีกครั้ง','No matching song title was found in Spotify. Check the song name.');
+  if(!row.button)return fail('spotify_search_control_unavailable','พบเพลงตรงชื่อบนสุดแล้ว แต่ Spotify ยังไม่เปิดปุ่ม Play ให้ใช้งาน จึงยังเล่นไม่ได้','The top matching song was found, but Spotify has not exposed its Play control.');
   onProgress(en?'Playing the matching Spotify result…':'กำลังเล่นผลค้นหาที่ตรงใน Spotify…');
   const invoked=await call('windows-spotify-search.ps1',{kind:'invoke',window:snapshot.window,row});
   if(invoked.ok!==true||invoked.invoked!==true)return fail('spotify_search_changed','ผลค้นหาหรือหน้าต่างเปลี่ยน จึงยังไม่กดเล่น','The result or window changed; playback was not invoked.');
@@ -27,9 +29,9 @@ async function searchWindowsSpotify({query,artist,lang='th',platform=process.pla
   for(let i=0;i<8;i++){
    signal?.throwIfAborted();await sleep(400);const r=await call('windows-spotify.ps1',{action:'inspect'});
    if(r.ok!==true){consecutive=0;continue;}
-   const s=state(r.session),matches=norm(s.title)===norm(query)&&(!artist||norm(s.artist)===norm(artist));
+   const s=state(r.session),matches=norm(s.title)===norm(query)&&(artist?norm(s.artist)===norm(artist):!!s.artist&&row.texts.some(t=>norm(t)===norm(s.artist)));
    consecutive=matches&&s.status==='Playing'&&(!last||last.sourceAppId===s.sourceAppId)?consecutive+1:0;last=s;
-   if(consecutive>=2)return{ok:true,verified:true,audioVerified:false,backend:'windows-smtc',verification:'windows-session-status',track:s.title,artists:s.artist?[s.artist]:[],text:(en?'Spotify reports playing: ':'แอป Spotify แสดงสถานะกำลังเล่น: ')+s.title+(s.artist?' — '+s.artist:'')+(en?'. Speaker output is not verified.':' ยังตรวจเสียงลำโพงไม่ได้'),evidence:{sourceAppId:s.sourceAppId,status:s.status}};
+   if(consecutive>=2)return{ok:true,verified:true,audioVerified:false,backend:'windows-smtc',verification:'windows-session-status',track:s.title,artists:s.artist?[s.artist]:[],text:(en?'Spotify reports playing: ':'แอป Spotify แสดงสถานะกำลังเล่น: ')+s.title+(s.artist?' — '+s.artist:'')+(en?'. Speaker output is not verified.':' ยังตรวจเสียงลำโพงไม่ได้'),evidence:{sourceAppId:s.sourceAppId,status:s.status,selection:'first-matching-visible-result'}};
   }
   return fail('spotify_search_not_confirmed','กดผลค้นหาครั้งเดียวแล้ว แต่ยังไม่ยืนยันว่าเพลงที่ขอกำลังเล่น จึงไม่กดซ้ำ','The matching result was invoked once, but playback of the requested song is not confirmed. It was not repeated.');
  }catch(error){if(signal?.aborted)throw signal.reason;return fail('spotify_search_ui_unavailable','Spotify ยังไม่เปิดข้อมูลปุ่มค้นหาให้ใช้งาน ลองเปิดแอปและเข้าสู่ระบบก่อน การเล่นต่อ/หยุดยังใช้ได้ตามเดิม','Spotify search controls are unavailable. Open the app and sign in. Current-track controls remain available.');}

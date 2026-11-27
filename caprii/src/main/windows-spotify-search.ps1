@@ -14,7 +14,9 @@ try {
  $root = [System.Windows.Automation.AutomationElement]::FromHandle($process.MainWindowHandle)
  $rows = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::DataItem))
  $results = @()
- foreach ($row in $rows) {
+ # Order by observed screen position; never use these coordinates to click.
+ $orderedRows = @($rows | Sort-Object @{Expression={$_.Current.BoundingRectangle.Top}}, @{Expression={$_.Current.BoundingRectangle.Left}})
+ foreach ($row in $orderedRows) {
   if ($results.Count -ge 60) { break }
   if ($row.Current.IsOffscreen -or -not $row.Current.IsEnabled) { continue }
   $children = $row.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
@@ -30,11 +32,12 @@ try {
     if ($child.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$pattern)) { $buttons += $child }
    }
   }
-  if ($texts.Count -eq 0 -or $buttons.Count -ne 1) { continue }
-  $button = $buttons[0]
-  $record = @{id=($row.GetRuntimeId() -join ',');texts=@($texts | Select-Object -Unique);button=($button.GetRuntimeId() -join ',');buttonName=$button.Current.Name}
+  if ($texts.Count -eq 0) { continue }
+  $button = $null; $buttonId = $null; $buttonName = $null
+  if ($buttons.Count -eq 1) { $button = $buttons[0]; $buttonId = ($button.GetRuntimeId() -join ','); $buttonName = $button.Current.Name }
+  $record = @{id=($row.GetRuntimeId() -join ',');order=$results.Count;texts=@($texts | Select-Object -Unique);button=$buttonId;buttonName=$buttonName}
   if ($request.kind -eq 'invoke' -and $record.id -ceq $request.row.id) {
-   if ($record.button -cne $request.row.button -or $record.buttonName -cne $request.row.buttonName -or (($record.texts | ConvertTo-Json -Compress) -cne ($request.row.texts | ConvertTo-Json -Compress))) { throw 'Search result changed' }
+   if ($null -eq $button -or $record.order -ne $request.row.order -or $record.button -cne $request.row.button -or $record.buttonName -cne $request.row.buttonName -or (($record.texts | ConvertTo-Json -Compress) -cne ($request.row.texts | ConvertTo-Json -Compress))) { throw 'Search result changed' }
    # Recheck process lifetime and window immediately before the single invocation.
    $fresh = Get-Process -Id $process.Id
    if ("$($fresh.Id):$($fresh.StartTime.ToUniversalTime().Ticks):$($fresh.MainWindowHandle)" -cne $identity) { throw 'Spotify window changed' }
