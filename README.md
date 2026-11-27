@@ -1,10 +1,14 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.8.19 — รุ่นหลักจาก Caprii ตัวเดิม
+## ดาวน์โหลด Caprii 0.8.20 — รุ่นหลักจาก Caprii ตัวเดิม
 
-[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.19 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.19/Caprii-Agent-Setup-0.8.19.exe)
+[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.20 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.20/Caprii-Agent-Setup-0.8.20.exe)
 
-[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.19/Caprii-0.8.19-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.19) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.19/caprii/CAPRII-TH.md)
+[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.20/Caprii-0.8.20-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.20) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.20/caprii/CAPRII-TH.md)
+
+**ท่าทางประกอบงานจริง** ใช้ท่า curious/look และแยกร่างสั้นระหว่างคิด รอคำตอบหรือขออนุญาตใช้ท่าอยากรู้ งานเพลง/Agent ต้องมี verified จริงก่อนดีใจ งาน Agent ที่ผ่านและใช้เวลาตั้งแต่สองนาทีใช้ท่าฉลองเต็ม แค่เปิดเบราว์เซอร์หรือ AI เลือกเครื่องมือยังไม่ฉลอง ผลเก่าหลังปิดแชต/ยกเลิก/ปิดท่าจะไม่กระตุ้นอนิเมชัน ลดการเคลื่อนไหวตามตัวเลือกเดิม เปิด–ปิดได้ที่ ตัวละครและหน้าจอ → ลูกเล่นตัวละคร → ท่าทางประกอบงาน AI
+
+**ดูจอคงสิทธิ์และสวิตช์เดิม** ท่าใหม่ไม่จับภาพ ไม่ส่งภาพ ไม่เรียก AI หรือสั่งงานเพิ่ม ไม่ให้สิทธิ์แทนผู้ใช้ เดโม มองดาวเทียม เข้าสิง หลับ/เก็บตัวและลูกเล่นเดิมยังอยู่ การเล่นเพลงที่ยืนยันใน 0.8.19 ใช้เส้นทางเดิม
 
 **แก้ปุ่ม Play บนการ์ดผลค้นหา Spotify** รองรับปุ่มสีเขียวบนการ์ดผลบนสุดที่แยกจากแถวรายการเพลง เลือกเฉพาะการ์ดชื่อเพลงตรงและไม่ใช้ปุ่ม footer แทน ตรวจผล ลำดับและอายุหน้าต่างก่อนกดครั้งเดียว ไม่คลิกพิกัดหรือส่ง Space ถ้า Windows ยืนยันว่าเพลงและศิลปินที่เลือกกำลัง Playing อยู่สองครั้ง จะตอบว่าเล่นอยู่แล้วโดยไม่กดซ้ำ ทดสอบ UI Automation จริงบน Windows กับหน้าจำลองแบบรูปที่รายงาน ไม่ใช่บัญชี Spotify จริง ยังไม่ยืนยันเสียงลำโพง
 
@@ -24,7 +28,7 @@
 
 **เพิ่มบริบทและตรวจความกำกวม** ใช้ URL/title ของแท็บ Chrome ที่อนุญาตแล้วโดยตัด query/fragment ไม่อ่านหน้าต่างหรือจับจอเพิ่มเอง ให้ AI ระบุผลลัพธ์ที่ต้องการ/ข้อมูลที่ขาดแบบสั้น หยุดเมื่อระบุว่าเป้าหมายกำกวม และอ้าง URL จากข้อความผู้ใช้ล่าสุดได้เมื่อเป็นคำขอต่อเนื่องชัดเจน เพิ่มเงื่อนไขแยกเปิดเว็บ เปิดแอป และโฟกัสหน้าต่างเดิม
 
-[ดาวน์โหลดชุดทดลองฝึกโมเดลเจตนา](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.19/Caprii-0.8.19-training.zip) — ฝึก CNN 8 route จากศูนย์บน CPU ด้วยข้อความแต่ง train 124/dev 18/test 42 ได้ 32/42 (76.19%) ยังไม่ใช้สั่งงานจริงและไม่ได้เปลี่ยนน้ำหนัก Gemini มี weights/scripts/data/รายงานข้อผิดครบ การ fine-tune โมเดลสำเร็จรูปยังไม่ได้รันเพราะสิทธิ์ดาวน์โหลด มี JSONL สำหรับ route-only เตรียมไว้โดยไม่อัปโหลดหรือเปิด paid job [วิธีรันและข้อจำกัด](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.19/caprii/training/intent/README-TH.md)
+[ดาวน์โหลดชุดทดลองฝึกโมเดลเจตนา](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.20/Caprii-0.8.20-training.zip) — ฝึก CNN 8 route จากศูนย์บน CPU ด้วยข้อความแต่ง train 124/dev 18/test 42 ได้ 32/42 (76.19%) ยังไม่ใช้สั่งงานจริงและไม่ได้เปลี่ยนน้ำหนัก Gemini มี weights/scripts/data/รายงานข้อผิดครบ การ fine-tune โมเดลสำเร็จรูปยังไม่ได้รันเพราะสิทธิ์ดาวน์โหลด มี JSONL สำหรับ route-only เตรียมไว้โดยไม่อัปโหลดหรือเปิด paid job [วิธีรันและข้อจำกัด](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.20/caprii/training/intent/README-TH.md)
 
 **แก้เปิด Spotify แล้วไม่ต่อถึงการเล่น** ใช้เส้นทางสื่อโดยตรง ไม่ถามยืนยันเปิดเว็บซ้ำ คำสั่ง “เปิดเพลง” และ “turn on some music” ให้ AI เลือกเล่นเพลงที่ค้างอยู่ ส่วนการเปิด Spotify อย่างเดียวใช้สวิตช์ autoplay จากแอปโดยตรง สั่งเล่นชัดเจนยังเล่นได้แม้ปิดสวิตช์ ต้องเชื่อม Chrome และล็อกอิน Spotify ไว้
 
@@ -34,7 +38,7 @@
 
 **เมนูคลิกขวาจัดใหม่** คำสั่งคุย ดูจอ ย้ายตัวละคร และซ่อน/แสดงอยู่ด้านบน ที่เหลือแบ่งห้าหมวด: นิสัยและเสียง, Chrome และเพลง, AI และงาน, ตัวละครและหน้าจอ, ตั้งค่าและช่วยเหลือ เมนูหลักประมาณ 14 แถว เก็บฟังก์ชัน ค่าสวิตช์ และทางลัดเดิมครบ
 
-[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.19/Caprii-0.8.19-menu.png)
+[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.20/Caprii-0.8.20-menu.png)
 
 **AI เลือกตอบหรือเรียกเครื่องมือในรอบเดียว** แชตทั่วไปได้คำตอบสุดท้ายจากรอบตัดสินใจ ไม่แยกประเภทแล้วเรียก AI ตอบซ้ำ ส่งประวัติคุยแบบจำกัดและความจำที่เปิดบันทึกไว้ พร้อมนิสัย ภาษา และความยาวคำตอบ คำสั่งใช้เครื่องมือจริงแล้วตรวจผลก่อนตอบ คำขอดูจออย่างเดียวจับภาพจริงตามสิทธิ์เดิมก่อนวิเคราะห์ ไม่แต่งว่าทำงานแล้วจากข้อความของโมเดล งานหลายขั้นตอน การวิเคราะห์ภาพ โมเดลสำรอง หรือการแก้ถ้อยคำยังอาจต้องเรียก AI เพิ่มตามความจำเป็น โหมด Claude Code ใช้ Agent เดิม
 
