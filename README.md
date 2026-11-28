@@ -1,10 +1,16 @@
 # Caprii Desktop AI
 
-## ดาวน์โหลด Caprii 0.8.23 — รุ่นหลักจาก Caprii ตัวเดิม
+## ดาวน์โหลด Caprii 0.8.24 — รุ่นหลักจาก Caprii ตัวเดิม
 
-[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.23 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.23/Caprii-Agent-Setup-0.8.23.exe)
+[ดาวน์โหลดตัวติดตั้ง Caprii 0.8.24 สำหรับ Windows (.exe)](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.24/Caprii-Agent-Setup-0.8.24.exe)
 
-[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.23/Caprii-0.8.23-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.23) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.23/caprii/CAPRII-TH.md)
+[ซอร์สที่ตรงกับตัวติดตั้ง](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.24/Caprii-0.8.24-source.zip) · [รายละเอียดและ SHA-256](https://github.com/Ternipitphon/my-finger-the-index/releases/tag/v0.8.24) · [คู่มือภาษาไทย](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.24/caprii/CAPRII-TH.md)
+
+**AI เรียบเรียงผลเล่นเพลงตามนิสัย:** หลังตรวจว่าตัวเล่นเริ่มเล่นแล้ว Caprii ใช้ AI เรียบเรียงผลสั้น ๆ ตามนิสัยและภาษาที่เลือก ให้คำพูดมีอารมณ์และเป็นธรรมชาติขึ้น คงชื่อเพลงจริงและข้อจำกัดว่าไม่ได้ตรวจเสียงลำโพง เก็บข้อความหลักฐานเดิมแยกไว้ ไม่เรียกเครื่องมือหรือเล่นเพลงซ้ำ
+
+ใช้ AI เพิ่มหนึ่งคำขอ รอได้ไม่เกิน 5 วินาที จึงอาจมีค่า API เพิ่มตามผู้ให้บริการ ถ้าคำตอบผิดรูปแบบ ชื่อเพลงไม่ตรง ขาดข้อจำกัด หรือ AI ไม่พร้อม จะใช้ข้อความจากเครื่องมือเดิม คำสั่งหยุด/ข้ามและผลที่ยังไม่ยืนยันยังไม่ถูกเรียบเรียงใหม่ การทดสอบโมเดลจริงในสภาพแวดล้อมพัฒนารอบนี้หมดเวลา จึงยังไม่อ้างว่าผู้ให้บริการทุกตัวตอบได้ภายในเวลานี้
+
+Verified play results can receive a short AI-written reaction in the selected personality and language. The original evidence and unverified-speaker boundary remain intact. One additional model request is bounded to five seconds; failure falls back to the original result without repeating playback.
 
 **English UI:** เลือกคลิกขวา → ตั้งค่าและช่วยเหลือ → ภาษา / Language → English — primary language เพื่อใช้เมนู ข้อความขออนุญาต สถานะงาน และข้อความระบบหลักเป็นอังกฤษ ผู้ใช้ใหม่เลือกภาษาตามระบบเครื่อง ผู้ใช้เดิมคงค่าที่บันทึกไว้ ชื่อเพลง ชื่อไฟล์ คำสั่งผู้ใช้ และข้อมูลจากเว็บไม่ถูกแปล ระบบควบคุมและปุ่มอนุญาตยังทำงานแบบเดิม บางข้อความวินิจฉัยจากเครื่องมือภายนอกอาจเป็นภาษาของเครื่องมือนั้น
 
@@ -12,7 +18,7 @@
 
 New users: Caprii follows your OS language (Thai or English). Existing users can choose **Settings & help → Language → English — primary language**. The Chrome popup also has a language selector. Your song names, file paths and page content stay unchanged.
 
-ผ่านชุดทดสอบ 380 เคส, Test Lab 19 เคส และหน้าจำลองจริงบน Windows ทั้งไทย/อังกฤษ การทดสอบ Spotify ใช้ fixture ไม่ใช่การยืนยันเสียงบนบัญชีผู้ใช้จริง
+ผ่านชุดทดสอบ 385 เคส, Test Lab 19 เคส และหน้าจำลองจริงบน Windows ทั้งไทย/อังกฤษ การทดสอบ Spotify ใช้ fixture ไม่ใช่การยืนยันเสียงบนบัญชีผู้ใช้จริง
 
 **เลือกการ์ดผลค้นหาบนสุดก่อนเพลงคัฟเวอร์ชื่อซ้ำ** กรณี I Really Want to Stay at Your House จะยึดการ์ด Rosa Walton/Hallie Coggins ในภาพก่อนแถวคัฟเวอร์ ตัด Now playing/sidebar/lyrics/credits ออกจากผลค้นหา ใช้ตำแหน่งข้อความชื่อเพลงเรียงลำดับแทนกรอบรวม ไม่ใช้คัฟเวอร์ที่เล่นค้างอยู่เป็นหลักฐานสำเร็จ ถ้าระบุศิลปินต้องตรงศิลปินก่อน การจัดอันดับ Spotify ไม่ใช่หลักฐานว่าเป็นต้นฉบับหรือยอดฟังสูงสุดทุกเพลง
 
@@ -44,7 +50,7 @@ New users: Caprii follows your OS language (Thai or English). Existing users can
 
 **เพิ่มบริบทและตรวจความกำกวม** ใช้ URL/title ของแท็บ Chrome ที่อนุญาตแล้วโดยตัด query/fragment ไม่อ่านหน้าต่างหรือจับจอเพิ่มเอง ให้ AI ระบุผลลัพธ์ที่ต้องการ/ข้อมูลที่ขาดแบบสั้น หยุดเมื่อระบุว่าเป้าหมายกำกวม และอ้าง URL จากข้อความผู้ใช้ล่าสุดได้เมื่อเป็นคำขอต่อเนื่องชัดเจน เพิ่มเงื่อนไขแยกเปิดเว็บ เปิดแอป และโฟกัสหน้าต่างเดิม
 
-[ดาวน์โหลดชุดทดลองฝึกโมเดลเจตนา](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.23/Caprii-0.8.23-training.zip) — ฝึก CNN 8 route จากศูนย์บน CPU ด้วยข้อความแต่ง train 124/dev 18/test 42 ได้ 32/42 (76.19%) ยังไม่ใช้สั่งงานจริงและไม่ได้เปลี่ยนน้ำหนัก Gemini มี weights/scripts/data/รายงานข้อผิดครบ การ fine-tune โมเดลสำเร็จรูปยังไม่ได้รันเพราะสิทธิ์ดาวน์โหลด มี JSONL สำหรับ route-only เตรียมไว้โดยไม่อัปโหลดหรือเปิด paid job [วิธีรันและข้อจำกัด](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.23/caprii/training/intent/README-TH.md)
+[ดาวน์โหลดชุดทดลองฝึกโมเดลเจตนา](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.24/Caprii-0.8.24-training.zip) — ฝึก CNN 8 route จากศูนย์บน CPU ด้วยข้อความแต่ง train 124/dev 18/test 42 ได้ 32/42 (76.19%) ยังไม่ใช้สั่งงานจริงและไม่ได้เปลี่ยนน้ำหนัก Gemini มี weights/scripts/data/รายงานข้อผิดครบ การ fine-tune โมเดลสำเร็จรูปยังไม่ได้รันเพราะสิทธิ์ดาวน์โหลด มี JSONL สำหรับ route-only เตรียมไว้โดยไม่อัปโหลดหรือเปิด paid job [วิธีรันและข้อจำกัด](https://github.com/Ternipitphon/my-finger-the-index/blob/caprii-0.8.24/caprii/training/intent/README-TH.md)
 
 **แก้เปิด Spotify แล้วไม่ต่อถึงการเล่น** ใช้เส้นทางสื่อโดยตรง ไม่ถามยืนยันเปิดเว็บซ้ำ คำสั่ง “เปิดเพลง” และ “turn on some music” ให้ AI เลือกเล่นเพลงที่ค้างอยู่ ส่วนการเปิด Spotify อย่างเดียวใช้สวิตช์ autoplay จากแอปโดยตรง สั่งเล่นชัดเจนยังเล่นได้แม้ปิดสวิตช์ ต้องเชื่อม Chrome และล็อกอิน Spotify ไว้
 
@@ -54,7 +60,7 @@ New users: Caprii follows your OS language (Thai or English). Existing users can
 
 **เมนูคลิกขวาจัดใหม่** คำสั่งคุย ดูจอ ย้ายตัวละคร และซ่อน/แสดงอยู่ด้านบน ที่เหลือแบ่งห้าหมวด: นิสัยและเสียง, Chrome และเพลง, AI และงาน, ตัวละครและหน้าจอ, ตั้งค่าและช่วยเหลือ เมนูหลักประมาณ 14 แถว เก็บฟังก์ชัน ค่าสวิตช์ และทางลัดเดิมครบ
 
-[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.23/Caprii-0.8.23-menu.png)
+[ดูภาพตัวอย่างเมนูจริงจากการทดสอบบน Windows](https://github.com/Ternipitphon/my-finger-the-index/releases/download/v0.8.24/Caprii-0.8.24-menu.png)
 
 **AI เลือกตอบหรือเรียกเครื่องมือในรอบเดียว** แชตทั่วไปได้คำตอบสุดท้ายจากรอบตัดสินใจ ไม่แยกประเภทแล้วเรียก AI ตอบซ้ำ ส่งประวัติคุยแบบจำกัดและความจำที่เปิดบันทึกไว้ พร้อมนิสัย ภาษา และความยาวคำตอบ คำสั่งใช้เครื่องมือจริงแล้วตรวจผลก่อนตอบ คำขอดูจออย่างเดียวจับภาพจริงตามสิทธิ์เดิมก่อนวิเคราะห์ ไม่แต่งว่าทำงานแล้วจากข้อความของโมเดล งานหลายขั้นตอน การวิเคราะห์ภาพ โมเดลสำรอง หรือการแก้ถ้อยคำยังอาจต้องเรียก AI เพิ่มตามความจำเป็น โหมด Claude Code ใช้ Agent เดิม
 
