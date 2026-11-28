@@ -14,10 +14,11 @@ function registerAgentWindowIpc(ipcMain) {
     return { ok: true };
   });
 }
-function createAgentWindow({ BrowserWindow, goal, stop, show = false }) {
+function createAgentWindow({ BrowserWindow, goal, stop, show = false,lang='th' }) {
+  const ui=value=>require('../renderer/js/ui-catalog').text(value,lang);
   let finished = false;
-  let state = { state: 'running', goal, plan: [], events: [], summary: '' };
-  const window = new BrowserWindow({ show, width: 720, height: 650, title: 'Caprii — งานที่กำลังทำ', backgroundColor: '#101622',
+  let state = { lang,state: 'running', goal, plan: [], events: [], summary: '' };
+  const window = new BrowserWindow({ show, width: 720, height: 650, title: ui('Caprii — งานที่กำลังทำ'), backgroundColor: '#101622',
     webPreferences: { preload: path.join(__dirname, '..', 'agent-preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', event => event.preventDefault());
@@ -26,7 +27,7 @@ function createAgentWindow({ BrowserWindow, goal, stop, show = false }) {
   views.set(key, { stop, snapshot: () => state });
   window.on('closed', () => { views.delete(key); if (!finished) stop(); });
   window.webContents.on('did-finish-load', send);
-  window.loadURL('capri://app/src/renderer/agent.html');
+  window.loadURL('capri://app/src/renderer/agent.html?lang='+lang);
   return {
     window,
     hide: () => { if (!window.isDestroyed()) window.minimize(); },

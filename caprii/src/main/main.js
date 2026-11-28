@@ -6,12 +6,17 @@ const fs = require('node:fs');
 const { pathToFileURL } = require('node:url');
 const {
   app, BrowserWindow, Tray, Menu, ipcMain, screen, protocol, net, shell, globalShortcut, nativeImage,
-  clipboard, ClipboardItem, dialog, powerMonitor, desktopCapturer,
+  clipboard, ClipboardItem, dialog: nativeDialog, powerMonitor, desktopCapturer,
 } = require('electron');
 const { randomUUID } = require('node:crypto');
 const imageAttachments=require('./image-attachments').createImageAttachments({nativeImage});
 
 const config = require('./config');
+const uiCatalog=require('../renderer/js/ui-catalog');
+const ui=(value,slots=[])=>uiCatalog.text(value,resolveLang(config.load().lang),slots);
+const uiMessage=value=>uiCatalog.message(value,resolveLang(config.load().lang));
+const dialog=uiCatalog.localizeDialog(nativeDialog,()=>resolveLang(config.load().lang));
+function localizedHandle(channel,handler){return ipcMain.handle(channel,async(...args)=>{const r=await handler(...args);if(!r||typeof r!=='object'||Array.isArray(r))return r;const output={...r};if(typeof r.error==='string')output.error=uiMessage(r.error);if(channel==='media:run'&&typeof r.text==='string')output.text=uiMessage(r.text);return output;});}
 const { TRAY, LANGS } = require('./labels');
 const { createBridge } = require('./bridge');
 const { startWindowWatch } = require('./windows');
@@ -325,31 +330,31 @@ function rebuildTray() {
   const items = [
     { id:'caprii-online', label: t.online(PORT), enabled: false },
     { id:'caprii-version', label: 'Caprii ' + app.getVersion(), enabled: false },
-    {id:'caprii-lab',label:'เปิดเว็บทดสอบ Caprii',click:async()=>{try{await testLab.open();}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดเว็บทดสอบไม่สำเร็จ',detail:err.message});}}},
-    {id:'caprii-extension',label:'เปิดโฟลเดอร์ส่วนขยาย Chrome',click:()=>shell.openPath(app.isPackaged?path.join(process.resourcesPath,'browser-extension'):path.join(__dirname,'../../browser-extension'))},
-    {id:'caprii-forget-chrome',label:resolveLang(cfg.lang)==='en'?'Forget Chrome pairing…':'ลืมการจับคู่ Chrome…',click:async()=>{const answer=await dialog.showMessageBox({type:'question',message:'ลืมการจับคู่ Chrome?',detail:'ส่วนขยายที่จำไว้จะเชื่อมกลับไม่ได้จนกว่าจะจับคู่ใหม่',buttons:['ยกเลิก','ลืมการจับคู่'],defaultId:0,cancelId:0});if(answer.response!==1)return;try{await chromeBroker.revoke();}catch(err){await dialog.showMessageBox({type:'error',message:'ยังลืมการจับคู่ไม่ได้',detail:err.message});}}},
-    {id:'caprii-pair',label:'เชื่อมแท็บ Chrome…',click:async()=>{
-      try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:'เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก',detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?(selected.responsive?'แท็บตอบรับอยู่: ':'มีการอนุญาตแท็บไว้ แต่กำลังรอสัญญาณ: ')+selected.title:'ยังไม่ได้เชื่อมแท็บ')+'\nจับคู่ครั้งแรกครั้งเดียว เปิดโหมดจำ Chrome ในส่วนขยายแล้วเปิดแอปใหม่จะเชื่อมกลับเอง รหัสนี้ไม่ใช่คีย์ Gemini',buttons:['ปิด','คัดลอกรหัส'],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:'เปิดการเชื่อม Chrome ไม่สำเร็จ',detail:err.message});}
+    {id:'caprii-lab',label:ui('เปิดเว็บทดสอบ Caprii'),click:async()=>{try{await testLab.open();}catch(err){await dialog.showMessageBox({type:'error',message:ui('เปิดเว็บทดสอบไม่สำเร็จ'),detail:err.message});}}},
+    {id:'caprii-extension',label:ui('เปิดโฟลเดอร์ส่วนขยาย Chrome'),click:()=>shell.openPath(app.isPackaged?path.join(process.resourcesPath,'browser-extension'):path.join(__dirname,'../../browser-extension'))},
+    {id:'caprii-forget-chrome',label:resolveLang(cfg.lang)==='en'?'Forget Chrome pairing…':ui('ลืมการจับคู่ Chrome…'),click:async()=>{const answer=await dialog.showMessageBox({type:'question',message:ui('ลืมการจับคู่ Chrome?'),detail:ui('ส่วนขยายที่จำไว้จะเชื่อมกลับไม่ได้จนกว่าจะจับคู่ใหม่'),buttons:[ui('ยกเลิก'),ui('ลืมการจับคู่')],defaultId:0,cancelId:0});if(answer.response!==1)return;try{await chromeBroker.revoke();}catch(err){await dialog.showMessageBox({type:'error',message:ui('ยังลืมการจับคู่ไม่ได้'),detail:err.message});}}},
+    {id:'caprii-pair',label:ui('เชื่อมแท็บ Chrome…'),click:async()=>{
+      try{const info=await chromeBroker.start();const selected=chromeBroker.status();await captureQueue;privateCaptureDialog++;let answer;try{answer=await dialog.showMessageBox({type:'info',message:ui('เชื่อมส่วนขยาย Caprii กับแท็บ Chrome ที่คุณเลือก'),detail:'ใช้เมนู เปิดโฟลเดอร์ส่วนขยาย Chrome แล้วติดตั้งผ่าน chrome://extensions (Load unpacked)\nเปิดแท็บที่ต้องการ คลิกส่วนขยาย แล้ววางรหัสนี้และกดอนุญาตให้ใช้แท็บนี้\n\n'+info.code+'\n\n'+(selected.connected?(selected.responsive?ui('แท็บตอบรับอยู่: '):ui('มีการอนุญาตแท็บไว้ แต่กำลังรอสัญญาณ: '))+selected.title:ui('ยังไม่ได้เชื่อมแท็บ'))+'\nจับคู่ครั้งแรกครั้งเดียว เปิดโหมดจำ Chrome ในส่วนขยายแล้วเปิดแอปใหม่จะเชื่อมกลับเอง รหัสนี้ไม่ใช่คีย์ Gemini',buttons:[ui('ปิด'),ui('คัดลอกรหัส')],defaultId:0,cancelId:0});}finally{privateCaptureDialog--;}if(answer.response===1)require('electron').clipboard.writeText(info.code);}catch(err){await dialog.showMessageBox({type:'error',message:ui('เปิดการเชื่อม Chrome ไม่สำเร็จ'),detail:err.message});}
     }},
-    {id:'caprii-speech',label:resolveLang(cfg.lang)==='en'?'Read dialogue aloud (English voice)':'อ่านบทพูดด้วยเสียงไทย',type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
-    { id:'caprii-auto-actions', label:'โหมดไม่ถาม: จอ/เว็บ/เปิดไฟล์และโปรแกรม (จนปิด Caprii)', type:'checkbox', checked:automaticActions, click:item=>{
+    {id:'caprii-speech',label:resolveLang(cfg.lang)==='en'?'Read dialogue aloud (English voice)':ui('อ่านบทพูดด้วยเสียงไทย'),type:'checkbox',checked:cfg.speechThai===true,click:item=>updateConfig({speechThai:item.checked})},
+    { id:'caprii-auto-actions', label:ui('โหมดไม่ถาม: จอ/เว็บ/เปิดไฟล์และโปรแกรม (จนปิด Caprii)'), type:'checkbox', checked:automaticActions, click:item=>{
       for(const controller of chats.values())controller.abort();
       automaticActions=item.checked===true;
       updateConfig({});
     } },
-    { id:'caprii-desktop-test', label: 'ทดสอบเมาส์และการพิมพ์', enabled: process.platform === 'win32', click: async () => {
-      if (chats.size) { await dialog.showMessageBox({ message: 'หยุดงานปัจจุบันก่อนเริ่มทดสอบ' }); return; }
+    { id:'caprii-desktop-test', label: ui('ทดสอบเมาส์และการพิมพ์'), enabled: process.platform === 'win32', click: async () => {
+      if (chats.size) { await dialog.showMessageBox({ message: ui('หยุดงานปัจจุบันก่อนเริ่มทดสอบ') }); return; }
       const controller = new AbortController(); chats.set('selftest', controller);
       try { await require('./desktop-self-test').desktopSelfTest({ BrowserWindow, screen, desktopCapturer, dialog, signal: controller.signal }); }
-      catch (err) { await dialog.showMessageBox({ type: 'error', message: 'ทดสอบไม่สำเร็จ', detail: err.message }); }
+      catch (err) { await dialog.showMessageBox({ type: 'error', message: ui('ทดสอบไม่สำเร็จ'), detail: err.message }); }
       finally { chats.delete('selftest'); }
     } },
     { id:'caprii-bond', label: t.sync(Math.min(100, Math.floor(xp / 10)), t.stages[stage]), enabled: false },
     { type: 'separator' },
-    {id:'caprii-pickup',label:resolveLang(cfg.lang)==='en'?'Pick up character — move and click to place':'จับย้ายตัวละคร — ขยับเมาส์แล้วคลิกวาง',click:()=>sendCommand('pickup')},
+    {id:'caprii-pickup',label:resolveLang(cfg.lang)==='en'?'Pick up character — move and click to place':ui('จับย้ายตัวละคร — ขยับเมาส์แล้วคลิกวาง'),click:()=>sendCommand('pickup')},
     { id:'caprii-teleport', label: t.teleport, click: () => sendCommand('teleport') },
     { id:'caprii-satellite', label: t.satellite, click: () => sendCommand('satellite') },
-    {id:'caprii-task-animations',label:resolveLang(cfg.lang)==='en'?'AI task reactions':'ท่าทางประกอบงาน AI',type:'checkbox',checked:cfg.taskAnimations!==false,click:item=>updateConfig({taskAnimations:item.checked})},
+    {id:'caprii-task-animations',label:resolveLang(cfg.lang)==='en'?'AI task reactions':ui('ท่าทางประกอบงาน AI'),type:'checkbox',checked:cfg.taskAnimations!==false,click:item=>updateConfig({taskAnimations:item.checked})},
     { id:'caprii-demo', label: t.demo, click: playDemo },
     { id:'caprii-help', label: t.help, click: () => sendCommand('welcome') },
     ...(cfg.claude ? [{ id:'caprii-report', label: t.report, click: () => sendCommand('report') }] : []),
@@ -401,16 +406,16 @@ function rebuildTray() {
         { label: t.follow, type: 'checkbox', checked: cfg.follow !== false, click: (item) => updateConfig({ follow: item.checked }) },
       ],
     },
-    {id:'caprii-task-window',label:'แสดงหน้าต่างติดตามงาน',type:'checkbox',checked:cfg.showTaskWindow===true,click:item=>updateConfig({showTaskWindow:item.checked})},
-    {id:'caprii-reach',label:'Agent Reach: ตรวจความพร้อม',click:async()=>{try{const r=await require('./agent-reach').createReach({packaged:app.isPackaged,resourcesPath:process.resourcesPath}).status(AbortSignal.timeout(10000));await dialog.showMessageBox({message:'Agent Reach พร้อมใช้งาน',detail:'รุ่น '+r.version+' — อ่านเว็บ ค้นข้อมูล และคำบรรยาย YouTube แบบสาธารณะ ไม่คัดลอกบัญชีและไม่ถอดเสียงแบบมีค่าใช้จ่าย'});}catch(err){await dialog.showMessageBox({type:'error',message:'Agent Reach ยังไม่พร้อม',detail:err.message});}}},
-    {id:'caprii-model-profile',label:'โหมดคุณภาพโมเดล',submenu:[
-      {label:'เลือกโมเดลเอง',type:'radio',checked:!cfg.modelProfile||cfg.modelProfile==='manual',click:()=>updateConfig({modelProfile:'manual'})},
-      ...[['speed','รวดเร็ว — Flash Lite'],['balanced','สมดุล — Flash ที่ไม่ใช่ Lite'],['quality','คุณภาพสูง — Pro ถ้ามีใน API']].map(([profile,label])=>({id:'caprii-profile-'+profile,label,type:'radio',checked:cfg.modelProfile===profile,enabled:cfg.provider==='gemini'&&!!chatModels?.length,click:()=>chooseModelProfile(profile)})),
-      {label:'API อาจมีค่าใช้จ่าย/โควตา แยกจาก Gemini บนเว็บ',enabled:false},
+    {id:'caprii-task-window',label:ui('แสดงหน้าต่างติดตามงาน'),type:'checkbox',checked:cfg.showTaskWindow===true,click:item=>updateConfig({showTaskWindow:item.checked})},
+    {id:'caprii-reach',label:ui('Agent Reach: ตรวจความพร้อม'),click:async()=>{try{const r=await require('./agent-reach').createReach({packaged:app.isPackaged,resourcesPath:process.resourcesPath}).status(AbortSignal.timeout(10000));await dialog.showMessageBox({message:ui('Agent Reach พร้อมใช้งาน'),detail:'รุ่น '+r.version+' — อ่านเว็บ ค้นข้อมูล และคำบรรยาย YouTube แบบสาธารณะ ไม่คัดลอกบัญชีและไม่ถอดเสียงแบบมีค่าใช้จ่าย'});}catch(err){await dialog.showMessageBox({type:'error',message:ui('Agent Reach ยังไม่พร้อม'),detail:err.message});}}},
+    {id:'caprii-model-profile',label:ui('โหมดคุณภาพโมเดล'),submenu:[
+      {label:ui('เลือกโมเดลเอง'),type:'radio',checked:!cfg.modelProfile||cfg.modelProfile==='manual',click:()=>updateConfig({modelProfile:'manual'})},
+      ...[['speed',ui('รวดเร็ว — Flash Lite')],['balanced',ui('สมดุล — Flash ที่ไม่ใช่ Lite')],['quality',ui('คุณภาพสูง — Pro ถ้ามีใน API')]].map(([profile,label])=>({id:'caprii-profile-'+profile,label,type:'radio',checked:cfg.modelProfile===profile,enabled:cfg.provider==='gemini'&&!!chatModels?.length,click:()=>chooseModelProfile(profile)})),
+      {label:ui('API อาจมีค่าใช้จ่าย/โควตา แยกจาก Gemini บนเว็บ'),enabled:false},
     ]},
     require('./response-style').responseLengthMenu(cfg.responseLength,value=>updateConfig({responseLength:value}),resolveLang(cfg.lang)),
     require('./personality').personalityMenu(cfg,value=>{const mode=require('./personality').resolvePersonality(value);updateConfig({personalityStyle:mode,rebeccaPersonality:mode!=='normal'});},resolveLang(cfg.lang)),
-    {id:'caprii-focus',label:'โฟกัสงาน: ตอบตามข้อเท็จจริงและความยาก',type:'checkbox',checked:cfg.assistantFocus!==false,click:item=>updateConfig({assistantFocus:item.checked})},
+    {id:'caprii-focus',label:ui('โฟกัสงาน: ตอบตามข้อเท็จจริงและความยาก'),type:'checkbox',checked:cfg.assistantFocus!==false,click:item=>updateConfig({assistantFocus:item.checked})},
     {
       id:'caprii-model', label: t.chatModel,
       submenu: [
@@ -448,16 +453,16 @@ function rebuildTray() {
         { label: t.apiKey, click: () => sendCommand('setupKey') },
       ],
     },
-    {id:'caprii-spotify-desktop',label:resolveLang(cfg.lang)==='en'?'Control current music in the Spotify Windows app':'เล่นต่อ/หยุด/ข้ามผ่านแอป Spotify บน Windows',type:'checkbox',enabled:process.platform==='win32',checked:cfg.spotifyDesktop!==false,click:item=>updateConfig({spotifyDesktop:item.checked})},
-    {id:'caprii-spotify-auto',label:resolveLang(cfg.lang)==='en'?'Play music automatically when opening Spotify':'เล่นเพลงอัตโนมัติเมื่อเปิด Spotify',type:'checkbox',checked:cfg.spotifyAutoPlay!==false,click:item=>updateConfig({spotifyAutoPlay:item.checked})},
-    { id:'caprii-idle-chatter',label:resolveLang(cfg.lang)==='en'?'Idle small talk':'พูดเล่นตอนว่าง',type:'checkbox',checked:cfg.idleChatter===true,click:item=>updateConfig({idleChatter:item.checked}) },
+    {id:'caprii-spotify-desktop',label:resolveLang(cfg.lang)==='en'?'Control current music in the Spotify Windows app':ui('เล่นต่อ/หยุด/ข้ามผ่านแอป Spotify บน Windows'),type:'checkbox',enabled:process.platform==='win32',checked:cfg.spotifyDesktop!==false,click:item=>updateConfig({spotifyDesktop:item.checked})},
+    {id:'caprii-spotify-auto',label:resolveLang(cfg.lang)==='en'?'Play music automatically when opening Spotify':ui('เล่นเพลงอัตโนมัติเมื่อเปิด Spotify'),type:'checkbox',checked:cfg.spotifyAutoPlay!==false,click:item=>updateConfig({spotifyAutoPlay:item.checked})},
+    { id:'caprii-idle-chatter',label:resolveLang(cfg.lang)==='en'?'Idle small talk':ui('พูดเล่นตอนว่าง'),type:'checkbox',checked:cfg.idleChatter===true,click:item=>updateConfig({idleChatter:item.checked}) },
     { id:'caprii-wander', label: t.wander, type: 'checkbox', checked: cfg.wander, click: (item) => updateConfig({ wander: item.checked }) },
     { id:'caprii-possess', label: t.possess, type: 'checkbox', checked: cfg.possess, click: (item) => updateConfig({ possess: item.checked }) },
     { id:'caprii-jealous', label: t.jealous, type: 'checkbox', checked: cfg.jealous !== false, click: (item) => updateConfig({ jealous: item.checked }) },
     { id:'caprii-pc-react', label: t.pcReact, type: 'checkbox', checked: cfg.pcReact !== false, click: (item) => updateConfig({ pcReact: item.checked }) },
     {
       // she asks first (what she'll send where), then turns it on herself
-      id:'caprii-screen-commentary',label:resolveLang(cfg.lang)==='en'?'Observe screen and comment (AI)':'ดูจอแล้วพูดสิ่งที่เห็น (AI)', type: 'checkbox', checked: Boolean(cfg.watchScreen),
+      id:'caprii-screen-commentary',label:resolveLang(cfg.lang)==='en'?'Observe screen and comment (AI)':ui('ดูจอแล้วพูดสิ่งที่เห็น (AI)'), type: 'checkbox', checked: Boolean(cfg.watchScreen),
       click: (item) => {
         sendCommand('watchScreen', { on: item.checked });
         rebuildTray(); // as it is until she's asked
@@ -554,17 +559,17 @@ function runHooks(action, { quiet = false } = {}) {
 // The model she talks with: the one picked in her menu if it's still installed, else the first one
 // on this PC (a cloud model only once you pick it).
 async function chooseModelProfile(profile){
-  if(chats.size){await dialog.showMessageBox({message:'หยุดงานปัจจุบันก่อนเปลี่ยนโมเดล'});rebuildTray();return;}
+  if(chats.size){await dialog.showMessageBox({message:ui('หยุดงานปัจจุบันก่อนเปลี่ยนโมเดล')});rebuildTray();return;}
   const cfg=config.load(),model=require('./model-profiles').candidates(chatModels,profile)[0];
-  if(cfg.provider!=='gemini'||!model){await dialog.showMessageBox({message:'ไม่พบโมเดลสำหรับโหมดนี้ในรายชื่อ API',detail:'เลือกผู้ให้บริการ Gemini และตรวจรายชื่อโมเดลก่อน รายชื่อไม่ได้ยืนยันสิทธิ์หรือโควตาในการตอบจริง'});rebuildTray();return;}
+  if(cfg.provider!=='gemini'||!model){await dialog.showMessageBox({message:ui('ไม่พบโมเดลสำหรับโหมดนี้ในรายชื่อ API'),detail:ui('เลือกผู้ให้บริการ Gemini และตรวจรายชื่อโมเดลก่อน รายชื่อไม่ได้ยืนยันสิทธิ์หรือโควตาในการตอบจริง')});rebuildTray();return;}
   const controller=new AbortController();chats.set('model-profile',controller);
   try{
-    const answer=await dialog.showMessageBox(overlay,{type:'question',message:'ทดสอบและใช้โมเดลนี้?',detail:model+'\n\nจะส่งคำถามทดสอบสั้นหนึ่งครั้งก่อนบันทึก การเรียก API อาจใช้โควตาหรือคิดค่าบริการตามบัญชี และสิทธิ์ Gemini บนเว็บไม่ใช่สิทธิ์ API โมเดลนี้ไม่รับประกันว่าทำงานเหมือน Gemini บนเว็บทุกอย่าง',buttons:['ยกเลิก','ทดสอบแล้วใช้'],defaultId:0,cancelId:0,signal:controller.signal});
+    const answer=await dialog.showMessageBox(overlay,{type:'question',message:ui('ทดสอบและใช้โมเดลนี้?'),detail:model+'\n\nจะส่งคำถามทดสอบสั้นหนึ่งครั้งก่อนบันทึก การเรียก API อาจใช้โควตาหรือคิดค่าบริการตามบัญชี และสิทธิ์ Gemini บนเว็บไม่ใช่สิทธิ์ API โมเดลนี้ไม่รับประกันว่าทำงานเหมือน Gemini บนเว็บทุกอย่าง',buttons:[ui('ยกเลิก'),ui('ทดสอบแล้วใช้')],defaultId:0,cancelId:0,signal:controller.signal});
     if(answer.response!==1)return;
-    const result=await require('./chat-runner').runChat({models:[model],signal:controller.signal,timeoutMs:profile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:[{role:'system',content:'ตอบเป็นภาษาไทยสั้น ๆ'},{role:'user',content:'ตอบว่าพร้อมใช้งาน เป็นภาษาไทย'}]},()=>{},signal)});
-    if(!/[\u0e00-\u0e7f]/.test(result.text))throw Error('โมเดลยังไม่ตอบภาษาไทยตามการทดสอบ');
+    const result=await require('./chat-runner').runChat({models:[model],signal:controller.signal,timeoutMs:profile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:[{role:'system',content:ui('ตอบเป็นภาษาไทยสั้น ๆ')},{role:'user',content:ui('ตอบว่าพร้อมใช้งาน เป็นภาษาไทย')}]},()=>{},signal)});
+    if(!(resolveLang(cfg.lang)==='en'?/[A-Za-z]/:/[\u0e00-\u0e7f]/).test(result.text))throw Error(ui('โมเดลยังไม่ตอบภาษาไทยตามการทดสอบ'));
     controller.signal.throwIfAborted();updateConfig({modelProfile:profile,chatModel:model});
-  }catch(err){if(!controller.signal.aborted)await dialog.showMessageBox({type:'error',message:'ยังไม่ได้เปลี่ยนโมเดล ทดสอบไม่สำเร็จ',detail:err.message});}
+  }catch(err){if(!controller.signal.aborted)await dialog.showMessageBox({type:'error',message:ui('ยังไม่ได้เปลี่ยนโมเดล ทดสอบไม่สำเร็จ'),detail:err.message});}
   finally{chats.delete('model-profile');rebuildTray();}
 }
 
@@ -637,7 +642,7 @@ async function chatWithFallback(cfg, messages, send, signal, {agent=false}={}) {
   const { text, model } = await require('./chat-runner').runChat({
     models: require('./model-profiles').fallbackModels({provider:cfg.provider,selected,models:chatModels||[]}), signal, onDelta: send, timeoutMs:cfg.modelProfile==='quality'?60000:30000,
     request: async (model, onDelta, signal) => {
-      const text=await require('./thai-language').thaiResponse({messages,personality:cfg,lang:resolveLang(cfg.lang),request:async fixed=>{if(++requests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed,jsonMode:llm.isTaskActionRequest(fixed, agent)},()=>{},signal);}});
+      const text=await require('./thai-language').thaiResponse({messages,personality:cfg,lang:resolveLang(cfg.lang),request:async fixed=>{if(++requests>3)throw Object.assign(Error(ui('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่')),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed,jsonMode:llm.isTaskActionRequest(fixed, agent)},()=>{},signal);}});
       onDelta(text);return text;
     },
   });
@@ -651,7 +656,7 @@ let privateCaptureDialog=0;
 let captureQueue=Promise.resolve();
 function withoutCapriiOverlay(capture){
   const next=captureQueue.then(async()=>{
-    if(privateCaptureDialog)throw Error('ปิดหน้าต่างรหัสเชื่อมต่อก่อนจับภาพหน้าจอ');
+    if(privateCaptureDialog)throw Error(ui('ปิดหน้าต่างรหัสเชื่อมต่อก่อนจับภาพหน้าจอ'));
     const windows=BrowserWindow.getAllWindows().filter(w=>!w.isDestroyed()&&w.webContents.getURL().startsWith('capri://app/')&&w.isVisible()&&!w.isMinimized()).map(window=>({window,focused:window.isFocused()}));
     try{for(const {window} of windows)window.hide();if(windows.length)await new Promise(r=>setTimeout(r,100));return await capture();}
     finally{for(const {window,focused} of windows){if(!window.isDestroyed()){if(focused&&chats.size===0){window.show();window.focus();}else window.showInactive();}}}
@@ -691,7 +696,7 @@ async function sayAboutSnap({ id, persona, prompt, history = [], automatic = fal
   let requests=0;
   try {
     const result = await require('./chat-runner').runChat({ models: [model], signal, maxAttempts: 2,
-      request: (model, delta, signal) => require('./thai-language').thaiResponse({messages,personality:cfg,lang:resolveLang(cfg.lang),request:fixed=>{if(++requests>2)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}}),
+      request: (model, delta, signal) => require('./thai-language').thaiResponse({messages,personality:cfg,lang:resolveLang(cfg.lang),request:fixed=>{if(++requests>2)throw Object.assign(Error(ui('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่')),{code:'budget'});return llm.chat(cfg.provider,llmConfig(cfg),{model,messages:fixed},()=>{},signal);}}),
     });
     return { ok: true, text: result.text, model };
   } catch (err) {
@@ -734,14 +739,14 @@ function registerIpc() {
   });
   ipcMain.on('overlay:hold', (e, on) => {if(e.sender===overlay?.webContents)overlayInput.hold(on);});
   ipcMain.on('overlay:rearm', () => rearmOverlay()); // the pointer moved over her and she never heard of it
-  ipcMain.handle('overlay:cursor', () => {
+  localizedHandle('overlay:cursor', () => {
     const p = screen.getCursorScreenPoint();
     const b = overlay.getBounds();
     const inside = p.x >= b.x && p.y >= b.y && p.x < b.x + b.width && p.y < b.y + b.height;
     return { x: p.x - b.x, y: p.y - b.y, inside, display: displayAt(p).id, primaryDown:windowWatch?.primaryDown?.()??null };
   });
   // your screens (their bounds), the one she's on, and where her window is
-  ipcMain.handle('screens:list', () => {
+  localizedHandle('screens:list', () => {
     const o = overlay.getBounds();
     return {
       current: targetDisplay().id,
@@ -749,7 +754,7 @@ function registerIpc() {
       list: displays().map(({ id, bounds: b }) => ({ id, x: b.x, y: b.y, w: b.width, h: b.height })),
     };
   });
-  ipcMain.handle('screens:move', async (_e, id) => {
+  localizedHandle('screens:move', async (_e, id) => {
     const area = moveOverlay(id);
     if (!area) return null;
     await new Promise((r) => setTimeout(r, 60));
@@ -757,33 +762,33 @@ function registerIpc() {
     const o = overlay.getBounds();
     return { origin: { x: o.x, y: o.y }, width: o.width, height: o.height, gap: overlayArea().gap };
   });
-  ipcMain.handle('config:get', () => rendererConfig());
-  ipcMain.handle('hooks:status', () => activeHooks().status());
-  ipcMain.handle('config:set', (_e, patch) => updateConfig(patch));
-  ipcMain.handle('voice:dictate',async event=>{
-    if(event.sender!==overlay?.webContents)return{error:'ผู้เรียกไม่ถูกต้อง'};
-    if(process.platform!=='win32')return{error:'ใช้ Windows Voice Typing ได้บน Windows เท่านั้น'};
-    if(chats.size)return{error:'หยุดงานปัจจุบันก่อนเริ่มพิมพ์ด้วยเสียง'};
+  localizedHandle('config:get', () => rendererConfig());
+  localizedHandle('hooks:status', () => activeHooks().status());
+  localizedHandle('config:set', (_e, patch) => updateConfig(patch));
+  localizedHandle('voice:dictate',async event=>{
+    if(event.sender!==overlay?.webContents)return{error:ui('ผู้เรียกไม่ถูกต้อง')};
+    if(process.platform!=='win32')return{error:ui('ใช้ Windows Voice Typing ได้บน Windows เท่านั้น')};
+    if(chats.size)return{error:ui('หยุดงานปัจจุบันก่อนเริ่มพิมพ์ด้วยเสียง')};
     const controller=new AbortController();chats.set('dictation',controller);
     try{
-      const answer=await dialog.showMessageBox(overlay,{type:'info',message:'เริ่มพิมพ์คำสั่งด้วยเสียงผ่าน Windows?',detail:'เลือกภาษาแป้นพิมพ์เป็นไทยก่อน Windows เป็นผู้ประมวลผลเสียงตามการตั้งค่าระบบ ซึ่งอาจใช้บริการออนไลน์ของ Microsoft แอปไม่บันทึกเสียงเอง\nข้อความจะลงช่องแชตให้คุณตรวจ หยุดไมค์แล้วกดส่งเอง ไม่มีการส่งคำสั่ง AI อัตโนมัติ\nหยุดไมค์จากแถบ Windows หรือกด Win+H อีกครั้ง (Ctrl+Alt+Esc หยุดงาน AI แต่ไม่ได้ปิดไมค์ของ Windows)',buttons:['ยกเลิก','เริ่มพิมพ์ด้วยเสียง'],defaultId:0,cancelId:0,signal:controller.signal});
+      const answer=await dialog.showMessageBox(overlay,{type:'info',message:ui('เริ่มพิมพ์คำสั่งด้วยเสียงผ่าน Windows?'),detail:ui('เลือกภาษาแป้นพิมพ์เป็นไทยก่อน Windows เป็นผู้ประมวลผลเสียงตามการตั้งค่าระบบ ซึ่งอาจใช้บริการออนไลน์ของ Microsoft แอปไม่บันทึกเสียงเอง\nข้อความจะลงช่องแชตให้คุณตรวจ หยุดไมค์แล้วกดส่งเอง ไม่มีการส่งคำสั่ง AI อัตโนมัติ\nหยุดไมค์จากแถบ Windows หรือกด Win+H อีกครั้ง (Ctrl+Alt+Esc หยุดงาน AI แต่ไม่ได้ปิดไมค์ของ Windows)'),buttons:[ui('ยกเลิก'),ui('เริ่มพิมพ์ด้วยเสียง')],defaultId:0,cancelId:0,signal:controller.signal});
       if(answer.response!==1)return{cancelled:true};
       controller.signal.throwIfAborted();overlay.setFocusable(true);overlay.show();overlay.focus();overlay.webContents.focus();
       const focused=await overlay.webContents.executeJavaScript(`(()=>{const e=document.querySelector('.panel__input'),form=document.querySelector('.panel__chat');if(!e||e.type==='password'||e.disabled||!form||form.hidden||!e.getClientRects().length)return false;e.focus();return document.activeElement===e;})()`);
-      if(!focused)return{error:'เปิดช่องแชตปกติก่อน ไม่ใช้การพิมพ์เสียงในช่องคีย์หรือรหัสผ่าน'};
+      if(!focused)return{error:ui('เปิดช่องแชตปกติก่อน ไม่ใช้การพิมพ์เสียงในช่องคีย์หรือรหัสผ่าน')};
       return await require('./windows-dictation').startWindowsDictation({signal:controller.signal});
-    }catch(err){return{error:controller.signal.aborted?'ยกเลิกแล้ว':err.message};}finally{chats.delete('dictation');}
+    }catch(err){return{error:controller.signal.aborted?ui('ยกเลิกแล้ว'):err.message};}finally{chats.delete('dictation');}
   });
-  ipcMain.handle('demo:window', (_e, open) => demoWindow(open));
+  localizedHandle('demo:window', (_e, open) => demoWindow(open));
   // right-clicking her: the same menu as the tray icon (which Windows often hides behind the ^ by the clock)
   ipcMain.on('menu:open', () => trayMenu?.popup({ window: overlay }));
   // her welcome panel's buttons
-  ipcMain.handle('hooks:install', () => runHooks('install', { quiet: true }));
-  ipcMain.handle('claude:found', () => fs.existsSync(path.dirname(activeHooks().status().file))); // Claude Code keeps its settings there
+  localizedHandle('hooks:install', () => runHooks('install', { quiet: true }));
+  localizedHandle('claude:found', () => fs.existsSync(path.dirname(activeHooks().status().file))); // Claude Code keeps its settings there
   ipcMain.on('claude:help', () => shell.openExternal(activeAssistant().help));
-  ipcMain.handle('windows:get', () => lastWindows);
+  localizedHandle('windows:get', () => lastWindows);
   // talking to her (chat.js): is Ollama there, with a model to talk with
-  ipcMain.handle('chat:status', async () => {
+  localizedHandle('chat:status', async () => {
     const cfg = config.load(true); // keys may have been edited by hand
     const { provider } = cfg;
     const models = await refreshModels();
@@ -796,7 +801,7 @@ function registerIpc() {
   });
   // her answer, streamed to the overlay piece by piece as `chat:delta`
   require('./agent-window').registerAgentWindowIpc(ipcMain);
-  ipcMain.handle('agent:run', async (_e, request = {}) => {
+  localizedHandle('agent:run', async (_e, request = {}) => {
     const { id, goal, scope, previousInstruction } = request;
     if (_e.sender !== overlay?.webContents || !Number.isSafeInteger(id) || typeof goal !== 'string' || !goal.trim() || goal.length > 8000 || (previousInstruction!==undefined&&(typeof previousInstruction!=='string'||previousInstruction.length>8000)) || (scope!==undefined&&!['public-web','selected-tab'].includes(scope))) return { ok: false, error: 'Invalid agent request' };
     if (chats.size) return { ok: false, error: 'Another task is running' };
@@ -806,27 +811,27 @@ function registerIpc() {
     const animate=phase=>overlay?.webContents.send('task:animation',{id,phase});
     let task = null, browser = null, taskPermissions = null;
     try {
-      if(scope==='selected-tab'&&!chromeBroker.status().connected)throw Error('ยังไม่ได้เชื่อมแท็บ Chrome ที่พร้อมใช้งาน เปิดเมนู เชื่อมแท็บ Chrome… แล้วอนุญาตแท็บนี้ก่อน ยังไม่ได้อ่านหรือกรอกข้อมูล');
+      if(scope==='selected-tab'&&!chromeBroker.status().connected)throw Error(ui('ยังไม่ได้เชื่อมแท็บ Chrome ที่พร้อมใช้งาน เปิดเมนู เชื่อมแท็บ Chrome… แล้วอนุญาตแท็บนี้ก่อน ยังไม่ได้อ่านหรือกรอกข้อมูล'));
       if(!automaticActions)animate('waiting');
       const consent = automaticActions ? {response:1} : await dialog.showMessageBox(overlay, {
-        type: 'question', buttons: scope==='public-web'?['ยกเลิก','อ่านเว็บสาธารณะ']:scope==='selected-tab'?['ยกเลิก','อ่าน/กรอกแท็บที่เชื่อม']:['ยกเลิก', 'ทำงานบนจอ/เว็บ', 'เลือกโฟลเดอร์โปรเจกต์'], defaultId: 0, cancelId: 0, signal,
-        message: 'เริ่มงาน Agent แบบไหน?',
+        type: 'question', buttons: scope==='public-web'?[ui('ยกเลิก'),ui('อ่านเว็บสาธารณะ')]:scope==='selected-tab'?[ui('ยกเลิก'),ui('อ่าน/กรอกแท็บที่เชื่อม')]:[ui('ยกเลิก'), ui('ทำงานบนจอ/เว็บ'), ui('เลือกโฟลเดอร์โปรเจกต์')], defaultId: 0, cancelId: 0, signal,
+        message: ui('เริ่มงาน Agent แบบไหน?'),
         detail: 'คำสั่งและข้อมูลที่คุณอนุมัติจะส่งให้ผู้ให้บริการ AI ขออนุญาตแยกก่อนอ่าน/แก้ไฟล์ เปิดเว็บ ควบคุมหน้าจอ หรือรันสคริปต์ ไม่เก็บความจำข้ามงาน\nหยุดฉุกเฉิน Ctrl+Alt+Esc\n' + goal,
       });
       signal.throwIfAborted();
       animate('working');
-      if (consent.response === 0) return { ok: false, canceled:true, error: 'ยกเลิกแล้ว' };
+      if (consent.response === 0) return { ok: false, canceled:true, error: ui('ยกเลิกแล้ว') };
       let projectRoot = app.getPath('temp');
       const allowProjectFiles = scope===undefined&&consent.response === 2;
       if (allowProjectFiles) {
         const picked = await dialog.showOpenDialog(overlay, { properties: ['openDirectory'] });
         signal.throwIfAborted();
-        if (picked.canceled) return { ok: false, canceled:true, error: 'ยกเลิกแล้ว' };
+        if (picked.canceled) return { ok: false, canceled:true, error: ui('ยกเลิกแล้ว') };
         projectRoot = picked.filePaths[0];
       }
       const cfg = config.load();
       if (cfg.provider === 'claude') throw new Error('Project Agent requires Gemini or another chat/vision provider. Claude Code has its own agent mode.');
-      task = require('./agent-window').createAgentWindow({ BrowserWindow, goal, show:cfg.showTaskWindow===true, stop: () => abort.abort() });
+      task = require('./agent-window').createAgentWindow({ BrowserWindow, goal, show:cfg.showTaskWindow===true,lang:resolveLang(cfg.lang), stop: () => abort.abort() });
       browser = (chromeBroker.status().paired||chromeBroker.status().connected) ? chromeBroker.browser() : require('./agent-browser').createBrowser({ BrowserWindow, session: require('electron').session });
       const desktop = require('./agent-desktop').createDesktop({ desktopCapturer, screen, platform: emergencyStopReady ? process.platform : 'unavailable', withCapture:withoutCapriiOverlay,
         beforeCapture: async () => { if (emergencyStopReady) task.hide(); await new Promise(resolve => setTimeout(resolve, 200)); },
@@ -839,9 +844,9 @@ function registerIpc() {
         if(config.load().showTaskWindow===true){task.window.restore();task.window.show();}
         animate('waiting');
         const answer=await dialog.showMessageBox(task.window,{
-          type:'warning',buttons:['ไม่อนุญาต','อนุญาตครั้งนี้',...(reusable?['อนุญาตตลอดงานนี้']:[])],defaultId:0,cancelId:0,signal,
+          type:'warning',buttons:[ui('ไม่อนุญาต'),ui('อนุญาตครั้งนี้'),...(reusable?[ui('อนุญาตตลอดงานนี้')]:[])],defaultId:0,cancelId:0,signal,
           message:'Caprii ขออนุญาต: '+action.tool,
-          detail:(reusable?'อนุญาตตลอดงานนี้: ใช้จอหรือหน้าต่างเดิมต่อได้จนจบงาน กดหยุด หรือครบ 5 นาที การควบคุมหน้าต่างรวมการพิมพ์ คลิก และส่งแบบฟอร์ม พร้อมส่งภาพจอและชื่อหน้าต่างให้ AI เมื่อเปลี่ยนหน้าต่างหรือจอจะถามใหม่\n\n':'')+JSON.stringify(action,null,2)
+          detail:(reusable?ui('อนุญาตตลอดงานนี้: ใช้จอหรือหน้าต่างเดิมต่อได้จนจบงาน กดหยุด หรือครบ 5 นาที การควบคุมหน้าต่างรวมการพิมพ์ คลิก และส่งแบบฟอร์ม พร้อมส่งภาพจอและชื่อหน้าต่างให้ AI เมื่อเปลี่ยนหน้าต่างหรือจอจะถามใหม่\n\n'):'')+JSON.stringify(action,null,2)
         });
         animate('working');
         if(action.tool.startsWith('desktop.'))task.hide();
@@ -854,8 +859,8 @@ function registerIpc() {
         approve: action => taskPermissions.approve(action),
         onProgress: event => {
           task.update(event);
-          if(event.status==='recovering')overlay?.webContents.send('chat:delta',{id,text:'กำลังตรวจและแก้ขั้นตอนที่ติดขัด…\n'});
-          if (event.status === 'running' || event.tool === 'plan') overlay?.webContents.send('chat:delta', { id, text: `ขั้นตอน ${event.step}: ${({'desktop.look':'ดูหน้าจอ','desktop.windows':'อ่านหน้าต่าง','desktop.input':'ควบคุมหน้าจอ','browser.read':'อ่านแท็บเว็บ','browser.type':'กรอกช่องคำตอบ','browser.select':'เลือกค่าบนเว็บ','browser.check':'ตั้งค่าช่องตัวเลือก','browser.click':'คลิกปุ่ม','browser.expect_value':'ตรวจค่าที่กรอกจริง','browser.expect':'ตรวจผลหน้าเว็บ','math.solve':'ค้นหาคำตอบ','math.evaluate':'คำนวณ','math.verify':'ตรวจคำตอบ','plan':'วางแผน'})[event.tool]||'กำลังดำเนินการ'}\n` });
+          if(event.status==='recovering')overlay?.webContents.send('chat:delta',{id,text:ui('กำลังตรวจและแก้ขั้นตอนที่ติดขัด…\n')});
+          if (event.status === 'running' || event.tool === 'plan') overlay?.webContents.send('chat:delta', { id, text: ui("ขั้นตอน {0}: {1}\n",[event.step,({'desktop.look':'ดูหน้าจอ','desktop.windows':'อ่านหน้าต่าง','desktop.input':'ควบคุมหน้าจอ','browser.read':'อ่านแท็บเว็บ','browser.type':'กรอกช่องคำตอบ','browser.select':'เลือกค่าบนเว็บ','browser.check':'ตั้งค่าช่องตัวเลือก','browser.click':'คลิกปุ่ม','browser.expect_value':'ตรวจค่าที่กรอกจริง','browser.expect':'ตรวจผลหน้าเว็บ','math.solve':'ค้นหาคำตอบ','math.evaluate':'คำนวณ','math.verify':'ตรวจคำตอบ','plan':'วางแผน'})[event.tool]||'กำลังดำเนินการ']) });
         },
       });
       const safeSummary=require('./task-result').taskResultText(result,resolveLang(config.load().lang));
@@ -863,7 +868,7 @@ function registerIpc() {
       return { ok: true, text: safeSummary + '\nผลตรวจ: ผ่าน ' + result.checks.filter(c=>c.passed).length + ' จาก ' + result.checks.length + ' รายการ', verified: result.verified };
     } catch (err) {
       if(signal.aborted)animate('cancelled');
-      const error = abort.signal.aborted ? 'หยุดงานแล้ว' : signal.aborted ? 'หมดเวลางาน 5 นาที' : err.message;
+      const error = abort.signal.aborted ? ui('หยุดงานแล้ว') : signal.aborted ? ui('หมดเวลางาน 5 นาที') : err.message;
       task?.finish({ state: signal.aborted ? 'stopped' : 'failed', summary: error });
       return { ok: false, error };
     } finally {
@@ -872,40 +877,40 @@ function registerIpc() {
       chats.delete(id);
     }
   });
-  ipcMain.handle('chat:image-pick',async event=>{
-    if(event.sender!==overlay?.webContents||chats.size)return{ok:false,error:'มีคำขออื่นทำงานอยู่'};
-    try{const choice=await dialog.showOpenDialog(overlay,{title:'แนบรูปให้ Caprii ดู',properties:['openFile'],filters:[{name:'รูปภาพ',extensions:['png','jpg','jpeg','webp']}]});
+  localizedHandle('chat:image-pick',async event=>{
+    if(event.sender!==overlay?.webContents||chats.size)return{ok:false,error:ui('มีคำขออื่นทำงานอยู่')};
+    try{const choice=await dialog.showOpenDialog(overlay,{title:ui('แนบรูปให้ Caprii ดู'),properties:['openFile'],filters:[{name:ui('รูปภาพ'),extensions:['png','jpg','jpeg','webp']}]});
       if(choice.canceled||!choice.filePaths[0])return{ok:false,canceled:true};
-      const file=choice.filePaths[0],stat=await fs.promises.stat(file);if(!stat.isFile()||stat.size>require('./image-attachments').MAX_FILE)throw Error('เลือกรูปขนาดไม่เกิน 15 MB');
+      const file=choice.filePaths[0],stat=await fs.promises.stat(file);if(!stat.isFile()||stat.size>require('./image-attachments').MAX_FILE)throw Error(ui('เลือกรูปขนาดไม่เกิน 15 MB'));
       return{ok:true,attachment:imageAttachments.add(await fs.promises.readFile(file),path.basename(file))};
     }catch(e){return{ok:false,error:e.message};}
   });
-  ipcMain.handle('chat:image-paste',async event=>{
-    if(event.sender!==overlay?.webContents||chats.size)return{ok:false,error:'มีคำขออื่นทำงานอยู่'};
+  localizedHandle('chat:image-paste',async event=>{
+    if(event.sender!==overlay?.webContents||chats.size)return{ok:false,error:ui('มีคำขออื่นทำงานอยู่')};
     try{const buffer=await require('./image-attachments').clipboardImageBuffer(clipboard);return{ok:true,attachment:imageAttachments.add(buffer)};}catch(e){return{ok:false,error:e.message};}
   });
   ipcMain.on('chat:image-remove',(event,id)=>{if(event.sender===overlay?.webContents)imageAttachments.remove(id);});
-  ipcMain.handle('chat:image-send',async(event,request={})=>{
+  localizedHandle('chat:image-send',async(event,request={})=>{
     if(event.sender!==overlay?.webContents||chats.size||!Number.isSafeInteger(request.id))return{ok:false,error:'Invalid or concurrent image request'};
     const abort=new AbortController();chats.set(request.id,abort);
     try{
       const dataURL=imageAttachments.get(request.attachmentId),cfg=config.load();
-      if(!chatModels?.length)await refreshModels();const model=pickModel(cfg);if(!model)throw Error('ยังไม่มีโมเดลพร้อมใช้งาน');
-      if(cfg.provider==='claude'||(cfg.provider==='ollama'&&!await ollama.canSee(model)))return{ok:false,code:'novision',error:'โมเดลนี้ยังดูรูปไม่ได้ เลือก Gemini หรือโมเดลที่รองรับภาพแล้วส่งใหม่'};
+      if(!chatModels?.length)await refreshModels();const model=pickModel(cfg);if(!model)throw Error(ui('ยังไม่มีโมเดลพร้อมใช้งาน'));
+      if(cfg.provider==='claude'||(cfg.provider==='ollama'&&!await ollama.canSee(model)))return{ok:false,code:'novision',error:ui('โมเดลนี้ยังดูรูปไม่ได้ เลือก Gemini หรือโมเดลที่รองรับภาพแล้วส่งใหม่')};
       const messages=require('./image-attachments').imageMessages({prompt:request.prompt,persona:request.persona||'คุณคือ Caprii ผู้ช่วย AI',dataURL,personality:cfg,responseLength:cfg.responseLength});
       const result=await require('./chat-runner').runChat({models:[model],signal:abort.signal,timeoutMs:cfg.modelProfile==='quality'?60000:30000,maxAttempts:1,request:(chosen,_delta,signal)=>require('./thai-language').thaiResponse({messages,personality:cfg,lang:resolveLang(cfg.lang),request:fixed=>llm.chat(cfg.provider,llmConfig(cfg),{model:chosen,messages:fixed},()=>{},signal)})});
       imageAttachments.remove(request.attachmentId);return{ok:true,text:result.text,model};
     }catch(e){return require('./image-attachments').imageError(e,abort.signal.aborted);}
     finally{chats.delete(request.id);}
   });
-  ipcMain.handle('command:interpret',async(event,request={})=>{
+  localizedHandle('command:interpret',async(event,request={})=>{
     if(event.sender!==overlay?.webContents||chats.size||!Number.isSafeInteger(request.id)||typeof request.text!=='string'||request.text.length>8000||typeof (request.previous??'')!=='string'||(request.previous||'').length>8000)return{ok:false,error:'Invalid or concurrent command interpretation'};
     const abort=new AbortController();chats.set(request.id,abort);
     try{const cfg=config.load();if(cfg.provider==='claude')return{ok:false,error:'Claude Code uses its own agent. Reopen chat after changing provider.'};
       const signal=AbortSignal.any([abort.signal,AbortSignal.timeout(cfg.modelProfile==='quality'?60000:30000)]);
       let chosen,modelRequests=0;
       const ask=(model,messages,jsonMode,bounded)=>{
-        if(++modelRequests>3)throw Object.assign(Error('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่'),{code:'budget'});
+        if(++modelRequests>3)throw Object.assign(Error(ui('ถึงขีดจำกัดการขอคำตอบ กรุณาลองใหม่')),{code:'budget'});
         return llm.chat(cfg.provider,llmConfig(cfg),{model,messages,jsonMode},()=>{},bounded);
       };
       const result=await require('./command-interpreter').interpretCommand({
@@ -933,9 +938,9 @@ function registerIpc() {
         signal.throwIfAborted();
       }
       return{ok:true,...result};
-    }catch(error){return{ok:false,error:abort.signal.aborted?'หยุดงานแล้ว':error.message};}finally{chats.delete(request.id);}
+    }catch(error){return{ok:false,error:abort.signal.aborted?ui('หยุดงานแล้ว'):error.message};}finally{chats.delete(request.id);}
   });
-  ipcMain.handle('task:interpret',async(event,request={})=>{
+  localizedHandle('task:interpret',async(event,request={})=>{
     if(event.sender!==overlay?.webContents||chats.size||!Number.isSafeInteger(request.id)||typeof request.text!=='string'||request.text.length>8000||typeof (request.previous??'')!=='string'||(request.previous||'').length>8000)return{ok:false,error:'Invalid or concurrent interpretation request'};
     const abort=new AbortController();chats.set(request.id,abort);
     try{
@@ -943,12 +948,12 @@ function registerIpc() {
       if(cfg.provider==='claude')return{ok:true,route:'chat'};
       return{ok:true,...await require('./task-interpreter').interpretTask({text:request.text,previous:request.previous||'',connected:chromeBroker.status().connected===true,lang:resolveLang(cfg.lang),signal:abort.signal,
         request:async(messages,signal)=>{if(!chatModels?.length)await refreshModels();signal.throwIfAborted();return llm.chat(cfg.provider,llmConfig(cfg),{model:pickModel(cfg),messages,jsonMode:true},()=>{},signal);}})};
-    }catch(error){return{ok:false,error:abort.signal.aborted?'หยุดงานแล้ว':error.message};}
+    }catch(error){return{ok:false,error:abort.signal.aborted?ui('หยุดงานแล้ว'):error.message};}
     finally{chats.delete(request.id);}
   });
-  ipcMain.handle('chat:send', async (_e, { id, messages }) => {
+  localizedHandle('chat:send', async (_e, { id, messages }) => {
     if (_e.sender !== overlay?.webContents || chats.size || !Array.isArray(messages)) return { ok: false, error: 'Invalid or concurrent chat request' };
-    if(require('./task-result').toolRequest(require('./response-style').userText([...messages].reverse().find(m=>m.role==='user'))))return{ok:false,code:'tool_required',error:'ยังไม่ได้อ่านหรือกรอกข้อมูล คำสั่งนี้ต้องใช้ Agent และแท็บที่เชื่อมต่อ ไม่ใช่แชตข้อความล้วน'};
+    if(require('./task-result').toolRequest(require('./response-style').userText([...messages].reverse().find(m=>m.role==='user'))))return{ok:false,code:'tool_required',error:ui('ยังไม่ได้อ่านหรือกรอกข้อมูล คำสั่งนี้ต้องใช้ Agent และแท็บที่เชื่อมต่อ ไม่ใช่แชตข้อความล้วน')};
     const abort = new AbortController();
     chats.set(id, abort);
     try {
@@ -969,7 +974,7 @@ function registerIpc() {
   });
   ipcMain.on('chat:stop', (_e, id) => { if (_e.sender === overlay?.webContents) {chats.get(id)?.abort();} });
   // she looks at your screen (look.js): the picture first, then what her AI says about it
-  ipcMain.handle('look:snap', async (e, request = {}) => {
+  localizedHandle('look:snap', async (e, request = {}) => {
     if(e.sender!==overlay?.webContents)return {ok:false,error:'Invalid sender'};
     if(request.automatic && (!config.load().watchScreen || !config.load().lookAsked))return {ok:false,code:'disabled'};
     try {
@@ -981,7 +986,7 @@ function registerIpc() {
       return { ok: false, error: err.message };
     }
   });
-  ipcMain.handle('look:say', async (_e, request = {}) => {
+  localizedHandle('look:say', async (_e, request = {}) => {
     if (_e.sender !== overlay?.webContents) return { ok: false, error: 'Invalid sender' };
     if (chats.size) return { ok: false, error: 'Another request is running' };
     const key = Number.isSafeInteger(request.turnId) ? request.turnId : (request.automatic?'auto-look:':'look:') + String(request.id);
@@ -991,7 +996,7 @@ function registerIpc() {
   });
   // how hard the processor works, in %, since the last time she asked (pc.js)
   let cpuBefore = null;
-  ipcMain.handle('pc:cpu', () => {
+  localizedHandle('pc:cpu', () => {
     const now = os.cpus().map(({ times: t }) => ({ idle: t.idle, total: t.user + t.nice + t.sys + t.idle + t.irq }));
     const before = cpuBefore;
     cpuBefore = now;
@@ -1004,31 +1009,31 @@ function registerIpc() {
     return total > 0 ? Math.round(100 * (1 - idle / total)) : null;
   });
   // where her AI runs, for what she tells you before she looks: { local, provider, model }
-  ipcMain.handle('look:where', () => {
+  localizedHandle('look:where', () => {
     const cfg = config.load();
     const model = pickModel(cfg);
     const provider = cfg.provider === 'ollama' && ollama.isCloud(model) ? 'Ollama' : llm.PROVIDERS[cfg.provider]?.label || cfg.provider;
     return { local: llm.isLocal(cfg.provider, cfg, model), provider, model };
   });
-  ipcMain.handle('chat:memory', () => readMemory().history || []);
+  localizedHandle('chat:memory', () => readMemory().history || []);
   ipcMain.on('chat:remember', (_e, history) => Array.isArray(history) && saveMemory({ history }));
   ipcMain.on('chat:ollama', () => shell.openExternal(OLLAMA_SITE));
   // setting her up with buttons (setup.js): Ollama and a model, or a key, or an address
   const progress = (payload) => overlay?.webContents.send('setup:progress', payload);
   let pulling = null; // AbortController of the model being fetched
-  ipcMain.handle('setup:info', async () => {
+  localizedHandle('setup:info', async () => {
     // the free cloud models too, when Ollama is up and you're signed in to it
     const { free } = (await ollama.models().catch(() => null)) ? await refreshCloud() : { free: [] };
     return { models: setup.MODELS, cloud: free, ram: os.totalmem(), keyed: Object.keys(setup.KEY_PAGES) };
   });
-  ipcMain.handle('setup:ollama', () => setup.ollamaState());
-  ipcMain.handle('setup:install', () => setup.installOllama((line) => progress({ kind: 'install', line })));
-  ipcMain.handle('setup:start', async () => {
+  localizedHandle('setup:ollama', () => setup.ollamaState());
+  localizedHandle('setup:install', () => setup.installOllama((line) => progress({ kind: 'install', line })));
+  localizedHandle('setup:start', async () => {
     const res = await setup.startOllama();
     await refreshModels();
     return res;
   });
-  ipcMain.handle('setup:pull', async (_e, name) => {
+  localizedHandle('setup:pull', async (_e, name) => {
     if (!setup.MODELS.some((m) => m.name === name) && !cloud.free.includes(name)) return { ok: false, error: 'unknown model' };
     pulling?.abort();
     const abort = new AbortController();
@@ -1044,7 +1049,7 @@ function registerIpc() {
   });
   ipcMain.on('setup:cancel', () => pulling?.abort());
   // who answers her chat, with its key or address if it needs one: saved, tried, and undone if it fails
-  ipcMain.handle('setup:use', async (_e, { provider, key, url }) => {
+  localizedHandle('setup:use', async (_e, { provider, key, url }) => {
     if (_e.sender !== overlay?.webContents || !llm.PROVIDERS[provider]) return { ok: false, error: 'unknown provider' };
     try {
       if (chats.size) return { ok: false, error: 'Stop the current task before changing provider' };
@@ -1057,7 +1062,7 @@ function registerIpc() {
       // A model list is not evidence that a provider can answer. Probe remote chat once at setup.
       if (!['ollama', 'claude'].includes(provider)) {
         const verified = await require('./chat-runner').runChat({ models: [model, ...available], maxAttempts: 2,
-          request: (model, delta, signal) => llm.chat(provider, trial, { model, messages: [{ role: 'user', content: 'ตอบสั้น ๆ ว่าพร้อม' }] }, delta, signal),
+          request: (model, delta, signal) => llm.chat(provider, trial, { model, messages: [{ role: 'user', content: ui('ตอบสั้น ๆ ว่าพร้อม') }] }, delta, signal),
         });
         model = verified.model;
       }
@@ -1072,43 +1077,43 @@ function registerIpc() {
     }
   });
   ipcMain.on('setup:keyPage', (_e, provider) => setup.KEY_PAGES[provider] && shell.openExternal(setup.KEY_PAGES[provider]));
-  ipcMain.handle('setup:launch', (_e, integration) => setup.launchThroughOllama(integration));
+  localizedHandle('setup:launch', (_e, integration) => setup.launchThroughOllama(integration));
   // closing an app you asked her to close, once you've clicked to confirm (apps.js)
   const appInfo = (app) => app && { name: app.process, label: app.label };
-  ipcMain.handle('apps:list', async () => (await apps.list().catch(() => [])).map(appInfo));
-  ipcMain.handle('apps:find', async (_e, wanted) => appInfo(await apps.find(wanted).catch(() => null)));
-  ipcMain.handle('apps:close', (_e, { name, force }) => apps.close(name, { force }).catch((err) => ({ error: err.message })));
+  localizedHandle('apps:list', async () => (await apps.list().catch(() => [])).map(appInfo));
+  localizedHandle('apps:find', async (_e, wanted) => appInfo(await apps.find(wanted).catch(() => null)));
+  localizedHandle('apps:close', (_e, { name, force }) => apps.close(name, { force }).catch((err) => ({ error: err.message })));
   // opening things you ask her to (launch.js): an app or a game, your music, a website
-  ipcMain.handle('apps:findLaunch', async (_e, text) => {
+  localizedHandle('apps:findLaunch', async (_e, text) => {
     const item = await launch.find(String(text || '')).catch(() => null);
     return item && { ...item, risky: launch.risky(item) }; // a program or a script: behind a button
   });
-  ipcMain.handle('apps:youtube', (_e, query) => launch.youtube(query).catch(() => null));
-  ipcMain.handle('apps:roblox', (_e, query) => launch.roblox(query).catch(() => null));
+  localizedHandle('apps:youtube', (_e, query) => launch.youtube(query).catch(() => null));
+  localizedHandle('apps:roblox', (_e, query) => launch.roblox(query).catch(() => null));
   // your files (files.js): a search, opening what it found, a screenshot, a search on the web
-  ipcMain.handle('files:search', (_e, query) => files.search(query).catch(() => []));
-  ipcMain.handle('files:open', (_e, { file, reveal }) => files.open(String(file), { reveal: Boolean(reveal) }).then(() => true, () => false));
-  ipcMain.handle('files:screenshot', () => files.screenshot(targetDisplay()).catch(() => null));
-  ipcMain.handle('web:search', (_e, query) => {
+  localizedHandle('files:search', (_e, query) => files.search(query).catch(() => []));
+  localizedHandle('files:open', (_e, { file, reveal }) => files.open(String(file), { reveal: Boolean(reveal) }).then(() => true, () => false));
+  localizedHandle('files:screenshot', () => files.screenshot(targetDisplay()).catch(() => null));
+  localizedHandle('web:search', (_e, query) => {
     const q = String(query || '').trim().slice(0, 300);
     if (!q) return false;
     return shell.openExternal(`https://www.google.com/search?q=${encodeURIComponent(q)}`).then(() => true, () => false);
   });
-  ipcMain.handle('apps:launch', (_e, item) => launch.launch(item).then(() => ({ ok: true }), (err) => ({ ok: false, error: err.message })));
-  ipcMain.handle('apps:media', (_e, action) => launch.media(action));
-  ipcMain.handle('media:interpret',async(event,request={})=>{
+  localizedHandle('apps:launch', (_e, item) => launch.launch(item).then(() => ({ ok: true }), (err) => ({ ok: false, error: err.message })));
+  localizedHandle('apps:media', (_e, action) => launch.media(action));
+  localizedHandle('media:interpret',async(event,request={})=>{
     if(event.sender!==overlay?.webContents||chats.size||!Number.isSafeInteger(request.id)||typeof request.text!=='string'||request.text.length>8000)return{ok:false,error:'Invalid or concurrent media interpretation'};
     const abort=new AbortController();chats.set(request.id,abort);
     try{const cfg=config.load();if(cfg.provider==='claude')return{ok:true,route:'legacy'};
       return{ok:true,...await require('./media-interpreter').interpretMedia({text:request.text,previous:request.previous,lang:resolveLang(cfg.lang),signal:abort.signal,request:async(messages,signal)=>{if(!chatModels?.length)await refreshModels();signal.throwIfAborted();return llm.chat(cfg.provider,llmConfig(cfg),{model:pickModel(cfg),messages,jsonMode:true},()=>{},signal);}})};
-    }catch(error){return{ok:false,error:abort.signal.aborted?'หยุดงานแล้ว':error.message};}finally{chats.delete(request.id);}
+    }catch(error){return{ok:false,error:abort.signal.aborted?ui('หยุดงานแล้ว'):error.message};}finally{chats.delete(request.id);}
   });
-  ipcMain.handle('media:run',async(e,request={})=>{
+  localizedHandle('media:run',async(e,request={})=>{
     if(e.sender!==overlay?.webContents||!Number.isSafeInteger(request.id))return{ok:false,text:'Invalid media request'};
-    if(chats.size)return{ok:false,text:'มีงานอื่นกำลังทำอยู่ รอสักครู่ก่อนเล่นเพลง'};
+    if(chats.size)return{ok:false,text:ui('มีงานอื่นกำลังทำอยู่ รอสักครู่ก่อนเล่นเพลง')};
     const {validateMedia,destination,runSpotify}=require('./media-player');let media;
     if(request.autoOpen===true&&config.load().spotifyAutoPlay===false){
-      try{const opened=await require('./launch').site('https://open.spotify.com/');return{ok:opened,text:opened?'เปิด Spotify แล้ว ปิดการเล่นอัตโนมัติไว้':'เปิด Spotify ไม่สำเร็จ'};}catch{return{ok:false,text:'เปิด Spotify ไม่สำเร็จ'};}
+      try{const opened=await require('./launch').site('https://open.spotify.com/');return{ok:opened,text:opened?ui('เปิด Spotify แล้ว ปิดการเล่นอัตโนมัติไว้'):ui('เปิด Spotify ไม่สำเร็จ')};}catch{return{ok:false,text:ui('เปิด Spotify ไม่สำเร็จ')};}
     }
     try{media=validateMedia(request.autoOpen===true?{service:'spotify',action:'play',collection:'current'}:request.media);}catch(error){return{ok:false,text:error.message};}
     const abort=new AbortController();chats.set(request.id,abort);const signal=AbortSignal.any([abort.signal,AbortSignal.timeout(90000)]);
@@ -1118,31 +1123,31 @@ function registerIpc() {
       const nativeRequested=media.player==='desktop'||process.platform==='win32'&&config.load().spotifyDesktop!==false&&(media.collection==='current'||media.collection==='track'&&media.query&&!media.url)&&media.player!=='web'&&request.autoOpen!==true;
       if(nativeRequested){
         if(media.collection==='track'&&media.action==='play'&&media.query&&!media.url)return await require('./windows-spotify-search').searchWindowsSpotify({query:media.query,artist:media.artist,lang:resolveLang(config.load().lang),signal,onProgress,open:uri=>shell.openExternal(uri)});
-        if(media.collection!=='current')return{ok:false,verified:false,text:'แอป Spotify บน Windows รองรับเล่นต่อ หยุด ข้าม เพลงก่อนหน้า และทดลองค้นชื่อเพลงพร้อมศิลปิน การเลือกเพลย์ลิสต์ Liked Songs หรือ URL เพลงยังใช้เว็บ'};
+        if(media.collection!=='current')return{ok:false,verified:false,text:ui('แอป Spotify บน Windows รองรับเล่นต่อ หยุด ข้าม เพลงก่อนหน้า และทดลองค้นชื่อเพลงพร้อมศิลปิน การเลือกเพลย์ลิสต์ Liked Songs หรือ URL เพลงยังใช้เว็บ')};
         return await require('./windows-spotify').runWindowsSpotify({action:media.action,lang:resolveLang(config.load().lang),signal,onProgress,open:()=>shell.openExternal('spotify:')});
       }
       spotifyConnecting=true;
       let browser;
-      try{browser=await require('./spotify-session').connectSpotify({broker:chromeBroker,open:()=>require('./launch').site(destination(media)),signal,alreadyOpened:request.alreadyOpened===true,onProgress});}
+      try{browser=await require('./spotify-session').connectSpotify({broker:chromeBroker,lang:resolveLang(config.load().lang),open:()=>require('./launch').site(destination(media)),signal,alreadyOpened:request.alreadyOpened===true,onProgress});}
       finally{spotifyConnecting=false;}
-      const result=await runSpotify({request:media,browser,signal,onProgress,fallbackTrack:config.load().spotifyLastTrack});
+      const result=await runSpotify({request:media,lang:resolveLang(config.load().lang),browser,signal,onProgress,fallbackTrack:config.load().spotifyLastTrack});
       result.backend='chrome';
       if(result.ok&&result.track&&result.trackUrl){try{const trackURL=new URL(result.trackUrl);trackURL.search='';trackURL.hash='';const last=validateMedia({service:'spotify',action:'play',collection:'track',query:result.track,url:trackURL.href,...(result.artists?.[0]?{artist:result.artists[0]}:{})});config.save({spotifyLastTrack:last});}catch{}}
       if(resolveLang(config.load().lang)==='en'&&result.verified&&media.action==='play')result.text='Spotify playback is advancing '+(result.track?'for “'+result.track+'”. ':'in the current player (track name unavailable). ')+(result.audioVerified?'Chrome reports audio from this tab; speaker output is not verified.':'Audio output could not be verified.');
       return result;
-    }catch(error){return{ok:false,verified:false,text:signal.aborted?'หยุดคำสั่งแล้ว ยังไม่ยืนยันการเล่นเพลง':error.message};}
+    }catch(error){return{ok:false,verified:false,text:signal.aborted?ui('หยุดคำสั่งแล้ว ยังไม่ยืนยันการเล่นเพลง'):error.message};}
     finally{chats.delete(request.id);}
   });
-  ipcMain.handle('apps:music', (_e, query) => launch.music(query).catch(() => false));
-  ipcMain.handle('apps:site', async (_e, address) => {
+  localizedHandle('apps:music', (_e, query) => launch.music(query).catch(() => false));
+  localizedHandle('apps:site', async (_e, address) => {
     if (_e.sender !== overlay?.webContents) return false;
     try {
       const parsed=launch.siteUrl(String(address));
       if(!parsed)return false;
       const url=parsed.href;
       if(automaticActions)return await launch.site(url);
-      const answer = await dialog.showMessageBox(overlay, { type: 'question', message: 'เปิดเว็บไซต์ในเบราว์เซอร์?', detail: url,
-        buttons: ['ยกเลิก', 'เปิดเว็บไซต์'], defaultId: 0, cancelId: 0 });
+      const answer = await dialog.showMessageBox(overlay, { type: 'question', message: ui('เปิดเว็บไซต์ในเบราว์เซอร์?'), detail: url,
+        buttons: [ui('ยกเลิก'), ui('เปิดเว็บไซต์')], defaultId: 0, cancelId: 0 });
       return answer.response === 1 ? await launch.site(url) : false;
     } catch { return false; }
   });
@@ -1154,7 +1159,7 @@ function registerIpc() {
     else overlay.blur();
   });
   // her report card's copy button: a picture of that part of the overlay, on the clipboard
-  ipcMain.handle('panel:copy', async (_e, rect) => {
+  localizedHandle('panel:copy', async (_e, rect) => {
     const image = await overlay.webContents.capturePage(rect);
     if (image.isEmpty()) return false;
     const png = new Blob([image.toPNG()], { type: 'image/png' });
@@ -1163,7 +1168,7 @@ function registerIpc() {
   });
   // her guide: where her tray icon is (it lives in the taskbar, off the overlay, hence overlay
   // coordinates past its edge), and the corner by the clock in case Windows hid it behind the ^
-  ipcMain.handle('guide:tray', () => {
+  localizedHandle('guide:tray', () => {
     const o = overlay.getBounds();
     const d = targetDisplay().bounds;
     const b = tray?.getBounds();
@@ -1172,7 +1177,7 @@ function registerIpc() {
     return { icon, corner };
   });
   // her guide: Claude Code's folder (~/.claude) in Explorer, its settings file selected
-  ipcMain.handle('guide:claudeFolder', () => {
+  localizedHandle('guide:claudeFolder', () => {
     const file = activeHooks().status().file;
     const dir = path.dirname(file);
     if (!fs.existsSync(dir)) return { found: false, dir };
@@ -1180,7 +1185,7 @@ function registerIpc() {
     else shell.openPath(dir);
     return { found: true, dir, file: fs.existsSync(file), label: fs.existsSync(file) ? path.basename(file) : path.basename(dir) };
   });
-  ipcMain.handle('sounds:list', () => {
+  localizedHandle('sounds:list', () => {
     try {
       return fs.readdirSync(userSoundsDir())
         .filter((f) => SOUND_EXT.test(f))

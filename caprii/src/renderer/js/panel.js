@@ -1,3 +1,4 @@
+import {uiText,uiMessage} from './ui-text.js';
 // The transmission panel next to Capri, and the one-line ticker she wears while Claude works.
 
 import { clamp, ease, reducedMotion } from './util.js';
@@ -23,6 +24,8 @@ const DECODE_STEP_MS = 28;
 const COUNT_MS = 700; // her report's numbers counting up
 
 export class Panel {
+  tr(value,slots=[]){return uiText(value,document.documentElement.lang,slots);}
+  errorText(value){return uiMessage(value,document.documentElement.lang);}
   constructor({ panel, ticker, labels }) {
     this.el = panel;
     this.tickerEl = ticker;
@@ -391,7 +394,7 @@ export class Panel {
     this.setFace(face);
     this.quote.textContent = quote;
     this.quote.hidden = !quote;
-    this.line.textContent = 'กำลังประมวลผลคำขอ…';
+    this.line.textContent = this.tr('กำลังประมวลผลคำขอ…');
     this.line.classList.add('is-streaming');
     this.place();
   }
@@ -461,7 +464,7 @@ export class Panel {
     const remove=this.attachmentEl?.querySelector('button');if(remove)remove.disabled=busy;
     if(this.chatVoice)this.chatVoice.disabled=busy;
     this.chatSend.disabled = busy && !this.current?.onStop;
-    if (this.current?.chat) this.chatSend.textContent = busy && this.current.onStop ? 'หยุด' : this.current.chat.send;
+    if (this.current?.chat) this.chatSend.textContent = busy && this.current.onStop ? this.tr('หยุด') : this.current.chat.send;
     if (!busy && this.current?.chat) this.chatInput.focus();
   }
 

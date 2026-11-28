@@ -9,7 +9,7 @@ const DEFAULTS = {
   muted: false,
   volume: 0.7,
   speechThai: false, // optional local OS voice matching selected language
-  lang: 'th',      // primary reply/dialogue language: th or en; auto supports older profiles
+  lang: 'auto',      // primary reply/dialogue language: th or en; auto supports older profiles
   displayId: null,   // null = primary display
   wander: true,      // random teleports when idle
   possess: true,     // now and then she dives into the window she sits on and takes it over
@@ -62,7 +62,8 @@ function file() {
 function load(fresh = false) {
   if (cache && !fresh) return cache;
   try {
-    cache = { ...DEFAULTS, ...JSON.parse(fs.readFileSync(file(), 'utf8')) };
+    const saved=JSON.parse(fs.readFileSync(file(), 'utf8'));
+    cache = { ...DEFAULTS, ...saved,lang:saved.lang||'th' };
   } catch {
     cache = { ...DEFAULTS };
   }

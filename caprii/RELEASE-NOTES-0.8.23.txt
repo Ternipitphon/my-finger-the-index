@@ -1,0 +1,7 @@
+Caprii 0.8.23 — English UI
+
+English primary language now covers first-party menus, permission labels, task progress, chat status and Chrome connection popup. New profiles follow the operating system language; saved language choices are preserved.
+
+User text, song names, filenames, URLs and page contents are not translated. Permission button order and default cancellation remain unchanged. Chrome pairing is retained; reload the unpacked extension once to load its new UI.
+
+Regression checks include Thai and English renderer fixtures, media routing, menu actions, shared translation catalogue, slot/data preservation and permission behavior. Native fixtures do not prove playback on a real Spotify account.

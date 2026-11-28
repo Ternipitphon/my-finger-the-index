@@ -2,9 +2,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 function fixture(autoplay,lang='th',repeatedProgress=0,desktop=false){
  const source=fs.readFileSync(path.join(__dirname,'../src/main/main.js'),'utf8');
- const code=source.slice(source.indexOf("  ipcMain.handle('media:run'"),source.indexOf("  ipcMain.handle('apps:music'"));
+ const code=source.slice(source.indexOf("  localizedHandle('media:run'"),source.indexOf("  localizedHandle('apps:music'"));
  const calls=[],packets=[],sender={},overlay={webContents:sender};sender.send=(_name,packet)=>packets.push(packet);let handle;
  const box={process:{platform:desktop?'win32':'linux'},shell:{openExternal:async uri=>calls.push(['native-open',uri])},ipcMain:{handle:(_,f)=>handle=f},overlay,chromeBroker:{},chats:new Map(),spotifyConnecting:false,AbortController,AbortSignal,Number,URL,resolveLang:()=>lang,config:{load:()=>({spotifyAutoPlay:autoplay}),save(){}},require:name=>name==='./windows-spotify'?{runWindowsSpotify:async r=>{calls.push(['native',r.action]);return{ok:true,verified:true,backend:'windows-smtc',text:'fixture native status'};}}:name==='./media-player'?{...require('../src/main/media-player'),runSpotify:async({request})=>{calls.push(['play',request]);return{ok:true,verified:true};}}:name==='./launch'?{site:async url=>{calls.push(['open',url]);return true;}}:name==='./spotify-session'?{connectSpotify:async({open,onProgress})=>{for(let i=0;i<repeatedProgress;i++)onProgress('waiting');await open();return{};}}:(()=>{throw Error('Unexpected module '+name);})()};
+ box.localizedHandle=box.ipcMain.handle;box.ui=(value,slots=[])=>require('../src/renderer/js/ui-catalog').text(value,lang,slots);box.uiMessage=value=>require('../src/renderer/js/ui-catalog').message(value,lang);
  vm.runInNewContext(code,box);return{calls,packets,run:r=>handle({sender},r)};
 }
 test('Spotify opening uses the backend autoplay default and opens/plays without generic website dialog',async()=>{

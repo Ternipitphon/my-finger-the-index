@@ -1,3 +1,4 @@
+import {uiText,uiMessage} from './ui-text.js';
 import { needsMediaInterpretation } from './media-interpretation.js';
 import { needsInterpretation } from './task-interpretation.js';
 import {mediaCommand} from './media-command.js';
@@ -149,6 +150,8 @@ const TINY = /[:-](0\.5b|1b|1\.5b|135m|270m|360m)\b/i;
 const MOOD_FACE = { angry: 'many', sulk: 'aside', dizzy: 'wide', thrown: 'wide', jealous: 'look', fun: 'laugh', happy: 'laugh', forgiven: 'smug' };
 
 export class Chat {
+  tr(value,slots=[]){return uiText(value,this.brain.lang,slots);}
+  errorText(value){return uiMessage(value,this.brain.lang);}
   constructor({ capri, panel, voice, host, brain }) {
     this.capri = capri;
     this.panel = panel;
@@ -193,14 +196,14 @@ export class Chat {
     capri.wake();
     const ticket=Symbol('opening-chat');this.starting=ticket;
     let waiting=true,timer;
-    const pending=this.panel.say({kind:'chat',badge:t.badge,line:this.brain.lang==='en'?'Opening chat…':'กำลังเปิดช่องคุย…',hold:null,onLeave:()=>{
+    const pending=this.panel.say({kind:'chat',badge:t.badge,line:this.brain.lang==='en'?'Opening chat…':this.tr('กำลังเปิดช่องคุย…'),hold:null,onLeave:()=>{
       if(waiting&&this.starting===ticket){this.starting=null;host.focusOverlay(false);}
     }});
     if(!pending){this.starting=null;return;}
     host.focusOverlay(true);
     let status;
-    try{status=await Promise.race([host.chatStatus(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('ตรวจการเชื่อมต่อ AI นานเกินไป ลองเปิดคุยอีกครั้ง')),15000);})]);}
-    catch(error){status={ok:false,error:error.message||'เปิดแชตไม่สำเร็จ'};}
+    try{status=await Promise.race([host.chatStatus(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(this.tr('ตรวจการเชื่อมต่อ AI นานเกินไป ลองเปิดคุยอีกครั้ง'))),15000);})]);}
+    catch(error){status={ok:false,error:this.errorText(error.message)||this.tr('เปิดแชตไม่สำเร็จ')};}
     finally{clearTimeout(timer);}
     if(this.starting!==ticket)return;
     if(!status.ok){waiting=false;this.starting=null;this.panel.hide();host.focusOverlay(false);}
@@ -267,9 +270,9 @@ export class Chat {
       onVoice:async()=>{
         if(this.turn||!this.open)return;
         this.panel.onSilence?.();
-        const result=await this.host.dictate().catch(()=>({error:'เปิดการพิมพ์ด้วยเสียงไม่สำเร็จ'}));
-        if(result.error)this.panel.stream(result.error,{done:true});
-        else if(result.requested)this.panel.stream('ส่งคำขอเปิด Windows Voice Typing แล้ว ตรวจข้อความในช่อง หยุดไมค์ด้วย Win+H แล้วกดส่ง',{done:true,speak:false});
+        const result=await this.host.dictate().catch(()=>({error:this.tr('เปิดการพิมพ์ด้วยเสียงไม่สำเร็จ')}));
+        if(this.errorText(result.error))this.panel.stream(this.errorText(result.error),{done:true});
+        else if(result.requested)this.panel.stream(this.tr('ส่งคำขอเปิด Windows Voice Typing แล้ว ตรวจข้อความในช่อง หยุดไมค์ด้วย Win+H แล้วกดส่ง'),{done:true,speak:false});
       },
       onAttach:()=>this.chooseImage(false),
       onPasteImage:()=>this.chooseImage(true),
@@ -324,11 +327,11 @@ export class Chat {
     }
     let semantic=null;
     if(this.host.commandInterpret&&!this.agent){
-      this.panel.stream(this.brain.lang==='en'?'Thinking…':'กำลังคิด…');
+      this.panel.stream(this.brain.lang==='en'?'Thinking…':this.tr('กำลังคิด…'));
       const prior=this.history.slice(0,-1).filter(m=>m.role==='user').at(-1)?.content||'';
-      try{semantic=await this.host.commandInterpret({id,text,previous:typeof prior==='string'?prior:'',media:this.lastMedia||null,history:this.history.slice(-REMEMBER,-1)});}catch{semantic={ok:false,error:this.brain.lang==='en'?'Could not understand the request. No action was sent.':'ยังตีความคำขอไม่สำเร็จ ยังไม่ได้สั่งงานครับ'};}
+      try{semantic=await this.host.commandInterpret({id,text,previous:typeof prior==='string'?prior:'',media:this.lastMedia||null,history:this.history.slice(-REMEMBER,-1)});}catch{semantic={ok:false,error:this.brain.lang==='en'?'Could not understand the request. No action was sent.':this.tr('ยังตีความคำขอไม่สำเร็จ ยังไม่ได้สั่งงานครับ')};}
       if(this.turn!==id||!this.open)return;
-      if(!semantic.ok||semantic.route==='clarify'){this.panel.stream(semantic.question||semantic.error,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
+      if(!semantic.ok||semantic.route==='clarify'){this.panel.stream(semantic.question||this.errorText(semantic.error),{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
       if(semantic.route==='chat'){
         this.lastMedia=null;
         if(typeof semantic.reply!=='string'||!semantic.reply.trim()){this.panel.stream(this.t.failed,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
@@ -338,7 +341,7 @@ export class Chat {
       if(semantic.route==='look'){this.lastMedia=null;return this.sendLook(text,id);}
       if(['agent','selected-tab','public-web'].includes(semantic.route)){
         this.lastMedia=null;
-        try{const r=await this.host.agentRun({id,goal:semantic.goal,previousInstruction:semantic.previousInstruction,scope:semantic.route==='agent'?undefined:semantic.route});if(this.turn===id)this.panel.stream(r.ok?r.text:`${this.t.failed} ${r.error}`,{done:true});}
+        try{const r=await this.host.agentRun({id,goal:semantic.goal,previousInstruction:semantic.previousInstruction,scope:semantic.route==='agent'?undefined:semantic.route});if(this.turn===id)this.panel.stream(r.ok?r.text:`${this.t.failed} ${this.errorText(r.error)}`,{done:true});}
         catch{if(this.turn===id)this.panel.stream(this.t.failed,{done:true});}
         finally{if(this.turn===id){this.turn=0;this.panel.setChatBusy(false);}}return;
       }
@@ -347,10 +350,10 @@ export class Chat {
     // line about it comes under her answer (Claude Code, answering her chat, does things its own way)
     let media=semantic?(semantic.route==='media'?semantic.media:null):mediaCommand(text,this.lastMedia||null),mediaChatOnly=semantic?.route==='chat';
     if(!semantic&&this.host.mediaInterpret&&!siteCommand(text)&&needsMediaInterpretation(text,this.lastMedia)){
-      this.panel.stream(this.brain.lang==='en'?'Understanding your music request…':'กำลังตีความคำสั่งเพลง…');
-      let interpreted;try{interpreted=await this.host.mediaInterpret({id,text,previous:this.lastMedia||null});}catch{interpreted={ok:false,error:this.brain.lang==='en'?'Could not understand the music request. No playback command was sent.':'ตีความคำสั่งเพลงไม่สำเร็จ ยังไม่ได้สั่งเล่นครับ'};}
+      this.panel.stream(this.brain.lang==='en'?'Understanding your music request…':this.tr('กำลังตีความคำสั่งเพลง…'));
+      let interpreted;try{interpreted=await this.host.mediaInterpret({id,text,previous:this.lastMedia||null});}catch{interpreted={ok:false,error:this.brain.lang==='en'?'Could not understand the music request. No playback command was sent.':this.tr('ตีความคำสั่งเพลงไม่สำเร็จ ยังไม่ได้สั่งเล่นครับ')};}
       if(this.turn!==id||!this.open)return;
-      if(!interpreted.ok||interpreted.route==='clarify'){this.panel.stream(interpreted.question||interpreted.error,{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
+      if(!interpreted.ok||interpreted.route==='clarify'){this.panel.stream(interpreted.question||this.errorText(interpreted.error),{done:true});this.turn=0;this.panel.setChatBusy(false);return;}
       if(interpreted.route!=='legacy'){media=interpreted.route==='media'?interpreted.media:null;mediaChatOnly=interpreted.route==='chat';}
     }
     if(!media||media.question)this.lastMedia=null;
@@ -360,7 +363,7 @@ export class Chat {
         this.lastMedia=media;
         if(media.action==='search'){
           const opened=await this.host.openSite(media.url);
-          this.panel.stream(opened?(this.brain.lang==='en'?`Sent search results for “${media.query}” to your browser.`:`ส่งคำขอเปิดผลค้นหา “${media.query}” ใน ${media.service==='youtube'?'YouTube':'Spotify'} แล้ว`):'ยังไม่ได้เปิดผลค้นหา — ถูกยกเลิกหรือเปิดไม่สำเร็จ',{done:true});
+          this.panel.stream(opened?(this.brain.lang==='en'?`Sent search results for “${media.query}” to your browser.`:this.tr("ส่งคำขอเปิดผลค้นหา “{0}” ใน {1} แล้ว",[media.query,media.service==='youtube'?'YouTube':'Spotify'])):this.tr('ยังไม่ได้เปิดผลค้นหา — ถูกยกเลิกหรือเปิดไม่สำเร็จ'),{done:true});
         }else{
           const result=await this.host.mediaRun({id,media});
           if(this.turn!==id||!this.open)return;
@@ -368,7 +371,7 @@ export class Chat {
           if(result.clarification)this.lastMedia={...this.lastMedia,awaiting:result.clarification,choices:result.choices||[]};
           if(this.turn===id)this.panel.stream(result.text+(result.choices?.length?'\n'+result.choices.map(x=>typeof x==='string'?x:x.title+(x.artists?.length?' — '+x.artists.join(', '):'')).join('\n'):''),{done:true});
         }
-      }catch(error){if(this.turn===id)this.panel.stream('คำสั่งสื่อยังไม่สำเร็จ: '+error.message,{done:true});}
+      }catch(error){if(this.turn===id)this.panel.stream('คำสั่งสื่อยังไม่สำเร็จ: '+this.errorText(error.message),{done:true});}
       finally{if(this.turn===id){this.turn=0;this.panel.setChatBusy(false);}}
       return;
     }
@@ -386,9 +389,9 @@ export class Chat {
         if(opened&&new URL(website.url).hostname==='open.spotify.com'){
           this.lastMedia={service:'spotify',action:'play',collection:'current',player:'web'};
         }
-        if (this.turn === id) this.panel.stream(this.brain.lang==='en'?(opened?`Sent ${website.name} to your default browser.`:`${website.name} was not opened — canceled or failed.`):(opened ? `ส่งคำขอเปิด ${website.name} ในเบราว์เซอร์แล้ว` : `ยังไม่ได้เปิด ${website.name} — ถูกยกเลิกหรือเปิดไม่สำเร็จ`), { done: true });
+        if (this.turn === id) this.panel.stream(this.brain.lang==='en'?(opened?`Sent ${website.name} to your default browser.`:`${website.name} was not opened — canceled or failed.`):(opened ? this.tr("ส่งคำขอเปิด {0} ในเบราว์เซอร์แล้ว",[website.name]) : this.tr("ยังไม่ได้เปิด {0} — ถูกยกเลิกหรือเปิดไม่สำเร็จ",[website.name])), { done: true });
       } catch {
-        if (this.turn === id) this.panel.stream('เปิดเว็บไซต์ไม่สำเร็จ กรุณาตรวจข้อความผิดพลาด', { done: true });
+        if (this.turn === id) this.panel.stream(this.tr('เปิดเว็บไซต์ไม่สำเร็จ กรุณาตรวจข้อความผิดพลาด'), { done: true });
       } finally { if (this.turn === id) { this.turn = 0; this.panel.setChatBusy(false); } }
       return;
     }
@@ -400,7 +403,7 @@ export class Chat {
     if (!semantic&&!mediaChatOnly&&(publicTask || resolved?.goal || /^\/agent\s+/i.test(text) || screenIntent(text) === 'agent' || actionCommand(text))) {
       try {
         const res = await this.host.agentRun({ id, scope:browserTask?.scope||(publicTask?'public-web':undefined), goal: publicTask || resolved?.goal || text.replace(/^\/agent\s+/i, '') });
-        if (this.turn === id) this.panel.stream(res.ok ? res.text : `${this.t.failed} ${res.error}`, { done: true });
+        if (this.turn === id) this.panel.stream(res.ok ? res.text : `${this.t.failed} ${this.errorText(res.error)}`, { done: true });
       } catch {
         if (this.turn === id) this.panel.stream(this.t.failed, { done: true });
       } finally {
@@ -409,16 +412,16 @@ export class Chat {
       return;
     }
     if(!semantic&&!mediaChatOnly&&!this.agent&&this.host.taskInterpret&&needsInterpretation(text)){
-      this.panel.stream(this.brain.lang==='en'?'Understanding your task…':'กำลังทำความเข้าใจคำสั่ง…');
+      this.panel.stream(this.brain.lang==='en'?'Understanding your task…':this.tr('กำลังทำความเข้าใจคำสั่ง…'));
       let inferred;
       try{inferred=await this.host.taskInterpret({id,text,previous:typeof previous==='string'?previous:''});}
-      catch{inferred={ok:false,error:'ตีความคำสั่งไม่สำเร็จ ลองระบุงานกับเป้าหมายให้ชัดเจนครับ'};}
+      catch{inferred={ok:false,error:this.tr('ตีความคำสั่งไม่สำเร็จ ลองระบุงานกับเป้าหมายให้ชัดเจนครับ')};}
       if(this.turn!==id||!this.open)return;
       if(!inferred.ok||inferred.route==='clarify'){
-        this.panel.stream(inferred.question||inferred.error,{done:true});this.turn=0;this.panel.setChatBusy(false);return;
+        this.panel.stream(inferred.question||this.errorText(inferred.error),{done:true});this.turn=0;this.panel.setChatBusy(false);return;
       }
       if(['agent','selected-tab','public-web'].includes(inferred.route)){
-        try{const res=await this.host.agentRun({id,goal:inferred.goal,previousInstruction:inferred.previousInstruction,scope:inferred.route==='agent'?undefined:inferred.route});if(this.turn===id)this.panel.stream(res.ok?res.text:`${this.t.failed} ${res.error}`,{done:true});}
+        try{const res=await this.host.agentRun({id,goal:inferred.goal,previousInstruction:inferred.previousInstruction,scope:inferred.route==='agent'?undefined:inferred.route});if(this.turn===id)this.panel.stream(res.ok?res.text:`${this.t.failed} ${this.errorText(res.error)}`,{done:true});}
         catch{if(this.turn===id)this.panel.stream(this.t.failed,{done:true});}
         finally{if(this.turn===id){this.turn=0;this.panel.setChatBusy(false);}}
         return;
@@ -444,7 +447,7 @@ export class Chat {
     const slow = wait && setTimeout(() => {
       if (this.turn === id && !this.answer) this.panel.stream(wait);
     }, LOADING_AFTER_MS);
-    const res = await this.host.chatSend({ id, messages }).catch(() => ({ ok: false, error: 'เชื่อมต่อแอปไม่ได้ กรุณาลองใหม่' }));
+    const res = await this.host.chatSend({ id, messages }).catch(() => ({ ok: false, error: this.tr('เชื่อมต่อแอปไม่ได้ กรุณาลองใหม่') }));
     clearTimeout(slow);
     if (this.turn !== id) {
       // closed meanwhile: your message goes too, or the next answer would answer it as well
@@ -456,7 +459,7 @@ export class Chat {
       this.history.pop();
       this.panel.setFace('wide');
       // too busy or gone even after trying other models (main.js): said plainly, not the server's JSON
-      this.panel.stream(res.code === 'busy' ? this.t.swamped : res.code === 'gone' ? this.t.gone : `${this.t.failed} ${res.error}`, { done: true });
+      this.panel.stream(res.code === 'busy' ? this.t.swamped : res.code === 'gone' ? this.t.gone : `${this.t.failed} ${this.errorText(res.error)}`, { done: true });
       this.panel.setChatBusy(false);
       return;
     }
@@ -475,19 +478,19 @@ export class Chat {
     this.choosingImage=true;
     try{const result=await (paste?this.host.chatPasteImage():this.host.chatPickImage());
       if(result.ok){if(!this.open||this.turn){this.host.chatRemoveImage(result.attachment.id);return;}this.attachment=result.attachment;this.panel.setAttachment?.(this.attachment);}
-      else if(!result.canceled)this.panel.stream(result.error||'แนบรูปไม่สำเร็จ',{done:true,speak:false});
-    }catch{this.panel.stream('แนบรูปไม่สำเร็จ กรุณาลองใหม่',{done:true,speak:false});}
+      else if(!result.canceled)this.panel.stream(this.errorText(result.error)||this.tr('แนบรูปไม่สำเร็จ'),{done:true,speak:false});
+    }catch{this.panel.stream(this.tr('แนบรูปไม่สำเร็จ กรุณาลองใหม่'),{done:true,speak:false});}
     finally{this.choosingImage=false;}
   }
   removeImage(){if(this.attachment)this.host.chatRemoveImage?.(this.attachment.id);this.attachment=null;this.panel.setAttachment?.(null);}
   async sendImage(text){
-    const attachment=this.attachment,id=Date.now(),prompt=text.trim()||(this.brain.lang==='en'?'Describe the attached image.':'ช่วยอธิบายรูปที่แนบนี้เป็นภาษาไทย');
+    const attachment=this.attachment,id=Date.now(),prompt=text.trim()||(this.brain.lang==='en'?'Describe the attached image.':this.tr('ช่วยอธิบายรูปที่แนบนี้เป็นภาษาไทย'));
     this.turn=id;this.answer='';this.panel.setChatBusy(true);this.panel.setActions([]);this.panel.chatTurn({quote:'[รูป: '+attachment.name+'] '+prompt,face:'look'});this.capri.pulse();
     this.history.push({role:'user',content:'[แนบรูป: '+attachment.name+'] '+prompt});
-    const result=await this.host.chatImageSend({id,attachmentId:attachment.id,prompt,persona:this.lookPersona()}).catch(()=>({ok:false,error:'เชื่อมต่อแอปไม่ได้ กรุณาลองใหม่'}));
+    const result=await this.host.chatImageSend({id,attachmentId:attachment.id,prompt,persona:this.lookPersona()}).catch(()=>({ok:false,error:this.tr('เชื่อมต่อแอปไม่ได้ กรุณาลองใหม่')}));
     if(this.turn!==id)return;
     this.turn=0;this.panel.setChatBusy(false);
-    if(!result.ok){this.history.pop();this.panel.stream(result.error||'วิเคราะห์รูปไม่สำเร็จ',{done:true});return;}
+    if(!result.ok){this.history.pop();this.panel.stream(this.errorText(result.error)||this.tr('วิเคราะห์รูปไม่สำเร็จ'),{done:true});return;}
     this.attachment=null;this.panel.setAttachment?.(null);const answer=clean(result.text)||'…';this.remember({role:'assistant',content:answer});this.panel.stream(answer,{done:true});this.panel.setFace(mood(answer));this.warm=true;
   }
 
@@ -519,12 +522,12 @@ export class Chat {
       });
       return;
     }
-    this.panel.stream(/[\u0E00-\u0E7F]/.test(text) ? 'กำลังจับภาพหน้าจอ…' : 'Capturing the screen…');
+    this.panel.stream(/[\u0E00-\u0E7F]/.test(text) ? this.tr('กำลังจับภาพหน้าจอ…') : 'Capturing the screen…');
     const snap = await this.host.lookSnap().catch(() => ({ ok: false, error: 'Screen capture failed' }));
     if (this.turn !== id) return;
-    if (!snap.ok) return say(fmt(tl.failed, { error: snap.error }));
+    if (!snap.ok) return say(fmt(tl.failed, { error: this.errorText(snap.error) }));
     this.look.effect();
-    this.panel.stream(/[\u0E00-\u0E7F]/.test(text) ? 'ได้รับภาพแล้ว กำลังส่งให้ AI วิเคราะห์…' : 'Screen captured. Analyzing the image…');
+    this.panel.stream(/[\u0E00-\u0E7F]/.test(text) ? this.tr('ได้รับภาพแล้ว กำลังส่งให้ AI วิเคราะห์…') : 'Screen captured. Analyzing the image…');
     const res = await this.host.lookSay({
       id: snap.id,
       turnId: id,
@@ -534,7 +537,7 @@ export class Chat {
     });
     if (!res.ok) {
       const model = String(res.model || '…').replace(/:latest$/, '');
-      return say(res.code === 'novision' ? fmt(tl.noVision, { model }) : res.code === 'noai' ? tl.noAI : fmt(tl.failed, { error: res.error || '…' }));
+      return say(res.code === 'novision' ? fmt(tl.noVision, { model }) : res.code === 'noai' ? tl.noAI : fmt(tl.failed, { error: this.errorText(res.error) || '…' }));
     }
     const answer = clean(res.text).replace(/^["“«]\s*|\s*["”»]$/g, '') || '…';
     this.seen = { text: answer, at: Date.now() };
@@ -693,7 +696,7 @@ export class Chat {
     this.zap();
     const res = await this.host.launch(item);
     const name = this.nameOf(item);
-    return { line: res.ok ? fmt(this.t.opened, { app: name }) : `${this.t.failed} ${res.error}`, face: res.ok ? 'laugh' : 'aside' };
+    return { line: res.ok ? fmt(this.t.opened, { app: name }) : `${this.t.failed} ${this.errorText(res.error)}`, face: res.ok ? 'laugh' : 'aside' };
   }
 
   // how she calls it: a folder like Downloads in her words, anything else by its name
@@ -787,7 +790,7 @@ export class Chat {
     this.panel.setActions([]);
     this.zap();
     const res = await this.host.launch(item);
-    this.addLine(answer, res.ok ? fmt(t.opened, { app: this.nameOf(item) }) : `${t.failed} ${res.error}`, res.ok ? 'laugh' : 'aside');
+    this.addLine(answer, res.ok ? fmt(t.opened, { app: this.nameOf(item) }) : `${t.failed} ${this.errorText(res.error)}`, res.ok ? 'laugh' : 'aside');
   }
 
   async playOn(song, answer) {
@@ -867,14 +870,14 @@ export class Chat {
     const res = await this.host.closeApp(app.name, force);
     if (!this.open) return;
     let line;
-    if (res.error) line = `${t.failed} ${res.error}`;
+    if (this.errorText(res.error)) line = `${t.failed} ${this.errorText(res.error)}`;
     else if (!res.running) line = fmt(force ? t.forced : t.closed, { app: app.name });
     else line = fmt(force ? t.unkillable : t.stillOpen, { app: app.name });
-    this.panel.setFace(res.running || res.error ? 'aside' : 'laugh');
+    this.panel.setFace(res.running || this.errorText(res.error) ? 'aside' : 'laugh');
     this.panel.stream(line, { done: true });
     this.remember({ role: 'assistant', content: line });
     // it hid in the tray, or it's asking you to save something: forcing it is your call
-    if (res.running && !force && !res.error) {
+    if (res.running && !force && !this.errorText(res.error)) {
       this.panel.setActions(
         [{ id: 'force', label: t.force, primary: true }, { id: 'leave', label: t.leave }],
         (id) => (id === 'force' ? this.closeApp(app, true) : this.panel.setActions([])),

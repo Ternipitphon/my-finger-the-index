@@ -2,8 +2,9 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 function fixture(results,{lang='th',cfg={}}={}){
  const source=fs.readFileSync(path.join(__dirname,'../src/main/main.js'),'utf8'),calls=[],sender={},chats=new Map();let handler;
- const code=source.slice(source.indexOf("  ipcMain.handle('command:interpret'"),source.indexOf("  ipcMain.handle('task:interpret'"));
+ const code=source.slice(source.indexOf("  localizedHandle('command:interpret'"),source.indexOf("  localizedHandle('task:interpret'"));
  const box={ipcMain:{handle:(_,f)=>handler=f},overlay:{webContents:sender},chats,AbortController,AbortSignal,Number,Promise,config:{load:()=>({provider:'gemini',personalityStyle:'playful',userName:'Test',...cfg})},chromeBroker:{status:()=>({connected:true})},chatModels:['fixture'],refreshModels:async()=>{},pickModel:()=> 'fixture',resolveLang:()=>lang,llmConfig:()=>({}),llm:{chat:async(_p,_c,args)=>{calls.push(args);const next=results.shift();if(next instanceof Error)throw next;return next;}},require:n=>require(path.join(__dirname,'../src/main',n))};
+ box.localizedHandle=box.ipcMain.handle;box.ui=(value,slots=[])=>require('../src/renderer/js/ui-catalog').text(value,lang,slots);box.uiMessage=value=>require('../src/renderer/js/ui-catalog').message(value,lang);
  vm.runInNewContext(code,box);return{calls,chats,run:r=>handler({sender},{id:1,text:'สวัสดี',...r})};
 }
 test('real decision IPC answers ordinary chat with one model call and profile/history in the same request',async()=>{
