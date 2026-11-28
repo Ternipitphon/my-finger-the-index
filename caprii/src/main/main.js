@@ -16,7 +16,15 @@ const uiCatalog=require('../renderer/js/ui-catalog');
 const ui=(value,slots=[])=>uiCatalog.text(value,resolveLang(config.load().lang),slots);
 const uiMessage=value=>uiCatalog.message(value,resolveLang(config.load().lang));
 const dialog=uiCatalog.localizeDialog(nativeDialog,()=>resolveLang(config.load().lang));
-function localizedHandle(channel,handler){return ipcMain.handle(channel,async(...args)=>{const r=await handler(...args);if(!r||typeof r!=='object'||Array.isArray(r))return r;const output={...r};if(typeof r.error==='string')output.error=uiMessage(r.error);if(channel==='media:run'&&typeof r.text==='string')output.text=uiMessage(r.text);return output;});}
+function localizedHandle(channel,handler){return ipcMain.handle(channel,async(...args)=>{const r=await handler(...args);if(!r||typeof r!=='object'||Array.isArray(r))return r;const output={...r};if(typeof r.error==='string')output.error=uiMessage(r.error);if(channel==='media:run'&&typeof r.text==='string'){
+ output.text=uiMessage(r.text);
+ const event=args[0],request=args[1]||{},cfg=config.load();
+ if(event.sender===overlay?.webContents&&output.ok&&output.verified&&(request.media?.action==='play'||request.autoOpen===true)&&!chats.size){
+  const controller=new AbortController();chats.set(request.id,controller);
+  try{return await require('./result-speech').resultSpeech({result:output,media:request.media||{action:'play'},config:cfg,lang:resolveLang(cfg.lang),signal:controller.signal,request:(messages,signal)=>llm.chat(cfg.provider,llmConfig(cfg),{model:pickModel(cfg),messages,jsonMode:true},()=>{},signal)});}
+  finally{if(chats.get(request.id)===controller)chats.delete(request.id);}
+ }
+}return output;});}
 const { TRAY, LANGS } = require('./labels');
 const { createBridge } = require('./bridge');
 const { startWindowWatch } = require('./windows');

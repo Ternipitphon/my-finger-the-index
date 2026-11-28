@@ -1,0 +1,7 @@
+Caprii 0.8.24 — Expressive playback reactions
+
+Verified Spotify play results can now be phrased by the selected AI in the selected personality and language, rather than always displaying the same diagnostic line. General AI response guidance also allows situational emotion without forced jokes.
+
+Presentation runs only after verified playback, has no tools, receives only track/artist/status facts, preserves track names and an immutable speaker-output caveat, and retains the original evidence separately. One extra AI request, bounded to 5 seconds, is used; invalid output, missing uncertainty, errors, timeout or cancellation falls back to the original tool result. Failed, unverified and pause/skip results are not rewritten. This does not prove audible sound or fine-tune a model.
+
+Existing permissions, pairing and media execution remain unchanged. Playback fixtures do not replace a real Spotify account test.
